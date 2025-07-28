@@ -12,6 +12,45 @@ public class Data
 	 and we can optimize the functions by making a method for a specific dimension.
 	 */
 	// for this data, (view, broadcast, reshape and transpose) is enough.
+	/*
+	 there are mothods that use axes to di their function.
+	 when that happens, to iterate over a specific axis use strides.
+	 example.
+	 a = [[1,2,3],[4,5,6]];
+	 a.shape = [2,3]
+	 a.strides = [3,1];
+	 axes[0] jumps using stride[0] = 3.
+	 for(int i=0;i<a.shape[0];i++)
+	 a[strides[0 * i] = 5;
+
+	 >>  print(a)
+	 >> [[5,2,3],[5,5,6]];
+	 //////// !!!!! ///////
+	 this stride also used for slicing. 
+	 example.
+	 a = [[1,2,3],[4,5,6]];
+	 a.shape = [2,3]
+	 a.strides = [3,1];
+	 // now let's slice into othet dim.
+	 b = a[:1]
+	 >> b
+	 >> [2,5]
+	 >> b.shape => [2]
+	 >> b.strides => [3]
+	 >> offset => 1.
+	 */
+	// new methods to add.
+	/*
+	 public Data get(int...index){
+	 return ...;
+	 }
+	 public void set(Data d,int...index){
+	 ....
+	 }
+	 public Data slice(Range...ranges){
+	 return ...;
+	 }
+	 */
 	public int[] shape;
 	public int[] strides;
 	public int length;
@@ -78,6 +117,11 @@ public class Data
 	{
 		params = prms;
 	}
+	public Data detachGradient()
+	{
+		Data d=new Data(Arrays.copyOf(gradient, gradient.length), shape);
+		return d;
+	}
 	public void backward()
 	{
 		if (gradientFunction == null)
@@ -88,7 +132,29 @@ public class Data
 		for (Data arr:childs)
 			arr.backward();
 	}
+	public float getGrad(int...index)
+	{
+		int ind=Math.max(0, shapeToIndex(index));
+		return gradient[ind];
+	}
+	public void setGrad(int[]index, float val)
+	{
+		int ind=shapeToIndex(index);
+		gradient[ind] += val;
+	}
+	public void fillGrad(float v)
+	{
+		Arrays.fill(gradient, v);
+	}
+	public void zeroGrad()
+	{
+		Arrays.fill(gradient, 0);
+	}
 	// end gradients.
+	public void fill(float v)
+	{
+		Arrays.fill(data, v);
+	}
 	public int shapeToIndex(int...index)
 	{
 		int newPos=0;

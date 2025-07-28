@@ -1,10 +1,9 @@
 import gss.act.*;
 import gss.arr.*;
 import gss.layers.*;
-import java.util.*;
+import gss.lossfunctions.*;
 
 import static gss.Util.*;
-import gss.lossfunctions.*;
 
 public class Main
 {
@@ -20,6 +19,30 @@ public class Main
 	{
 
 
+	}
+	void test8()
+	{
+		System.out.println(decString("Test 8.0 Gradient function test.", "=", 10));
+		System.out.println("=== tested on additionGradientTest");
+		Data d1=NDArray.arange(20).reshapeLocal(2, 10).setRequiresGradient(true);
+		Data d2=NDArray.arange(10).setRequiresGradient(true);
+
+		Data d3=NDArray.add(d1, d2);
+
+		System.out.println(d3);
+		System.out.println(d3.gradientFunction);
+		d3.printArray();
+		System.out.println(line(30));
+
+		d3.fillGrad(3);
+		d3.backward();
+
+		d1.detachGradient().printArray();
+		System.out.println(line(10));
+		d2.detachGradient().printArray();
+		d2.zeroGrad();
+		System.out.println("after zero gradient");
+		d2.detachGradient().printArray();
 	}
 	void test7()
 	{

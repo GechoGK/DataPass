@@ -70,7 +70,9 @@ public class NDArray
 	public static Data add(Data d1, Data d2)
 	{
 		int[] sh=getCommonShape(d1.shape, d2.shape);
-		Data res=new Data(sh);
+		Data res=new Data(sh).setRequiresGradient(d1.requiresGradient() | d2.requiresGradient());
+		if (res.requiresGradient())
+			res.setGradientFunction(GradFunc.additionGradient, d1, d2);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
