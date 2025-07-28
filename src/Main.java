@@ -1,6 +1,7 @@
-import static gss.Util.*;
 import gss.arr.*;
 import gss.layers.*;
+
+import static gss.Util.*;
 
 public class Main
 {
@@ -14,6 +15,21 @@ public class Main
 	}
 	void a()
 	{
+
+
+	}
+	void test5()
+	{
+		System.out.println(decString("Test 5.0 Conv1d layer test.", "=", 10));
+		Data d1=NDArray.arange(12 * 2).reshapeLocal(2, 12);
+		System.out.println(d1);
+		d1.printArray();
+		System.out.println(line(30));
+
+		Conv1d c1=new Conv1d(12, 2, 5, 3);
+		Data out=c1.forward(d1);
+		System.out.println(out);
+		out.printArray();
 
 
 	}
