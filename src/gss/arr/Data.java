@@ -16,6 +16,11 @@ public class Data
 	public int[] strides;
 	public int length;
 	public float[] data;
+	public float[] gradient;
+	private boolean requiresGradient=false;
+	public List<Data> childs = new ArrayList<>();
+	public Object params=null;
+	public GradFunc gradientFunction;
 
 	public Data(int...shape)
 	{
@@ -49,6 +54,41 @@ public class Data
 		if (length != data.length)
 			throw new RuntimeException("invalid shape or data. they are not equal in length.");
 	}
+	// gradient area.
+	public Data setRequiresGradient(boolean enableGrad)
+	{
+		this.requiresGradient = enableGrad;
+		if (enableGrad)
+			gradient = new float[data.length];
+		return this;
+	}
+	public boolean requiresGradient()
+	{
+		return requiresGradient;
+	}
+	public Data setGradientFunction(GradFunc func, Data...chlds)
+	{
+		this.gradientFunction = func;
+		this.childs.clear();
+		for (Data ar:chlds)
+			this.childs.add(ar);
+		return this;
+	}
+	public void setGradientParams(Object prms)
+	{
+		params = prms;
+	}
+	public void backward()
+	{
+		if (gradientFunction == null)
+			return;
+		// throw new RuntimeException("gradient function not found = " + gradientFunction);
+		// System.out.println("backward " + gradientFunction);
+		gradientFunction.backward(this, childs.toArray(new Data[0]), params);
+		for (Data arr:childs)
+			arr.backward();
+	}
+	// end gradients.
 	public int shapeToIndex(int...index)
 	{
 		int newPos=0;
