@@ -15,32 +15,33 @@ public class MultiLabelBinaryCrossEntropy extends LossFunc
 	@Override
 	public Data forward(Data pred, Data tar)
 	{
-//		float[][] predData=pred.base.to2DArray(null);
-//		float[][] tarData=tar.base.to2DArray(null);
+
+		Data prd=pred.as1DArray(); // .base.to2DArray(null);
+		Data tr=tar.as1DArray(); // .base.to2DArray(null);
 //
 //		if (predData.length != tarData.length)
 //			throw new RuntimeException("predicted and tergeted arrays have different length");
 //
-//		int dataLength=predData.length;
+		int dataLength=prd.length;
 //		int labelLength=predData[0].length;
 //
 //		// float[]outData=new float[predData.length];
-//		float loss=0;
-//		for (int ne=0;ne < dataLength;ne++) // number of examples.
+		float loss=0;
+		for (int ne=0;ne < dataLength;ne++) // number of examples.
 //		{
 //			if (predData[ne].length != tarData[ne].length)
 //				new RuntimeException("predicted and tergeted arrays have different length");
 //			for (int lb=0;lb < labelLength;lb++) // number of labels.
 //			{
-//				loss += binaryCrossEntropy(predData[ne][lb], tarData[ne][lb]);
+			loss += binaryCrossEntropy(prd.get(ne), tr.get(ne));
 //			}
 //		}
-//		loss = loss / (labelLength * dataLength);
+		loss = loss / (dataLength);
 //		// outData[ne] = loss;
 //		Data arrOut=new Data(new float[]{loss}).setEnableGradient(pred.requiresGradient());
 //		// gradient in progress.
 //		return arrOut;
-		return null;
+		return new Data(new float[]{loss});
 	}
     private double binaryCrossEntropy(double p, double y)
 	{

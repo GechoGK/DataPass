@@ -9,31 +9,27 @@ public class MAE extends LossFunc
 {
 	@Override
 	public Data forward(Data pred, Data tar)
-	{
-//		float[] prd=pred.base.data.getData();
-//		float[] tr=tar.base.data.getData();
-//		float[] mae=forward(prd, tr);
-//		Data ar=new Data(mae).setEnableGradient(pred.requiresGradient());
-//		ar.setGradientFunction(maeGrad, pred, tar);
-//		return ar;
-		return null;
-	}
-	private float[] forward(float[] pred, float[] trueLabel)
-	{
-		int n = pred.length;
+	{	
+		Data prd=pred.as1DArray(); // .base.data.getData();
+		Data tr=tar.as1DArray(); // .base.data.getData();
+		// float[] mae=forward(prd, tr);
+		// Data ar=new Data(mae).setEnableGradient(pred.requiresGradient());
+		// ar.setGradientFunction(maeGrad, pred, tar);
+		// return ar;
+		int n = prd.length;
 		float loss = 0.0f;
 
 		// Sum of absolute differences
 		for (int i = 0; i < n; i++)
 		{
-			loss += Math.abs(pred[i] - trueLabel[i]);
+			loss += Math.abs(prd.get(i) - tr.get(i));
 		}
 
 		// Average the sum
 		loss /= n;
 
 		// Return loss as a 1-element array
-		return new float[]{loss};
+		return new Data(new float[]{loss});
 	}
 //	private static GradFunc maeGrad=new GradFunc("mean absolute error"){
 //

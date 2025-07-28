@@ -27,7 +27,7 @@ public class NDArray
 	}
 	public static Data zeros(int...shape)
 	{
-		return wrap(1, shape);
+		return wrap(0, shape);
 	}
 	public static Data idt(int size)
 	{

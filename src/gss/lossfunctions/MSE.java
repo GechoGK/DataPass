@@ -11,15 +11,23 @@ public class MSE extends LossFunc
 	 problem when converting to Data.
 	 */
 
-	private float[] forward(float[] pred, float[] trueLabel)
+	@Override
+	public Data forward(Data pred, Data tar)
 	{
-		int n = pred.length;
+//		if (pred.getLength() != tar.getLength())
+//			throw new RuntimeException("unable to compute loss function with different array lengths");
+		Data prd=pred.as1DArray(); // .base.data.getData();
+		Data tr=tar.as1DArray(); // .base.data.getData();
+//		float[] mse=forward(prd, tr);
+//		Data ar=new Data(mse).setEnableGradient(pred.requiresGradient());
+//		ar.setGradientFunction(mseGrad, pred, tar);
+		int n = prd.length;
 		float loss = 0.0f;
 
 		// Compute sum of squared errors
 		for (int i = 0; i < n; i++)
 		{
-			float diff = pred[i] - trueLabel[i];
+			float diff = prd.get(i) - tr.get(i);
 			loss += diff * diff;
 		}
 
@@ -27,21 +35,7 @@ public class MSE extends LossFunc
 		loss /= n;
 
 		// Return loss as a 1-element array
-		return new float[]{loss};
-	}
-
-	@Override
-	public Data forward(Data pred, Data tar)
-	{
-//		if (pred.getLength() != tar.getLength())
-//			throw new RuntimeException("unable to compute loss function with different array lengths");
-//		float[] prd=pred.base.data.getData();
-//		float[] tr=tar.base.data.getData();
-//		float[] mse=forward(prd, tr);
-//		Data ar=new Data(mse).setEnableGradient(pred.requiresGradient());
-//		ar.setGradientFunction(mseGrad, pred, tar);
-//		return ar;
-		return null;
+		return new Data(new float[]{loss});
 	}
 //	private static GradFunc mseGrad=new GradFunc("mean squared error"){
 //		@Override

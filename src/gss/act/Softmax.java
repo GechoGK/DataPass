@@ -12,6 +12,8 @@ public class Softmax extends Activation
 	@Override
 	public Data forward(Data arr)
 	{
+		// !!!!!! don't put negative values in softmax layer.
+
 		/*
 		 how to calculate?
 		 1. calculate the sum of the array.
@@ -26,7 +28,7 @@ public class Softmax extends Activation
 		 */
 		Data arr2d=arr.as2DArray();
 		float[][] arrOut=new float[arr2d.shape[0]][arr2d.shape[1]];
-		for (int d=0;d < arr2d.length;d++)
+		for (int d=0;d < arr2d.shape[0];d++)
 		{
 			// float[] ar=arr2d[d];
 			int ar=arr2d.shape[1];

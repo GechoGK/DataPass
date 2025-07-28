@@ -11,18 +11,13 @@ public class MCCE extends LossFunc
 	@Override
 	public Data forward(Data pred, Data tar)
 	{
-//		float[] prd=pred.base.data.getData();
-//		float[] tr=tar.base.data.getData();
+		Data prd=pred.as1DArray(); // .base.data.getData();
+		Data tr=tar.as1DArray(); // .base.data.getData();
 //		float[] mcce=forward(prd, tr);
 //		Data ar=new Data(mcce).setEnableGradient(pred.requiresGradient());
 //		ar.setGradientFunction(mcceGrad, pred, tar);
-//		return ar;
-		return null;
-	}
-
-	float[] forward(float[] pred, float[] trueLabel)
-	{
-		int n = pred.length; // Number of classes
+//
+		int n = prd.length; // Number of classes
 		float loss = 0.0f;
 		final float epsilon = 1e-7f; // Avoid log(0)
 
@@ -33,7 +28,7 @@ public class MCCE extends LossFunc
 		// Exponentiate and sum
 		for (int i = 0; i < n; i++)
 		{
-			softmax[i] = (float) Math.exp(pred[i]);
+			softmax[i] = (float) Math.exp(prd.get(i));
 			expSum += softmax[i];
 		}
 
@@ -47,11 +42,11 @@ public class MCCE extends LossFunc
 		for (int i = 0; i < n; i++)
 		{
 			// Clip to avoid log(0) and use one-hot labels
-			loss += trueLabel[i] * Math.log(Math.max(epsilon, softmax[i]));
+			loss += tr.get(i) * Math.log(Math.max(epsilon, softmax[i]));
 		}
 		loss = -loss; // Negate and return as scalar
 
-		return new float[]{loss};
+		return new Data(new float[]{loss});
 	}
 	// backward
 //	private static GradFunc mcceGrad=new GradFunc(""){

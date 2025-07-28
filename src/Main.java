@@ -1,7 +1,10 @@
+import gss.act.*;
 import gss.arr.*;
 import gss.layers.*;
+import java.util.*;
 
 import static gss.Util.*;
+import gss.lossfunctions.*;
 
 public class Main
 {
@@ -15,6 +18,83 @@ public class Main
 	}
 	void a()
 	{
+
+
+	}
+	void test7()
+	{
+		System.out.println(decString("Test 7.0 loss functions test.", "=", 10));
+		Data pred=NDArray.rand(10);
+		Data trueLabel=NDArray.zeros(10);
+		trueLabel.set(new int[]{3}, 1);
+		System.out.println("predicted :" + pred);
+		pred.printArray();
+		System.out.println(line(10));
+		System.out.println("true label :" + trueLabel);
+		trueLabel.printArray();
+		System.out.println(line(30));
+
+		System.out.println(decString("BCE",  10));
+		Data out=new BCE().forward(pred, trueLabel);
+		System.out.println("error :" + out);
+		out.printArray();
+		System.out.println(line(30));
+
+		System.out.println(decString("MAE",  10));
+		out = new MAE().forward(pred, trueLabel);
+		System.out.println("error :" + out);
+		out.printArray();
+		System.out.println(line(30));
+
+		System.out.println(decString("MCCE",  10));
+		out = new MCCE().forward(pred, trueLabel);
+		System.out.println("error :" + out);
+		out.printArray();
+		System.out.println(line(30));
+
+		System.out.println(decString("MSE",  10));
+		out = new MSE().forward(pred, trueLabel);
+		System.out.println("error :" + out);
+		out.printArray();
+		System.out.println(line(30));
+
+		System.out.println(decString("Multi label binary cross entropy",  10));
+		out = new MultiLabelBinaryCrossEntropy().forward(pred, trueLabel);
+		System.out.println("error :" + out);
+		out.printArray();
+		System.out.println(line(30));
+
+	}
+	void test6()
+	{
+		System.out.println(decString("Test 6.0 activation layers test.", "=", 10));
+		Data in=NDArray.arange(-5, 5).reshape(2, 5);
+		System.out.println(in);
+		in.printArray();
+		System.out.println(line(30));
+
+		System.out.println(decString("sigmoid activation", 10));
+		Data out=new Sigmoid().forward(in);
+		System.out.println(out);
+		out.printArray();
+		System.out.println(line(30) + "\n");
+
+		System.out.println(decString("tanh activation", 10));
+		out = new Tanh().forward(in);
+		System.out.println(out);
+		out.printArray();
+		System.out.println(line(30) + "\n");
+
+		System.out.println(decString("relu activation", 10));
+		out = new Relu().forward(in);
+		System.out.println(out);
+		out.printArray();
+		System.out.println(line(30) + "\n");
+
+		System.out.println(decString("softmax activation", 10));
+		out = new Softmax().forward(in);
+		System.out.println(out);
+		out.printArray();
 
 
 	}

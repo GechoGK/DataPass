@@ -10,31 +10,25 @@ public class BCE extends LossFunc
 	@Override
 	public Data forward(Data pred, Data tar)
 	{
-//		float[] prd=pred.base.data.getData();
-//		float[] tr=tar.base.data.getData();
-//		float[] bce=forward(prd, tr);
-//		Data ar=new Data(bce).setEnableGradient(pred.requiresGradient());
-//		ar.setGradientFunction(bceGrad, pred, tar);
-//		return ar;
-		return null;
-	}
+		Data prd=pred.as1DArray();
+		Data tr=tar.as1DArray();
 
-	float[] forward(float[] pred, float[] trueLabel)
-	{
-		int n = pred.length;
+		// Data ar=new Data(bce).setEnableGradient(pred.requiresGradient());
+		// ar.setGradientFunction(bceGrad, pred, tar);
+		int n = prd.length;
 		float loss = 0.0f;
 		final float epsilon = 1e-7f; // Avoid log(0)
 
 		for (int i = 0; i < n; i++)
 		{
 			// Clip predictions to [epsilon, 1-epsilon]
-			float p = Math.max(epsilon, Math.min(pred[i], 1 - epsilon));
-			loss += trueLabel[i] * Math.log(p) + (1 - trueLabel[i]) * Math.log(1 - p);
+			float p = Math.max(epsilon, Math.min(prd.get(i), 1 - epsilon));
+			loss += tr.get(i) * Math.log(p) + (1 - tr.get(i) * Math.log(1 - p));
 		}
 
 		// Average and negate (BCE formula)
 		loss = -loss / n;
-		return new float[]{loss};
+		return new Data(new float[]{loss});
 	}
 	// backward
 //	private static GradFunc bceGrad=new GradFunc("binary cross entropy"){
