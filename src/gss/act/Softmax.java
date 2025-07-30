@@ -10,7 +10,7 @@ public class Softmax extends Activation
 {
 	// need many improvements on forward method.
 	@Override
-	public Data forward(Data arr)
+	public Base forward(Base arr)
 	{
 		// !!!!!! don't put negative values in softmax layer.
 
@@ -26,7 +26,7 @@ public class Softmax extends Activation
 		 so what we need is we need to clip the values that means the largest value will be 1.
 		 x - max will be < 0. the result will be the same.
 		 */
-		Data arr2d=arr.as2DArray();
+		Base arr2d=arr.as2DArray();
 		float[][] arrOut=new float[arr2d.shape[0]][arr2d.shape[1]];
 		for (int d=0;d < arr2d.shape[0];d++)
 		{
@@ -59,7 +59,7 @@ public class Softmax extends Activation
 			}
 			arrOut[d] = probabilities;
 		}
-		Data out= new Data(flatten(arrOut)).reshape(arr.shape); // .setEnableGradient(arr.requiresGradient());
+		Base out= new Base(flatten(arrOut)).reshape(arr.shape); // .setEnableGradient(arr.requiresGradient());
 		// gradient calculator in progress.
 		// out.setGradientFunction(softmaxGradient, arr);
 		return out;

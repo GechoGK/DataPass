@@ -6,7 +6,7 @@ import java.util.*;
 public class Optimizer
 {
 	public float learningRate=0.01f;
-	public ArrayList<Data> params=new ArrayList<>();
+	public ArrayList<Base> params=new ArrayList<>();
 
 	public Optimizer()
 	{
@@ -22,7 +22,7 @@ public class Optimizer
 	}
 	public void zeroGrad()
 	{
-		for (Data p:params)
+		for (Base p:params)
 		{
 			// p.zeroGrad();
 			// zero the gradient data.

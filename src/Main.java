@@ -2,6 +2,7 @@ import gss.act.*;
 import gss.arr.*;
 import gss.layers.*;
 import gss.lossfunctions.*;
+import java.util.*;
 
 import static gss.Util.*;
 
@@ -18,16 +19,36 @@ public class Main
 	void a()
 	{
 
+		System.out.println("========== Test 10.0 dot product. ==========");
+		System.out.println(Arrays.toString(NDArray.prepareAxisForDot(5))); // new int[5])));
+
+		Base d1=new Base(new float[]{0,1,2,3,4,5}, new int[]{1,3,2}).setRequiresGradient(true);
+		Base d2=NDArray.arange(3 * 2 * 4).reshapeLocal(4, 2, 3).setRequiresGradient(true);
+		// 1,3,4,3 shape
+		// check 2==2
+		// 
+
+		System.out.println(d1);
+		d1.printArray();
+		System.out.println(getString("-", 30));
+		System.out.println(d2);
+		d2.printArray();
+		System.out.println(decString("dot product", 5));
+		Base dot=NDArray.dot(d1, d2);
+		System.out.println(dot);
+		dot.printArray();
+		System.out.println(dot.gradientFunction);
+		dot.backward();
 
 	}
 	void test8()
 	{
 		System.out.println(decString("Test 8.0 Gradient function test.", "=", 10));
 		System.out.println("=== tested on additionGradientTest");
-		Data d1=NDArray.arange(20).reshapeLocal(2, 10).setRequiresGradient(true);
-		Data d2=NDArray.arange(10).setRequiresGradient(true);
+		Base d1=NDArray.arange(20).reshapeLocal(2, 10).setRequiresGradient(true);
+		Base d2=NDArray.arange(10).setRequiresGradient(true);
 
-		Data d3=NDArray.add(d1, d2);
+		Base d3=NDArray.add(d1, d2);
 
 		System.out.println(d3);
 		System.out.println(d3.gradientFunction);
@@ -47,8 +68,8 @@ public class Main
 	void test7()
 	{
 		System.out.println(decString("Test 7.0 loss functions test.", "=", 10));
-		Data pred=NDArray.rand(10);
-		Data trueLabel=NDArray.zeros(10);
+		Base pred=NDArray.rand(10);
+		Base trueLabel=NDArray.zeros(10);
 		trueLabel.set(new int[]{3}, 1);
 		System.out.println("predicted :" + pred);
 		pred.printArray();
@@ -58,7 +79,7 @@ public class Main
 		System.out.println(line(30));
 
 		System.out.println(decString("BCE",  10));
-		Data out=new BCE().forward(pred, trueLabel);
+		Base out=new BCE().forward(pred, trueLabel);
 		System.out.println("error :" + out);
 		out.printArray();
 		System.out.println(line(30));
@@ -91,13 +112,13 @@ public class Main
 	void test6()
 	{
 		System.out.println(decString("Test 6.0 activation layers test.", "=", 10));
-		Data in=NDArray.arange(-5, 5).reshape(2, 5);
+		Base in=NDArray.arange(-5, 5).reshape(2, 5);
 		System.out.println(in);
 		in.printArray();
 		System.out.println(line(30));
 
 		System.out.println(decString("sigmoid activation", 10));
-		Data out=new Sigmoid().forward(in);
+		Base out=new Sigmoid().forward(in);
 		System.out.println(out);
 		out.printArray();
 		System.out.println(line(30) + "\n");
@@ -124,13 +145,13 @@ public class Main
 	void test5()
 	{
 		System.out.println(decString("Test 5.0 Conv1d layer test.", "=", 10));
-		Data d1=NDArray.arange(12 * 2).reshapeLocal(2, 12);
+		Base d1=NDArray.arange(12 * 2).reshapeLocal(2, 12);
 		System.out.println(d1);
 		d1.printArray();
 		System.out.println(line(30));
 
 		Conv1d c1=new Conv1d(12, 2, 5, 3);
-		Data out=c1.forward(d1);
+		Base out=c1.forward(d1);
 		System.out.println(out);
 		out.printArray();
 
@@ -140,13 +161,13 @@ public class Main
 	{
 		System.out.println(decString("Test 4.0 MaxPool1d module test.", "=", 10));
 
-		Data d1=NDArray.arange(5 * 12).reshapeLocal(5, -1);
+		Base d1=NDArray.arange(5 * 12).reshapeLocal(5, -1);
 		System.out.println(d1);
 		d1.printArray();
 		System.out.println(line(30));
 
 		MaxPool1d m1=new MaxPool1d(3);
-		Data d2=m1.forward(d1);
+		Base d2=m1.forward(d1);
 		System.out.println(d2);
 		d2.printArray();
 
@@ -154,13 +175,13 @@ public class Main
 	void test3()
 	{
 		System.out.println(decString("Test 3.0 Dropout module test.", "=", 10));
-		Data d1=NDArray.rand(3, 5);
+		Base d1=NDArray.rand(3, 5);
 
 		Dropout d=new Dropout(0.5f);
 		System.out.println(d1);
 		d1.printArray();
 		System.out.println(line(30));
-		Data d2=d.forward(d1);
+		Base d2=d.forward(d1);
 		System.out.println(d2);
 		d2.printArray();
 
@@ -168,7 +189,7 @@ public class Main
 	public static void test2()
 	{
 		System.out.println(decString("Test 2.0 Sequential module test.", "=", 10));
-		Data d1=NDArray.arange(10).reshape(2, 5);
+		Base d1=NDArray.arange(10).reshape(2, 5);
 		System.out.println("input: " + d1);
 		Sequential sq=new Sequential();
 		sq.add(
@@ -177,7 +198,7 @@ public class Main
 			new Linear(10, 25, true),
 			new Linear(25, 7, true));
 
-		Data out=sq.forward(d1);
+		Base out=sq.forward(d1);
 		System.out.println("output: " + out);
 
 	}
@@ -185,11 +206,11 @@ public class Main
 	{
 		System.out.println(decString("Test 1.0 Linear module test.", "=", 10));
 		System.out.println("input");
-		Data d1=NDArray.arange(10).reshape(2, 5);
+		Base d1=NDArray.arange(10).reshape(2, 5);
 		System.out.println(d1);
 
 		Linear l1=new Linear(5, 10, false);
-		Data out=l1.forward(d1);
+		Base out=l1.forward(d1);
 		System.out.println("output");
 		System.out.println(out);
 		line(35);

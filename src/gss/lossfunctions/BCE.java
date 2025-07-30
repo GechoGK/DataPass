@@ -8,10 +8,10 @@ import java.util.*;
 public class BCE extends LossFunc
 {
 	@Override
-	public Data forward(Data pred, Data tar)
+	public Base forward(Base pred, Base tar)
 	{
-		Data prd=pred.as1DArray();
-		Data tr=tar.as1DArray();
+		Base prd=pred.as1DArray();
+		Base tr=tar.as1DArray();
 
 		// Data ar=new Data(bce).setEnableGradient(pred.requiresGradient());
 		// ar.setGradientFunction(bceGrad, pred, tar);
@@ -28,7 +28,7 @@ public class BCE extends LossFunc
 
 		// Average and negate (BCE formula)
 		loss = -loss / n;
-		return new Data(new float[]{loss});
+		return new Base(new float[]{loss});
 	}
 	// backward
 //	private static GradFunc bceGrad=new GradFunc("binary cross entropy"){

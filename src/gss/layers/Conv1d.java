@@ -14,7 +14,7 @@ public class Conv1d extends Module
 	private int output_size=0;
 	private int input_size=0;
 
-	private Data kernels,biase;
+	private Base kernels,biase;
 
 	public Conv1d(int input_size, int n_channels, int n_kernels, int kernel_size)
 	{
@@ -31,7 +31,7 @@ public class Conv1d extends Module
 		biase = newParam(NDArray.ones(n_kernels, output_size));
 	}
 	@Override
-	public Data forward(Data input)
+	public Base forward(Base input)
 	{
 		/*
 		 how does convolution works on multi dimension array.
@@ -65,7 +65,7 @@ public class Conv1d extends Module
 			throw new IllegalArgumentException("input data size must be equal to input size(" + input_size + ")");
 		if (input.shape.length > 1 && n(input.shape, 1) != n_channels)
 			throw new IllegalArgumentException("input data feature size must be equal to features(" + n_channels + ").");
-		Data in=input.reshape(-1, n_channels/* n(input.shape, 1)*/, n(input.shape, 0)); // 3d array.
+		Base in=input.reshape(-1, n_channels/* n(input.shape, 1)*/, n(input.shape, 0)); // 3d array.
 		float[][][] out=new float[in.shape[0]][n_kernels][output_size];
 		// input iteration.
 		// System.out.println(Arrays.toString(in.shape) + ", " + n_kernels + ", " + n_channels);
@@ -98,7 +98,7 @@ public class Conv1d extends Module
 				// out[din][kr] = karr;
 			}
 		}
-		Data d=new Data(flatten(out), new int[]{in.shape[0],kernels.shape[0],output_size});
+		Base d=new Base(flatten(out), new int[]{in.shape[0],kernels.shape[0],output_size});
 		return d;
 	}
 //	float[] convolved1k1(float datain, float krn, float[] out)
@@ -117,7 +117,7 @@ public class Conv1d extends Module
 //		}
 //		return out;
 //	}
-	void forwardOld(Data input)
+	void forwardOld(Base input)
 	{
 		/*
 		 if (n(input.shape, 0) != input_size)

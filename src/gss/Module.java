@@ -5,17 +5,17 @@ import java.util.*;
 
 public abstract class Module
 {
-	public ArrayList<Data> params=new ArrayList<>();
+	public ArrayList<Base> params=new ArrayList<>();
 
-	public abstract Data forward(Data dataIn);
+	public abstract Base forward(Base dataIn);
 
-	public Data newParam(Data arr)
+	public Base newParam(Base arr)
 	{
 		if (!params.contains(arr))
 			params.add(arr);
 		return arr;
 	}
-	public ArrayList<Data> getParameters()
+	public ArrayList<Base> getParameters()
 	{
 		return params;
 	}

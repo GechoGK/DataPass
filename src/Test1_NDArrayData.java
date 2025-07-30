@@ -24,8 +24,8 @@ public class Test1_NDArrayData
 	public static void test11()
 	{
 		System.out.println("========== Test 11.0 convolution 1d and correlation 1d test. ==========");
-		Data d1=NDArray.arange(40).reshape(-1, 20);
-		Data k=new Data(new float[]{1,2,3,4,5});
+		Base d1=NDArray.arange(40).reshape(-1, 20);
+		Base k=new Base(new float[]{1,2,3,4,5});
 		System.out.println(d1);
 		d1.printArray();
 		System.out.println(getString("-", 30));
@@ -33,7 +33,7 @@ public class Test1_NDArrayData
 		k.printArray();
 
 		System.out.println("\n" + decString("convolution 1d", 30));
-		Data d3=NDArray.convolve1d(d1, k);
+		Base d3=NDArray.convolve1d(d1, k);
 		System.out.println(d3);
 		d3.printArray();
 
@@ -48,8 +48,8 @@ public class Test1_NDArrayData
 		System.out.println("========== Test 10.0 dot product. ==========");
 		System.out.println(Arrays.toString(NDArray.prepareAxisForDot(5))); // new int[5])));
 
-		Data d1=new Data(new float[]{0,1,2,3,4,5}, new int[]{1,3,2});
-		Data d2=NDArray.arange(3 * 2 * 4).reshapeLocal(4, 2, 3);
+		Base d1=new Base(new float[]{0,1,2,3,4,5}, new int[]{1,3,2});
+		Base d2=NDArray.arange(3 * 2 * 4).reshapeLocal(4, 2, 3);
 		// 1,3,4,3 shape
 		// check 2==2
 		// 
@@ -67,12 +67,12 @@ public class Test1_NDArrayData
 	{
 		System.out.println("========== Test 9.0 1d, 2d and 3d array options. ==========");
 
-		Data d=new Data(new float[]{1,2,3,4,5,6}, new int[]{2,3});
+		Base d=new Base(new float[]{1,2,3,4,5,6}, new int[]{2,3});
 		d.printArray();
 
 		System.out.println(getString("-", 20));
 		System.out.println("1d array");
-		Data d1 = d.as1DArray();
+		Base d1 = d.as1DArray();
 		System.out.println(d1);
 		d1.printArray();
 		System.out.println(getString("-", 20));
@@ -96,8 +96,8 @@ public class Test1_NDArrayData
 		// + - / * % all are the same operation. division by zero error not handled.
 		System.out.println("========== Test 8.0 basic math operations. ==========");
 
-		Data d1=new Data(new float[]{1,2,3}, new int[]{3});
-		Data d2=new Data(new float[]{1,2,3,4,5,6}, new int[]{2,3});
+		Base d1=new Base(new float[]{1,2,3}, new int[]{3});
+		Base d2=new Base(new float[]{1,2,3,4,5,6}, new int[]{2,3});
 
 		System.out.println("------ data 1 ------");
 		d1.printArray();
@@ -108,7 +108,7 @@ public class Test1_NDArrayData
 		int[] sh=getCommonShape(d1.shape, d2.shape);
 		System.out.println("expected shape :" + Arrays.toString(sh));
 
-		Data add=new Data(sh);
+		Base add=new Base(sh);
 		int len=add.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
@@ -122,7 +122,7 @@ public class Test1_NDArrayData
 		System.out.println(add);
 		add.printArray();
 
-		Data div = new Data(sh);
+		Base div = new Base(sh);
 		len = div.length; // length of the array.
 		tmpSh = new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
@@ -136,7 +136,7 @@ public class Test1_NDArrayData
 		System.out.println(div);
 		div.printArray();
 
-		Data mod= new Data(sh);
+		Base mod= new Base(sh);
 		len = mod.length; // length of the array.
 		tmpSh = new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
@@ -155,24 +155,24 @@ public class Test1_NDArrayData
 	{
 		System.out.println("========== Test 7.0 transpose, copy, reshape and print tests ==========");
 		System.out.println(" print test");
-		Data d2=new Data(new float[]{1,2,3,4,5,6}, new int[]{2,3});
+		Base d2=new Base(new float[]{1,2,3,4,5,6}, new int[]{2,3});
 		d2.printArray();
 		System.out.println(getString("-", 20));
 
 		System.out.println("copy test");
-		Data d3=d2.copy();
+		Base d3=d2.copy();
 		System.out.println(d3);
 		d3.printArray();
 		System.out.println(getString("-", 20));
 
 		System.out.println("transpose test");
-		Data d4=d2.transpose();
+		Base d4=d2.transpose();
 		System.out.println(d4);
 		d4.printArray();
 		System.out.println(getString("-", 20));
 
 		System.out.println("copied transposed");
-		Data d5=d4.copy();
+		Base d5=d4.copy();
 		System.out.println(d5);
 		d5.printArray();
 		System.out.println(getString("-", 20));
@@ -199,7 +199,7 @@ public class Test1_NDArrayData
 		d4.reshapeLocal(1, 1, 1, 2, 3);
 		System.out.println(d4);
 		System.out.println("trimmed to");
-		Data d6 = d4.trim();
+		Base d6 = d4.trim();
 		System.out.println(d6);
 		System.out.println("shape change happen due to trim = " + (d4 != d6));
 		System.out.println(getString("-", 20));
@@ -209,7 +209,7 @@ public class Test1_NDArrayData
 	public static void  test6()
 	{
 		System.out.println("========== Test 6.0 index to shape array test ==========");
-		Data d2=new Data(new float[]{1,2,3,4,5,6}, new int[]{2,3});
+		Base d2=new Base(new float[]{1,2,3,4,5,6}, new int[]{2,3});
 		System.out.println(d2);
 		System.out.println(getString("-", 20));
 
@@ -232,7 +232,7 @@ public class Test1_NDArrayData
 	public static void  test5()
 	{
 		System.out.println("========== Test 5.0 Array reshape test ==========");
-		Data d2=new Data(new float[]{1,2,3,4,5,6}, new int[]{2,3});
+		Base d2=new Base(new float[]{1,2,3,4,5,6}, new int[]{2,3});
 		System.out.println(d2);
 		System.out.println(getString("-", 20));
 
@@ -256,7 +256,7 @@ public class Test1_NDArrayData
 	public static void  test4()
 	{
 		System.out.println("========== Test 4.0 single value set test ==========");
-		Data d2=new Data(new float[]{1,2,3,4,5,6}, new int[]{2,3});
+		Base d2=new Base(new float[]{1,2,3,4,5,6}, new int[]{2,3});
 		System.out.println(d2);
 		System.out.println(getString("-", 20));
 
@@ -272,7 +272,7 @@ public class Test1_NDArrayData
 	public static void  test3()
 	{
 		System.out.println("========== Test 3.0 Array value set test ==========");
-		Data d2=new Data(new float[]{1,2,3,4,5,6}, new int[]{2,3});
+		Base d2=new Base(new float[]{1,2,3,4,5,6}, new int[]{2,3});
 		System.out.println(d2);
 		System.out.println(getString("-", 20));
 
@@ -284,7 +284,7 @@ public class Test1_NDArrayData
 	public static void  test2()
 	{
 		System.out.println("========== Test 2.0 Array value get test ==========");
-		Data d2=new Data(new float[]{1,2,3,4,5,6}, new int[]{2,3});
+		Base d2=new Base(new float[]{1,2,3,4,5,6}, new int[]{2,3});
 		System.out.println(d2);
 		System.out.println(getString("-", 20));
 
@@ -294,8 +294,8 @@ public class Test1_NDArrayData
 	public static void  test1()
 	{
 		System.out.println("========== Test 1.0 single value get test ==========");
-		Data d1=new Data(new float[]{1,2,3}, new int[]{1,3});
-		Data d2=new Data(new float[]{1,2,3,4,5,6}, new int[]{2,3});
+		Base d1=new Base(new float[]{1,2,3}, new int[]{1,3});
+		Base d2=new Base(new float[]{1,2,3,4,5,6}, new int[]{2,3});
 		System.out.println(d1);
 		System.out.println(getString("-", 20));
 		System.out.println(d2);

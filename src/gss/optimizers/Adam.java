@@ -17,7 +17,7 @@ public class Adam extends Optimizer
     private int t;      // Timestep counter
 
     // Constructor with hyperparameters
-    public Adam(List<Data> prms, float lr, float beta1, float beta2, float epsilon)
+    public Adam(List<Base> prms, float lr, float beta1, float beta2, float epsilon)
 	{
 		this.params.clear();
         this.params.addAll(prms);
@@ -29,18 +29,18 @@ public class Adam extends Optimizer
         this.vv = null;
         this.t = 0;
     }
-	public Adam(Data...prms, float lr, float beta1, float beta2, float epsilon)
+	public Adam(Base...prms, float lr, float beta1, float beta2, float epsilon)
 	{
 		this(Arrays.asList(prms), lr, beta1, beta2, epsilon);
 	}
     // Default constructor with common hyperparameters
-    public Adam(List<Data>...prms)
+    public Adam(List<Base>...prms)
 	{
         this(new ArrayList<>(), 0.001f, 0.8f, 0.999f, 1e-8f);
-		for (List<Data>n:prms)
+		for (List<Base>n:prms)
 			params.addAll(n);
     }
-	public Adam(Data...prms)
+	public Adam(Base...prms)
 	{
 		this(Arrays.asList(prms), 0.001f, 0.8f, 0.999f, 1e-8f);
 	}

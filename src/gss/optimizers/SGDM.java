@@ -10,17 +10,17 @@ public class SGDM extends Optimizer
     private float[][] velocity;  // Tracks accumulated velocity for momentum
 
     // Constructor: Initialize learning rate and momentum factor
-    public SGDM(List<Data> prms, float learningRate, float momentum)
+    public SGDM(List<Base> prms, float learningRate, float momentum)
 	{
         super(learningRate);
 		this.params.addAll(prms);
         this.momentum = momentum;
         this.velocity = null;  // Velocity initialized lazily on first `forward` call
     }
-	public SGDM(List<Data>...prms)
+	public SGDM(List<Base>...prms)
 	{
 		this(new ArrayList<>(), 0.01f, 0.85f);
-		for (List<Data> p:prms)
+		for (List<Base> p:prms)
 			params.addAll(p);
 	}
 //	@Override

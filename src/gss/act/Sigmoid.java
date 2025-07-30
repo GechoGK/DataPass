@@ -11,15 +11,15 @@ public class Sigmoid extends Activation
 	 }
 	 */
 	@Override
-	public Data forward(Data arr)
+	public Base forward(Base arr)
 	{
-		Data dt=arr.reshape(-1);
+		Base dt=arr.reshape(-1);
 		float[] out=new float[arr.length];
 		for (int i=0;i < dt.length;i++)
 		{
 			out[i] = 1f / (1f + (float)Math.exp(-dt.get(i)));
 		}
-		Data arrOut=new Data(out, arr.shape);// .setEnableGradient(arr.requiresGradient());
+		Base arrOut=new Base(out, arr.shape);// .setEnableGradient(arr.requiresGradient());
 		// gradient in progress.
 		// arrOut.setGradientFunction(sigmoidGradient, arr);
 		return arrOut;

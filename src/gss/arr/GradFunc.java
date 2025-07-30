@@ -15,7 +15,7 @@ public abstract class GradFunc
 	{
 		this.name = name;
 	}
-	public abstract Data backward(Data host, Data...childs, Object params)
+	public abstract Base backward(Base host, Base...childs, Object params)
 	@Override
 	public String toString()
 	{
@@ -24,7 +24,7 @@ public abstract class GradFunc
 	public static GradFunc additionGradient = new GradFunc("addition")
 	{
 		@Override
-		public Data backward(Data host, Data[] childs, Object params)
+		public Base backward(Base host, Base[] childs, Object params)
 		{
 			/*
 			 addition gradient
@@ -33,8 +33,8 @@ public abstract class GradFunc
 			 a.grad = c.grad * 1
 			 b.gead = c.grad * 1
 			 */
-			Data a1=childs[0]; // a
-			Data a2=childs[1]; // b
+			Base a1=childs[0]; // a
+			Base a2=childs[1]; // b
 			int[] shape=host.shape;
 			int[] tmpShape=new int[shape.length];
 			for (int i=0;i < host.length;i++)
@@ -45,6 +45,29 @@ public abstract class GradFunc
 				if (a2.requiresGradient())
 					a2.setGrad(tmpShape, host.getGrad(tmpShape));
 			}
+			return null;
+		}
+	};
+	public static GradFunc dotGradient=new GradFunc("dot"){
+		@Override
+		public Base backward(Base host, Base[] childs, Object params)
+		{
+			/*
+			 // forward method.
+			 for (int r=0;r < sh1[0];r++)
+			 for (int c=0;c < sh2[1];c++)
+			 {
+			 float sum=0;
+			 for (int i=0;i < sh1[1];i++)
+			 sum += d1.get(r, i) * d2.get(i, c);
+			 f[shapeToIndex(ar(r, c), dotShape)] = sum;
+			 }
+			 */
+			Base a=childs[0];
+			Base b=childs[1];
+
+			
+
 			return null;
 		}
 	};

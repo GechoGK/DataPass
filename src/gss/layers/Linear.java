@@ -6,8 +6,8 @@ import gss.arr.*;
 public class Linear extends Module
 {
 	private boolean hasBiase;
-	public Data weight;
-	public Data biase;
+	public Base weight;
+	public Base biase;
 
 	public Linear(int in, int out)
 	{
@@ -25,9 +25,9 @@ public class Linear extends Module
 			biase = newParam(NDArray.ones(out)); // .setEnableGradient(true));
 	}
 	@Override
-	public Data forward(Data input)
+	public Base forward(Base input)
 	{
-		Data out =NDArray.dot(input, weight);
+		Base out =NDArray.dot(input, weight);
 		if (hasBiase)
 			out = NDArray.add(out, biase);
 		return out;

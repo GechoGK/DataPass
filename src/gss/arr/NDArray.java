@@ -7,70 +7,71 @@ import static gss.Util.*;
 
 public class NDArray
 {
-	public static Data arange(float end)
+	public static Base arange(float end)
 	{
 		return arange(0, end, 1);
 	}
-	public static Data arange(float str, float end)
+	public static Base arange(float str, float end)
 	{
 		return arange(str, end, 1);
 	}
-	public static Data arange(float str, float end, float inc)
+	public static Base arange(float str, float end, float inc)
 	{
 		float[] f=range(str, end, inc);
-		Data ar=new Data(f);
+		Base ar=new Base(f);
 		return ar;
 	}
-	public static Data ones(int...shape)
+	public static Base ones(int...shape)
 	{
 		return wrap(1, shape);
 	}
-	public static Data zeros(int...shape)
+	public static Base zeros(int...shape)
 	{
 		return wrap(0, shape);
 	}
-	public static Data idt(int size)
+	public static Base idt(int size)
 	{
 		int[] sh={size,size};
 		float[]f=new float[length(sh)];
 		for (int i=0;i < size;i++)
 			f[shapeToIndex(ar(size, size), sh)] = 1;
-		Data d=new Data(f, sh);
+		Base d=new Base(f, sh);
 		return d;
 	}
-	public static Data wrap(float[]v, int...sh)
+	public static Base wrap(float[]v, int...sh)
 	{
-		return new Data(v, sh);
+		return new Base(v, sh);
 	}
-	public static Data wrap(float v, int...shape)
+	public static Base wrap(float v, int...shape)
 	{
 		int len=length(shape);
 		float[] f=new float[len];
 		Arrays.fill(f, v);
-		return new Data(f, shape);
+		return new Base(f, shape);
 	}
-	public static Data rand(int...shape)
+	public static Base rand(int...shape)
 	{
 		return rand(shape, -1); // change -1 into another to use seed value.
 	}
-	public static Data rand(int[]shape, int seed)
+	public static Base rand(int[]shape, int seed)
 	{
-		Data arr=new Data(shape);
+		float[] f=new float[length(shape)];
 		Random r=null;
 		if (seed != -1)
 			r = new Random(seed);
 		else
 			r = new Random();
-		for (int i=0;i < arr.length;i++)
-			arr.data[i] = r.nextFloat();
-		return arr;
+		for (int i=0;i < f.length;i++)
+			f[i] = r.nextFloat();
+		Base d=new Base(f, shape);
+		return d;
 	}
 	// mathematical operations.
 	// addition
-	public static Data add(Data d1, Data d2)
+	public static Base add(Base d1, Base d2)
 	{
 		int[] sh=getCommonShape(d1.shape, d2.shape);
-		Data res=new Data(sh).setRequiresGradient(d1.requiresGradient() | d2.requiresGradient());
+		Base res=new Base(sh).setRequiresGradient(d1.requiresGradient() | d2.requiresGradient());
 		if (res.requiresGradient())
 			res.setGradientFunction(GradFunc.additionGradient, d1, d2);
 		int len=res.length; // length of the array.
@@ -84,10 +85,10 @@ public class NDArray
 		}
 		return res;
 	}
-	public static Data add(Data d1, float d2)
+	public static Base add(Base d1, float d2)
 	{
 		int[] sh=d1.shape;
-		Data res=new Data(sh);
+		Base res=new Base(sh);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
@@ -99,10 +100,10 @@ public class NDArray
 		return res;
 	}
 	// subtraction
-	public static Data sub(Data d1, Data d2)
+	public static Base sub(Base d1, Base d2)
 	{
 		int[] sh=getCommonShape(d1.shape, d2.shape);
-		Data res=new Data(sh);
+		Base res=new Base(sh);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
@@ -114,10 +115,10 @@ public class NDArray
 		}
 		return res;
 	}
-	public static Data sub(Data d1, float d2)
+	public static Base sub(Base d1, float d2)
 	{
 		int[] sh=d1.shape;
-		Data res=new Data(sh);
+		Base res=new Base(sh);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
@@ -129,10 +130,10 @@ public class NDArray
 		return res;
 	}
 	// thus functions is optional.
-	public static Data sub(float d1, Data d2)
+	public static Base sub(float d1, Base d2)
 	{
 		int[] sh=d2.shape;
-		Data res=new Data(sh);
+		Base res=new Base(sh);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
@@ -144,10 +145,10 @@ public class NDArray
 		return res;
 	}
 	// multiplication
-	public static Data mul(Data d1, Data d2)
+	public static Base mul(Base d1, Base d2)
 	{
 		int[] sh=getCommonShape(d1.shape, d2.shape);
-		Data res=new Data(sh);
+		Base res=new Base(sh);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
@@ -159,10 +160,10 @@ public class NDArray
 		}
 		return res;
 	}
-	public static Data mul(Data d1, float d2)
+	public static Base mul(Base d1, float d2)
 	{
 		int[] sh=d1.shape;
-		Data res=new Data(sh);
+		Base res=new Base(sh);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
@@ -174,10 +175,10 @@ public class NDArray
 		return res;
 	}
 	// division
-	public static Data div(Data d1, Data d2)
+	public static Base div(Base d1, Base d2)
 	{
 		int[] sh=getCommonShape(d1.shape, d2.shape);
-		Data res=new Data(sh);
+		Base res=new Base(sh);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
@@ -189,10 +190,10 @@ public class NDArray
 		}
 		return res;
 	}
-	public static Data div(Data d1, float d2)
+	public static Base div(Base d1, float d2)
 	{
 		int[] sh=d1.shape;
-		Data res=new Data(sh);
+		Base res=new Base(sh);
 		if (d2 == 0)
 			return res;
 		int len=res.length; // length of the array.
@@ -206,10 +207,10 @@ public class NDArray
 		return res;
 	}
 	// thus functions is optional.
-	public static Data div(float d1, Data d2)
+	public static Base div(float d1, Base d2)
 	{
 		int[] sh=d2.shape;
-		Data res=new Data(sh);
+		Base res=new Base(sh);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
@@ -221,7 +222,7 @@ public class NDArray
 		return res;
 	}
 	// dot product start.
-	public static Data dot(Data d1, Data d2)
+	public static Base dot(Base d1, Base d2)
 	{
 
 		/*
@@ -262,7 +263,9 @@ public class NDArray
 				f[shapeToIndex(ar(r, c), dotShape)] = sum;
 			}
 
-		return new Data(f, dotShape).reshapeLocal(newShape);
+		Base d= new Base(f, dotShape).reshapeLocal(newShape).setRequiresGradient(d1.requiresGradient() | d2.requiresGradient());
+		d.setGradientFunction(GradFunc.dotGradient, d1, d2);
+		return d;
 	}
 	public static int[] prepareAxisForDot(int len)
 	{
@@ -331,7 +334,7 @@ public class NDArray
 		return newShape;
 	}
 	// dot product end.
-	public static Data convolve1d(Data d1, Data kr)
+	public static Base convolve1d(Base d1, Base kr)
 	{
 		// this convolve only support 1d, 1d kern.
 		kr = kr.trim();
@@ -379,9 +382,9 @@ public class NDArray
 				}
 			}
 		}
-		return new Data(out, outShape);
+		return new Base(out, outShape);
 	}
-	public static Data correlate1d(Data d1, Data kr)
+	public static Base correlate1d(Base d1, Base kr)
 	{
 		// this convolve, only support 1d kern.
 		kr = kr.trim();
@@ -424,6 +427,6 @@ public class NDArray
 				}
 			}
 		}
-		return new Data(out, outShape);
+		return new Base(out, outShape);
 	}
 }

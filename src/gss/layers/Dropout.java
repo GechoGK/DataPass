@@ -19,11 +19,11 @@ public class Dropout extends Module
         this.isTraining = true;
     }
 	@Override
-	public Data forward(Data input)
+	public Base forward(Base input)
 	{
 		if (!isTraining)
 			return input;
-		Data in=input.as1DArray();
+		Base in=input.as1DArray();
 		float[] output = new float[in.length];
         mask = new int[output.length]; // Store which neurons are active, it helps for backpropagation.
         float scale = 1.0f / (1.0f - drp);
@@ -41,7 +41,7 @@ public class Dropout extends Module
                 mask[i] = 1; // Neuron active
             }
         }
-        return new Data(output, input.shape);
+        return new Base(output, input.shape);
     }
 //	public static GradFunc DropoutGradient =new GradFunc("dropout"){
 //		@Override

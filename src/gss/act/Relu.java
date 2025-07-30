@@ -6,15 +6,15 @@ import gss.arr.*;
 public class Relu extends Activation
 {
 	@Override
-	public Data forward(Data arr)
+	public Base forward(Base arr)
 	{
-		Data dt=arr.reshape(-1);
+		Base dt=arr.reshape(-1);
 		float[] out=new float[dt.length];
 		for (int i=0;i < dt.length;i++)
 		{
 			out[i] = Math.max(0, dt.get(i));
 		}
-		Data arrOut=new Data(out, arr.shape); // .setEnableGradient(arr.requiresGradient());
+		Base arrOut=new Base(out, arr.shape); // .setEnableGradient(arr.requiresGradient());
 		// gradient in progress.
 		// arrOut.setGradientFunction(reluGradient, arr);
 		return arrOut;

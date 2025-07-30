@@ -13,11 +13,11 @@ public class MultiLabelBinaryCrossEntropy extends LossFunc
 	// there are parameters to determine the output length.
 
 	@Override
-	public Data forward(Data pred, Data tar)
+	public Base forward(Base pred, Base tar)
 	{
 
-		Data prd=pred.as1DArray(); // .base.to2DArray(null);
-		Data tr=tar.as1DArray(); // .base.to2DArray(null);
+		Base prd=pred.as1DArray(); // .base.to2DArray(null);
+		Base tr=tar.as1DArray(); // .base.to2DArray(null);
 //
 //		if (predData.length != tarData.length)
 //			throw new RuntimeException("predicted and tergeted arrays have different length");
@@ -41,7 +41,7 @@ public class MultiLabelBinaryCrossEntropy extends LossFunc
 //		Data arrOut=new Data(new float[]{loss}).setEnableGradient(pred.requiresGradient());
 //		// gradient in progress.
 //		return arrOut;
-		return new Data(new float[]{loss});
+		return new Base(new float[]{loss});
 	}
     private double binaryCrossEntropy(double p, double y)
 	{

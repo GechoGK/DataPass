@@ -23,17 +23,17 @@ public class Sequential extends Module
 		return this;
 	}
 	@Override
-	public Data forward(Data input)
+	public Base forward(Base input)
 	{
 		if (modules.size() == 0)
 			return null;
-		Data out=input;
+		Base out=input;
 		for (Module m:modules)
 			out = m.forward(out);
 		return out;
 	}
 	@Override
-	public ArrayList<Data> getParameters()
+	public ArrayList<Base> getParameters()
 	{
 		if (!paramsCached)
 		{

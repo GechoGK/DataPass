@@ -6,15 +6,15 @@ import gss.arr.*;
 public class Tanh extends Activation
 {
 	@Override
-	public Data forward(Data arr)
+	public Base forward(Base arr)
 	{
-		Data dt=arr.reshape(-1); //.base.data.data;
+		Base dt=arr.reshape(-1); //.base.data.data;
 		float[] out=new float[dt.length];
 		for (int i=0;i < dt.length;i++)
 		{
 			out[i] = (float)Math.tanh(dt.get(i));
 		}
-		Data arrOut=new Data(out, arr.shape); // .setEnableGradient(arr.requiresGradient());
+		Base arrOut=new Base(out, arr.shape); // .setEnableGradient(arr.requiresGradient());
 		// arrOut.setGradientFunction(tanhGradient, arr);
 		return arrOut;
 	}

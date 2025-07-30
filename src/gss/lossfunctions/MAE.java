@@ -8,10 +8,10 @@ import java.util.*;
 public class MAE extends LossFunc
 {
 	@Override
-	public Data forward(Data pred, Data tar)
+	public Base forward(Base pred, Base tar)
 	{	
-		Data prd=pred.as1DArray(); // .base.data.getData();
-		Data tr=tar.as1DArray(); // .base.data.getData();
+		Base prd=pred.as1DArray(); // .base.data.getData();
+		Base tr=tar.as1DArray(); // .base.data.getData();
 		// float[] mae=forward(prd, tr);
 		// Data ar=new Data(mae).setEnableGradient(pred.requiresGradient());
 		// ar.setGradientFunction(maeGrad, pred, tar);
@@ -29,7 +29,7 @@ public class MAE extends LossFunc
 		loss /= n;
 
 		// Return loss as a 1-element array
-		return new Data(new float[]{loss});
+		return new Base(new float[]{loss});
 	}
 //	private static GradFunc maeGrad=new GradFunc("mean absolute error"){
 //

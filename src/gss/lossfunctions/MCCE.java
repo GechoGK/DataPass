@@ -9,10 +9,10 @@ public class MCCE extends LossFunc
 {
 	// it uses softmax inside it's function.
 	@Override
-	public Data forward(Data pred, Data tar)
+	public Base forward(Base pred, Base tar)
 	{
-		Data prd=pred.as1DArray(); // .base.data.getData();
-		Data tr=tar.as1DArray(); // .base.data.getData();
+		Base prd=pred.as1DArray(); // .base.data.getData();
+		Base tr=tar.as1DArray(); // .base.data.getData();
 //		float[] mcce=forward(prd, tr);
 //		Data ar=new Data(mcce).setEnableGradient(pred.requiresGradient());
 //		ar.setGradientFunction(mcceGrad, pred, tar);
@@ -46,7 +46,7 @@ public class MCCE extends LossFunc
 		}
 		loss = -loss; // Negate and return as scalar
 
-		return new Data(new float[]{loss});
+		return new Base(new float[]{loss});
 	}
 	// backward
 //	private static GradFunc mcceGrad=new GradFunc(""){

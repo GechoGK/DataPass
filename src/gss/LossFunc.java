@@ -4,9 +4,9 @@ import gss.arr.*;
 
 public abstract class LossFunc extends Module
 {
-	public abstract Data forward(Data predicted, Data trueLabel);
+	public abstract Base forward(Base predicted, Base trueLabel);
 	@Override
-	public Data forward(Data arr)
+	public Base forward(Base arr)
 	{
 		throw new RuntimeException("this forward method is not implemented.");
 	}

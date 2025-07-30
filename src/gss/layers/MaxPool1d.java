@@ -12,14 +12,14 @@ public class MaxPool1d extends Module
 		this.poolSize = poolSize;
 	}
 	@Override
-	public Data forward(Data input)
+	public Base forward(Base input)
 	{
-		Data in=input.as2DArray();
+		Base in=input.as2DArray();
 		int mds=in.shape[1] % poolSize;
 		if (mds != 0)
 			throw new RuntimeException("unable to make maxPool! make sure the pool size is divisble by the total length of the array.");
 		int newLen=in.shape[1] / poolSize;
-		Data outData=new Data(in.shape[0], newLen);
+		Base outData=new Base(in.shape[0], newLen);
 		// int[] index=new int[outArr.length];
 		for (int r=0;r < in.shape[0];r++)
 			for (int c=0;c < newLen;c++) // column count.

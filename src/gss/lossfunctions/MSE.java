@@ -12,12 +12,12 @@ public class MSE extends LossFunc
 	 */
 
 	@Override
-	public Data forward(Data pred, Data tar)
+	public Base forward(Base pred, Base tar)
 	{
 //		if (pred.getLength() != tar.getLength())
 //			throw new RuntimeException("unable to compute loss function with different array lengths");
-		Data prd=pred.as1DArray(); // .base.data.getData();
-		Data tr=tar.as1DArray(); // .base.data.getData();
+		Base prd=pred.as1DArray(); // .base.data.getData();
+		Base tr=tar.as1DArray(); // .base.data.getData();
 //		float[] mse=forward(prd, tr);
 //		Data ar=new Data(mse).setEnableGradient(pred.requiresGradient());
 //		ar.setGradientFunction(mseGrad, pred, tar);
@@ -35,7 +35,7 @@ public class MSE extends LossFunc
 		loss /= n;
 
 		// Return loss as a 1-element array
-		return new Data(new float[]{loss});
+		return new Base(new float[]{loss});
 	}
 //	private static GradFunc mseGrad=new GradFunc("mean squared error"){
 //		@Override
