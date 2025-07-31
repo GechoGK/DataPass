@@ -98,7 +98,6 @@ public abstract class GradFunc
 			// System.out.println(b);
 			// System.out.println("= " + host);
 			for (int ar=0;ar < a.shape[0];ar++) // 3
-			{
 				for (int bc=0;bc < b.shape[1];bc++) // 12
 				{
 					// get grad at host.grad[ar][bc];
@@ -113,8 +112,6 @@ public abstract class GradFunc
 							b.setGrad(new int[]{ac,bc}, av * grd);			
 					}
 				}
-			}
-
 			return null;
 		}
 	};

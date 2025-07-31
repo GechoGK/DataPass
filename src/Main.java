@@ -5,6 +5,7 @@ import gss.lossfunctions.*;
 import java.util.*;
 
 import static gss.Util.*;
+import static java.util.Arrays.*;
 
 public class Main
 {
@@ -20,6 +21,44 @@ public class Main
 	{
 
 
+	}
+	void test11()
+	{
+		System.out.println("========== Test 11.0 Linear layer backward pass. ==========");
+		Base d1=NDArray.arange(20).reshapeLocal(2, 10);
+
+		Linear l1=new Linear(10, 5);
+
+		Base out=l1.forward(d1);
+
+		System.out.println(out);
+		out.printArray();
+		System.out.println(out.gradientFunction);
+		out.fillGrad(1);
+		out.backward();
+		l1.weight.detachGradient().printArray();
+
+
+	}
+	void test10()
+	{
+		System.out.println("========== Test 10.0 addition backward pass. ==========");
+
+		Base a1=NDArray.arange(10).reshapeLocal(2, 5).setRequiresGradient(true);
+		Base a2=NDArray.arange(10, 20).reshapeLocal(2, 5).setRequiresGradient(true);
+		Base b= NDArray.add(a1, 100);
+
+		System.out.println(b);
+		System.out.println(b.gradientFunction);
+		b.printArray();
+		b.fillGrad(2);
+		b.backward();
+		System.out.println(line(30));
+
+		System.out.println(decString("grad a1", 10));
+		a1.detachGradient().printArray();
+		System.out.println(decString("grad a2", 10));
+		a2.detachGradient().printArray();
 
 	}
 	void test9()

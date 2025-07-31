@@ -239,7 +239,7 @@ public class Base
 		data.items[ind] = val;
 	}
 	/*
-	 // set multiple values(array valuea into the data
+	 // set multiple values(array value into the data
 	 // @startIndex[] which start index of the destination data.
 	 // @values[] floag value that is going to copied.
 	 !! if the values array is greater than the destination array,

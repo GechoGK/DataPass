@@ -4,6 +4,7 @@ import gss.*;
 import java.util.*;
 
 import static gss.Util.*;
+import static gss.arr.GradFunc.*;
 
 public class NDArray
 {
@@ -73,7 +74,7 @@ public class NDArray
 		int[] sh=getCommonShape(d1.shape, d2.shape);
 		Base res=new Base(sh).setRequiresGradient(d1.requiresGradient() | d2.requiresGradient());
 		if (res.requiresGradient())
-			res.setGradientFunction(GradFunc.additionGradient, d1, d2);
+			res.setGradientFunction(additionGradient, d1, d2);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
@@ -88,7 +89,10 @@ public class NDArray
 	public static Base add(Base d1, float d2)
 	{
 		int[] sh=d1.shape;
-		Base res=new Base(sh);
+		Base res=new Base(sh).setRequiresGradient(d1.requiresGradient());
+		Base data2=new Base(new float[]{d2}); // don't use for computation, it is just for gradient.
+		if (res.requiresGradient())
+			res.setGradientFunction(additionGradient, d1, data2);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)

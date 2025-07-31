@@ -20,14 +20,14 @@ public class Linear extends Module
 	}
 	private void init(int in, int out)
 	{
-		weight = newParam(NDArray.rand(in, out)); // .setEnableGradient(true));
+		weight = newParam(NDArray.rand(in, out).setRequiresGradient(true));
 		if (hasBiase)
-			biase = newParam(NDArray.ones(out)); // .setEnableGradient(true));
+			biase = newParam(NDArray.ones(out) .setRequiresGradient(true));
 	}
 	@Override
 	public Base forward(Base input)
 	{
-		Base out =NDArray.dot(input, weight);
+		Base out=NDArray.dot(input, weight);
 		if (hasBiase)
 			out = NDArray.add(out, biase);
 		return out;
