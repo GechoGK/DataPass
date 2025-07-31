@@ -224,7 +224,8 @@ public class NDArray
 	// dot product start.
 	public static Base dot(Base d1, Base d2)
 	{
-
+		// fix transposing and reshaping b array
+		// only transposing in enough.
 		/*
 		 if (x.col != y.row)
 		 throw new RuntimeException("two matrixes doesn't match (" + x.col + "," + y.row + ")");
@@ -245,7 +246,6 @@ public class NDArray
 		// System.out.println("final shape :" + Arrays.toString(newShape));
 		d1 = d1.as2DArray();
 		d2 = d2.transpose(prepareAxisForDot(d2.shape.length)).reshape(d2.shape[d2.shape.length - 2], -1);
-		// System.out.println(d2);
 		int[]sh1=d1.shape;
 		int[]sh2=d2.shape;
 		if (sh1[1] != sh2[0])
@@ -263,9 +263,9 @@ public class NDArray
 				f[shapeToIndex(ar(r, c), dotShape)] = sum;
 			}
 
-		Base d= new Base(f, dotShape).reshapeLocal(newShape).setRequiresGradient(d1.requiresGradient() | d2.requiresGradient());
+		Base d = new Base(f, dotShape).setRequiresGradient(d1.requiresGradient() | d2.requiresGradient());
 		d.setGradientFunction(GradFunc.dotGradient, d1, d2);
-		return d;
+		return d.reshape(newShape);
 	}
 	public static int[] prepareAxisForDot(int len)
 	{

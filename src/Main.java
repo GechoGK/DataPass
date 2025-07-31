@@ -19,8 +19,12 @@ public class Main
 	void a()
 	{
 
-		System.out.println("========== Test 10.0 dot product. ==========");
-		System.out.println(Arrays.toString(NDArray.prepareAxisForDot(5))); // new int[5])));
+
+
+	}
+	void test9()
+	{
+		System.out.println("========== Test 9.0 dot product backward pass. ==========");
 
 		Base d1=new Base(new float[]{0,1,2,3,4,5}, new int[]{1,3,2}).setRequiresGradient(true);
 		Base d2=NDArray.arange(3 * 2 * 4).reshapeLocal(4, 2, 3).setRequiresGradient(true);
@@ -28,17 +32,32 @@ public class Main
 		// check 2==2
 		// 
 
+		// System.out.println(d1);
+		// d1.printArray();
+		// System.out.println(getString("-", 30));
+		// System.out.println(d2);
+		// d2.printArray();
+		// System.out.println(decString("dot product", 5));
+		Base dot=NDArray.dot(d1, d2);
+		// System.out.println(dot);
+		// dot.printArray();
+		// System.out.println(dot.gradientFunction);
+		dot.fillGrad(1);
+		dot.backward();
+
+		System.out.println(decString("gradient of host", 10));
+		System.out.println(dot);
+		dot.detachGradient().printArray();
+		System.out.println(decString("geadient of a", 10));
+		d1 = d1.detachGradient();
 		System.out.println(d1);
 		d1.printArray();
-		System.out.println(getString("-", 30));
+		System.out.println(decString("gradient of b", 10));
+		d2 = d2.detachGradient();
 		System.out.println(d2);
 		d2.printArray();
-		System.out.println(decString("dot product", 5));
-		Base dot=NDArray.dot(d1, d2);
-		System.out.println(dot);
-		dot.printArray();
-		System.out.println(dot.gradientFunction);
-		dot.backward();
+
+
 
 	}
 	void test8()

@@ -3,6 +3,7 @@ package gss.arr;
 import java.util.*;
 
 import static gss.Util.*;
+import static gss.arr.GradFunc.*;
 
 public class Base
 {
@@ -50,6 +51,14 @@ public class Base
 	 public Data slice(Range...ranges){
 	 return ...;
 	 }
+	 */
+	/*
+	 note:
+	 // avoid shape manipulation wuthout creating a new Base instance.
+	 // in that process the gradient tracker will lost it's computation graph.
+	 so, if you are using gradients and changing the shape of the Base class without new instance, please don't use these function
+	 example.
+	 -- reshapeLocal. that doesn't return a new Base class....
 	 */
 	public int[] shape;
 	public int[] strides;
@@ -118,7 +127,10 @@ public class Base
 		// System.out.println("backward " + gradientFunction);
 		gradientFunction.backward(this, childs.toArray(new Base[0]), params);
 		for (Base arr:childs)
+		{
+			// System.out.println("=== " + arr.gradientFunction + " == " + this);
 			arr.backward();
+		}
 	}
 	public Base setRequiresGradient(boolean enableGrad)
 	{
@@ -297,8 +309,9 @@ public class Base
 		// d.setRequiresGradient(requiresGradient);
 		if (d.requiresGradient())
 		{
-			d.setGradientFunction(gradientFunction);
-			d.setGradientParams(params);
+			d.setGradientFunction(reshapeGradient, this);
+			// d.setGradientFunction(gradientFunction);
+			// d.setGradientParams(params);
 			// d.gradient = gradient;
 		}
 		return d;
@@ -338,11 +351,11 @@ public class Base
 			p++;
 		}
 		Base d = new Base(data, sh, strd);
-		// d.setRequiresGradient(requiresGradient);
+		// d.setRequiresGradient(requiresGradient());
 		if (d.requiresGradient())
 		{
-			d.setGradientFunction(gradientFunction);
-			d.setGradientParams(params);
+			d.setGradientFunction(transposeGradient, this);
+			// d.setGradientParams(params);
 			// d.gradient = gradient;
 		}
 		return d;
@@ -391,8 +404,9 @@ public class Base
 		{
 			float[] dt=new float[length];
 			Base d=new Base(dt, shape).setRequiresGradient(data.requiresGradient);
-			d.setGradientFunction(gradientFunction);
-			d.setGradientParams(params);
+			if (d.requiresGradient())
+				d.setGradientFunction(copyGradient, this);
+			// d.setGradientParams(params);
 			for (int i=0;i < length;i++)
 			{
 				int[] shp=indexToShape(i);
@@ -408,8 +422,8 @@ public class Base
 			d.setRequiresGradient(requiresGradient());
 			if (d.requiresGradient())
 			{
-				d.setGradientFunction(gradientFunction);
-				d.setGradientParams(params);
+				d.setGradientFunction(copyGradient, this);
+				// d.setGradientParams(params);
 				d.data.gradient = Arrays.copyOf(data.gradient, data.length);
 			}
 			return d;
@@ -420,7 +434,7 @@ public class Base
 	// it must support broadcasting.
 	// the new shape can be a broadcast if the original shape.
 	// the reshape method can't give that ability.
-	public Base copyAs2(int...newShape)
+	public Base copyTo(int...newShape)
 	{
 		if (Arrays.equals(newShape, shape))
 			return copy();
@@ -429,16 +443,15 @@ public class Base
 			int len=length(newShape);
 			float[] dt=new float[len];
 			Base d=new Base(dt, newShape).setRequiresGradient(requiresGradient());
-			d.setGradientFunction(gradientFunction);
+			if (d.requiresGradient())
+				d.setGradientFunction(copyToGradient, this);
 			d.setGradientParams(params);
 			for (int i=0;i < len;i++)
 			{
 				int[] shp=indexToShape(i);
 				dt[i] = get(shp);
 				if (d.requiresGradient())
-				{
 					d.data.gradient[i] = getGrad(shp);
-				}
 			}
 			return d;
 		}
@@ -510,11 +523,11 @@ public class Base
 		}
 		int[] sh=Arrays.copyOfRange(shape, c, shape.length);
 		Base d = new Base(data, sh, strides);
-		// d.setRequiresGradient(requiresGradient());
+		d.setRequiresGradient(requiresGradient());
 		if (d.requiresGradient())
 		{
-			d.setGradientFunction(gradientFunction);
-			d.setGradientParams(params);
+			d.setGradientFunction(trimGradient, this);
+			// d.setGradientParams(params);
 			// d.data.gradient = data.gradient;
 		}
 		return d;
