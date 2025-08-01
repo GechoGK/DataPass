@@ -204,4 +204,11 @@ public class Util
 		}
 		return arr;
 	}
+	public static float[] asFloat(int...data)
+	{
+		float[] f=new float[data.length];
+		for (int i=0;i < data.length;i++)
+			f[i] = data[i];
+		return f;
+	}
 }

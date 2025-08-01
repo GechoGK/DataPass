@@ -1,5 +1,6 @@
 package gss.arr;
 
+import gss.*;
 import java.util.*;
 
 import static gss.Util.*;
@@ -237,6 +238,15 @@ public class Base
 	{
 		int ind=shapeToIndex(index);
 		data.items[ind] = val;
+	}
+	public void set(Base d)
+	{
+		int[] tmpSh=new int[shape.length];
+		for (int i=0;i < length;i++)
+		{
+			Util.indexToShape(i, shape, tmpSh);
+			set(tmpSh, d.get(tmpSh));
+		}
 	}
 	/*
 	 // set multiple values(array value into the data

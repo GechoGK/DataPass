@@ -20,6 +20,22 @@ public class Main
 	void a()
 	{
 
+	}
+	void test12()
+	{
+		System.out.println("========== Test 12.0 Dropout layer backward pass. ==========");
+		Base d1=NDArray.arange(20).reshapeLocal(2, 10).setRequiresGradient(true);
+
+		Dropout drp=new Dropout(0.5f);
+
+		Base out=drp.forward(d1);
+		Base grd=d1.detachGradient();
+
+		grd.printArray();
+		System.out.println(decString("after backward method", 10));
+		out.fillGrad(5);
+		out.backward();
+		grd.printArray();
 
 	}
 	void test11()

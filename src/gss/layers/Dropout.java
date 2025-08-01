@@ -27,7 +27,6 @@ public class Dropout extends Module
 		float[] output = new float[in.length];
         mask = new int[output.length]; // Store which neurons are active, it helps for backpropagation.
         float scale = 1.0f / (1.0f - drp);
-
         for (int i = 0; i < output.length; i++)
 		{
             if (random.nextFloat() < drp)
@@ -41,34 +40,25 @@ public class Dropout extends Module
                 mask[i] = 1; // Neuron active
             }
         }
-        return new Base(output, input.shape);
+        Base b = new Base(output, input.shape);
+		b.setRequiresGradient(input.requiresGradient());
+		b.setGradientFunction(dropoutGradient, in);
+		b.setGradientParams(mask);
+		return b;
     }
-//	public static GradFunc DropoutGradient =new GradFunc("dropout"){
-//		@Override
-//		public NDArray backward(NDArray host, NDArray[] childs, Object[] params)
-//		{
-//			float[] grd=host.base.data.getGrads();
-//			int[] mask=(int[])params[0];
-//			float[] ngrd=Dropout.backward(grd, mask);
-//			NDArray ch1=childs[0];
-//			ch1.base.data.setGrad(ngrd); // don't use this method for chain rule. because it doesn't append the value, instead it replaces it.
-//			return null;
-//		}
-//	};
-//    // Hypothetical backward method (gradient propagation)
-//    public static float[] backward(float[] grad, int[] mask)
-//	{
-//        // During backward pass: propagate gradients only through active neurons
-//        float[] gradInput = new float[grad.length];
-//        for (int i = 0; i < grad.length; i++)
-//		{
-//            gradInput[i] = mask[i] * grad[i];
-//        }
-//        return gradInput;
-//    }
-//
-//    public void setTraining(boolean isTraining)
-//	{
-//        this.isTraining = isTraining;
-//    }
+	public static GradFunc dropoutGradient = new GradFunc("dropout"){
+		@Override
+		public Base backward(Base host, Base[] childs, Object params)
+		{
+			Base grd=host.detachGradient().as1DArray();// .base.data.getGrads();
+			int[] mask=((int[])params);
+			Base c1=childs[0];
+			if (host.length != c1.length)
+				throw new RuntimeException("unable to compute dropout backpropagation.: invalid array length between the host and the child.");
+			Base rs=NDArray.mul(grd, new Base(Util.asFloat(mask)));
+
+			c1.detachGradient().set(rs);
+			return null;
+		}
+	};
 }
