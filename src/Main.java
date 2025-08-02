@@ -20,6 +20,51 @@ public class Main
 	void a()
 	{
 
+		int[] sh={3, 12};
+		Base d1=NDArray.arange(length(sh)).reshapeLocal(sh).setRequiresGradient(true);
+
+		Conv1d c=new Conv1d(12, 3, 3, 4); // (input_size, num_features, num_kernels, kernel_size).
+		Base out=c.forward(d1);
+		System.out.println(decString("gradient before backward called", 7));
+		System.out.println(out);
+		out.detachGradient().printArray();
+		System.out.println(decString("backward pass", 7));
+		out.fillGrad(1);
+		out.backward();
+		System.out.println("input " + out);
+		out.detachGradient().printArray();
+		System.out.println(decString("kernels ", 7));
+		System.out.println(c.kernels);
+		c.kernels.detachGradient().printArray();
+		System.out.println(decString("biase ", 7));
+		System.out.println(c.biase);
+		c.biase.detachGradient().printArray();
+
+
+	}
+	void test13()
+	{
+		System.out.println("========== Test 13.0 MaxPool1d layer backward pass. ==========");
+		MaxPool1d mx=new MaxPool1d(3);
+
+		Base d1=NDArray.arange(5 * 12).reshapeLocal(5, 12).setRequiresGradient(true);
+		d1 = NDArray.mul(d1, NDArray.rand(5, 12)).setRequiresGradient(true);
+		System.out.println(d1);
+		d1.printArray();
+		System.out.println(decString("after MaxPool1d layer forward.", 10));
+		Base out=mx.forward(d1);
+		System.out.println(out);
+		out.printArray();
+		System.out.println(decString("after MaxPool1d layer backward.", 10));
+		out.fillGrad(3);
+		out.backward();
+		Base g=d1.detachGradient();
+		System.out.println(g);
+		g.printArray();
+		System.out.println(decString("MaxPool1d indexes", 10));
+		for (int[] r:mx.index)
+			System.out.println(Arrays.toString(r));
+
 	}
 	void test12()
 	{

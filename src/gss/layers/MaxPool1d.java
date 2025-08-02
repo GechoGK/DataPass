@@ -6,6 +6,7 @@ import gss.arr.*;
 public class MaxPool1d extends Module
 {
 	private int poolSize;
+	public int[][] index;
 
 	public MaxPool1d(int poolSize)
 	{
@@ -20,8 +21,8 @@ public class MaxPool1d extends Module
 			throw new RuntimeException("unable to make maxPool! make sure the pool size is divisble by the total length of the array.");
 		int newLen=in.shape[1] / poolSize;
 		Base outData=new Base(in.shape[0], newLen);
-		// int[] index=new int[outArr.length];
-		for (int r=0;r < in.shape[0];r++)
+		index = new int[in.shape[0]][outData.shape[1]];
+		for (int r=0;r < in.shape[0];r++) // row count.
 			for (int c=0;c < newLen;c++) // column count.
 			{
 				int np=c * poolSize;
@@ -32,27 +33,35 @@ public class MaxPool1d extends Module
 					if (fp >= pmx)
 					{
 						pmx = fp;
-						// index[n] = p;
+						index[r][c] = p;
 					}
 				}
 				outData.set(new int[]{r,c}, pmx);
 			}
 		int[] nsh=input.shape.clone();
 		nsh[nsh.length - 1] = newLen; // nsh[nsh.length - 1] / poolSize;
-		outData.reshapeLocal(nsh);
-		// out.setGradientFunction(maxPool1dGradient, input).setGradientParams(index);
-		return outData;
+		// outData.reshapeLocal(nsh);
+		outData.setRequiresGradient(input.requiresGradient());
+		outData.setGradientFunction(maxPool1dGradient, input);
+		outData.setGradientParams(index);
+		return outData.reshape(nsh);
 	}
-//	public static GradFunc maxPool1dGradient=new GradFunc("maxPool1d"){
-//		@Override
-//		public NDArray backward(NDArray host, NDArray[] childs, Object[] params)
-//		{
-//			int[] index=(int[])params[0];
-//			NDArray ch=childs[0];
-//			float[] grd=host.base.data.getGrads();
-//			for (int i=0;i < grd.length;i++)
-//				ch.base.data.setGrad(index[i], grd[i]);
-//			return null;
-//		}
-//	};
+	public static GradFunc maxPool1dGradient=new GradFunc("maxPool1d"){
+		@Override
+		public Base backward(Base host, Base[] childs, Object params)
+		{
+			int[][] index=(int[][])params;
+			Base ch = childs[0].detachGradient();
+			Base grd = host.detachGradient();
+			if (ch.shape.length != 2 || (ch.shape[0] == index.length && ch.shape[1] == index[0].length))
+				throw new RuntimeException("invalid array length on maxpool1d layer.");
+			// float[] grd=host.base.data.getGrads();
+			for (int r=0;r < index.length;r++)
+				for (int c=0;c < index[r].length;c++)
+				{
+					ch.set(new int[]{r,index[r][c]}, grd.get(new int[]{r,index[r][c]}));
+				}
+			return null;
+		}
+	};
 }

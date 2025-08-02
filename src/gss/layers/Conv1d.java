@@ -13,8 +13,8 @@ public class Conv1d extends Module
 	private int kernel_size;
 	private int output_size=0;
 	private int input_size=0;
-
-	private Base kernels,biase;
+	
+	public Base kernels,biase;
 
 	public Conv1d(int input_size, int n_channels, int n_kernels, int kernel_size)
 	{
@@ -52,7 +52,7 @@ public class Conv1d extends Module
 		 : add float array (karr) to store the sum of features convolved with current input(di) and initialize with 0.
 		 -- again loop over kernel features inside the current kernel(krs).	
 		 : for kft in kernels.shape[1]; // looping over all the features of kernel.
-		 // now we have 1d input(di) and 1d kernel feature (mft)
+		 // now we have 1d input(di) and 1d kernel feature (kft)
 		 -- then we do the convolution of two and add the result into karr.
 		 : karr += convolve( di, kft );
 		 -- after all the features (kft) are added into karr.
@@ -63,12 +63,14 @@ public class Conv1d extends Module
 		 */
 		if (n(input.shape, 0) != input_size)
 			throw new IllegalArgumentException("input data size must be equal to input size(" + input_size + ")");
-		if (input.shape.length > 1 && n(input.shape, 1) != n_channels)
+		if ((input.shape.length < 2 && n_channels != 1) | (input.shape.length > 1 && n(input.shape, 1) != n_channels))
 			throw new IllegalArgumentException("input data feature size must be equal to features(" + n_channels + ").");
 		Base in=input.reshape(-1, n_channels/* n(input.shape, 1)*/, n(input.shape, 0)); // 3d array.
-		float[][][] out=new float[in.shape[0]][n_kernels][output_size];
+		// float[][][] out=new float[in.shape[0]][n_kernels][output_size];
+		float[] outF=new float[in.shape[0] * n_kernels * output_size];
 		// input iteration.
 		// System.out.println(Arrays.toString(in.shape) + ", " + n_kernels + ", " + n_channels);
+		int pos=0;
 		for (int din=0;din < in.shape[0];din++) // for input data count.
 		{
 			// System.out.println("data ::: " + din);
@@ -76,11 +78,13 @@ public class Conv1d extends Module
 			{
 				// System.out.println("kernel ::: " + kr);
 				// float[] karr=new float[output_size];
+				int tmpPos=pos;
 				for (int chn=0;chn < n_channels;chn++) // loop over number of channels.
 				{
 					// System.out.println("channels :::" + chn);
 					// convolved1k1(in.get(din, chn), kernels.get(kr, chn), karr);
 					// test area
+					pos = tmpPos;
 					for (int w=0;w < output_size;w++)
 					{
 						float sm=0;
@@ -90,16 +94,49 @@ public class Conv1d extends Module
 							float kv=kernels.get(kr, chn, kp--);
 							sm += in.get(din, chn, w + k) * kv; // get kernel in reverse order
 						}
-						out[din][kr][w] += sm;
+						// out[din][kr][w] += sm;
+						outF[pos++] += sm + biase.get(kr, w);
 					}
-
-					// 
+					// pos++;
 				}
 				// out[din][kr] = karr;
 			}
 		}
-		Base d=new Base(flatten(out), new int[]{in.shape[0],kernels.shape[0],output_size});
-		return d;
+		Base output=new Base(outF, new int[]{in.shape[0],kernels.shape[0],output_size});
+		output.setRequiresGradient(kernels.requiresGradient() | biase.requiresGradient() | input.requiresGradient());
+		output.setGradientFunction(conv1dGradient, kernels, biase, input);
+		// System.out.println("... " + input + " >>> " + d);
+		// needs reshaping.
+		// System.out.println("===== equals :" + Arrays.equals(outF, flatten(out)));
+		/*
+		 example.
+		 --- input.shape = {2,3,12} // 3 = fearures size, 12 = inputLength
+		 others (2) = input data depth maybe more.
+		 but the ouput is always 3d, even if the input is 5d like.
+		 --- input.shape = {2,3,2,5,12}
+		 --- 12 = input length , 5 = features , 2,3,2 = data depth. an be multiplied.
+		 output = 12, n_kernels, inputLength-kernel_size.
+		 so what we do is we extract shapes from input array then we apply it into output without touching the last two shapes on the output.
+		 */
+		int rmLen=Math.max(0, input.shape.length - (output.shape.length - 1));
+		int[] sh=new int[rmLen + 2];
+		// System.out.println("== " + rmLen);
+		int sum=1;
+		for (int i=0;i < rmLen;i++)
+		{
+			sh[i] = input.shape[i];
+			sum *= sh[i];
+		}
+		if (sum != output.shape[0])
+			System.out.println("unable to expand the shape from " + Arrays.toString(output.shape) + " to " + Arrays.toString(sh));
+		else
+		{
+			sh[sh.length - 1] = output_size; // last
+			sh[sh.length - 2] = kernels.shape[0]; // last -1
+			// System.out.println("array reshaped and trimmed from " + Arrays.toString(output.shape) + " to " + Arrays.toString(sh));
+			output = output.reshape(sh); // also trimmed.
+		}
+		return output;
 	}
 //	float[] convolved1k1(float datain, float krn, float[] out)
 //	{
@@ -141,4 +178,11 @@ public class Conv1d extends Module
 		 return out.add(biase);
 		 */
 	}
+	public static GradFunc conv1dGradient = new GradFunc("conv1d"){
+		@Override
+		public Base backward(Base host, Base[] childs, Object params)
+		{
+			return null;
+		}
+	};
 }
