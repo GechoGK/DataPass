@@ -13,7 +13,7 @@ public class Conv1d extends Module
 	private int kernel_size;
 	private int output_size=0;
 	private int input_size=0;
-	
+
 	public Base kernels,biase;
 
 	public Conv1d(int input_size, int n_channels, int n_kernels, int kernel_size)
@@ -26,7 +26,7 @@ public class Conv1d extends Module
 	}
 	private void init()
 	{
-		output_size = input_size - kernel_size + 1; // for normal convolution.
+		output_size = (input_size - kernel_size) + 1; // for normal convolution.
 		kernels = newParam(NDArray.ones(n_kernels, n_channels, kernel_size)); // change NDArray.ones -> NDArray.rand
 		biase = newParam(NDArray.ones(n_kernels, output_size));
 	}
@@ -70,6 +70,7 @@ public class Conv1d extends Module
 		float[] outF=new float[in.shape[0] * n_kernels * output_size];
 		// input iteration.
 		// System.out.println(Arrays.toString(in.shape) + ", " + n_kernels + ", " + n_channels);
+		StringBuilder sb=new StringBuilder(line(30)).append("\n");
 		int pos=0;
 		for (int din=0;din < in.shape[0];din++) // for input data count.
 		{
@@ -85,26 +86,33 @@ public class Conv1d extends Module
 					// convolved1k1(in.get(din, chn), kernels.get(kr, chn), karr);
 					// test area
 					pos = tmpPos;
-					for (int w=0;w < output_size;w++)
+					for (int w=0;w < output_size;w++) // increment by inc. default = 1.
 					{
 						float sm=0;
 						int kp=kernel_size - 1;
 						for (int k=0;k < kernel_size;k++)
 						{
-							float kv=kernels.get(kr, chn, kp--);
+							float kv=kernels.get(kr, chn, kp);
 							sm += in.get(din, chn, w + k) * kv; // get kernel in reverse order
+							sb.append("sum += in[" + din + "][" + chn + "][" + (w + k) + "] * kerns[" + kr + "][" + chn + "][" + kp + "]\n");
+							kp--;
 						}
 						// out[din][kr][w] += sm;
 						outF[pos++] += sm + biase.get(kr, w);
+						sb.append("out[" + din + "][" + kr + "][" + w + "] = sum\n");
 					}
+					sb.append(decString("kernel channel " + chn + " completed.", 5) + "\n");
 					// pos++;
 				}
+				sb.append(decString("kernel " + kr + " completed.", 5) + "\n");
 				// out[din][kr] = karr;
 			}
 		}
+		sb.append(decString("done", 15));
+		// System.out.println(sb.toString());
 		Base output=new Base(outF, new int[]{in.shape[0],kernels.shape[0],output_size});
 		output.setRequiresGradient(kernels.requiresGradient() | biase.requiresGradient() | input.requiresGradient());
-		output.setGradientFunction(conv1dGradient, kernels, biase, input);
+		output.setGradientFunction(conv1dGradient, kernels, biase, in);
 		// System.out.println("... " + input + " >>> " + d);
 		// needs reshaping.
 		// System.out.println("===== equals :" + Arrays.equals(outF, flatten(out)));
@@ -138,50 +146,40 @@ public class Conv1d extends Module
 		}
 		return output;
 	}
-//	float[] convolved1k1(float datain, float krn, float[] out)
-//	{
-//		// do convolution on 1d level.
-//		for (int w=0;w < output_size;w++)
-//		{
-//			float sm=0;
-//			int kp=kernel_size;
-//			for (int k=0;k < kernel_size;k++)
-//			{
-//				float kv=kernel.get(kp--);
-//				sm += in.get(0, 0, w + k) * kv; // get kernel in reverse order
-//			}
-//			out[0][0][w] = sm;
-//		}
-//		return out;
-//	}
-	void forwardOld(Base input)
-	{
-		/*
-		 if (n(input.shape, 0) != input_size)
-		 throw new IllegalArgumentException("input data size must be equal to input size(" + input_size + ")");
-		 if (n(input.shape, 1) != n_channels)
-		 throw new IllegalArgumentException("input data feature size must be equal to features(" + n_channels + ").");
-		 NDArray[]outs=new NDArray[n_kernels];
-		 for (int i=0;i < n_kernels;i++)
-		 {
-		 NDArray kd=null;
-		 for (int c=0;c < n_channels;c++)
-		 {
-		 NDArray k=kernels.get(i, c);
-		 NDArray crs=input.convolve1d(k);
-		 kd = kd == null ?crs: kd.add(crs);
-		 }
-		 outs[i] = kd;
-		 }
-		 NDArray out=NDArray.merge(outs);
-		 // System.out.println(Arrays.toString(out.getShape()) + ", " + Arrays.toString(biase.getShape()));
-		 return out.add(biase);
-		 */
-	}
 	public static GradFunc conv1dGradient = new GradFunc("conv1d"){
 		@Override
 		public Base backward(Base host, Base[] childs, Object params)
 		{
+			Base kern=childs[0]; // kernel 3d array.
+			Base biase=childs[1]; // biase 2d array.
+			Base in=childs[2]; // input 3d array.
+			// Base host = 3d array.
+			// do some logic.
+			System.out.println(line(30));
+			System.out.println("host  :" + host);
+			System.out.println("kern  :" + kern);
+			System.out.println("biase :" + biase);
+			System.out.println("input :" + in);
+			System.out.println(line(30));
+			System.out.println("!!!! backward pass not implemented");
+
+			// Base k1c1=kern.slice(0, 0); // 1d array.
+			// Base i1c1 = in.slice(0, 0); // 1d array.
+
+			for (int kr=0;kr < kern.shape[0];kr++)
+			{
+				for (int kf=0;kf < kern.shape[1];kf++)
+				{
+					// set grad for input
+					//input[kf].grad = host[kr][kf].grad @f kern[kr][kf] // full convolution
+					//  2d array         3d array               3d array
+					// --------------------------------------------
+					// set grad for kernel
+					// kern[kr][kf].grad = host[kr][kf].grad @ input[kf]
+					//   3d array           3d array            2d array
+				}
+			}
+
 			return null;
 		}
 	};

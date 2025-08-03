@@ -64,6 +64,7 @@ public class Base
 	public int[] shape;
 	public int[] strides;
 	public int length;
+	public int offset=0;
 	public Data data;
 	public List<Base> childs = new ArrayList<>();
 	public Object params=null;
@@ -101,23 +102,43 @@ public class Base
 		if (length != data.length)
 			throw new RuntimeException("invalid shape or data. they are not equal in length.");
 	}
-	public Base(Data d, int...shp)
+//	public Base(Data d, int...shp)
+//	{
+//		this.data = d;
+//		this.shape = shp;
+//		strides = genStrides(shape);
+//		length = length(shape);
+//		// if (length != data.length)
+//		// 	throw new RuntimeException("invalid shape or data. they are not equal in length.");
+//	}
+	public Base(Data d, int[]shp, int off)
 	{
 		this.data = d;
 		this.shape = shp;
-		strides = genStrides(shape);
-		length = length(shape);
-		if (length != data.length)
-			throw new RuntimeException("invalid shape or data. they are not equal in length.");
+		this.strides = genStrides(shape);
+		this.length = length(shape);
+		this.offset = off;
+		// if (length != data.length)
+		// 	throw new RuntimeException("invalid shape or data. they are not equal in length.");
 	}
-	public Base(Data d, int[]shp, int[]strd)
+//	public Base(Data d, int[]shp, int[]strd)
+//	{
+//		this.data = d;
+//		this.shape = shp;
+//		strides = strd;
+//		length = length(shape);
+//		// if (length != data.length)
+//		// 	throw new RuntimeException("invalid shape or data. they are not equal in length.");
+//	}
+	public Base(Data d, int[]shp, int[]strd, int off)
 	{
 		this.data = d;
 		this.shape = shp;
 		strides = strd;
 		length = length(shape);
-		if (length != data.length)
-			throw new RuntimeException("invalid shape or data. they are not equal in length.");
+		offset = off;
+		// if (length != data.length)
+		// 	throw new RuntimeException("invalid shape or data. they are not equal in length.");
 	}
 	// gradient area.
 	public void backward()
@@ -187,6 +208,60 @@ public class Base
 //		return gradient[index];
 //	}
 	// end gradients.
+	public Base slice(int...ind)
+	{
+		if (ind.length > shape.length)
+			throw new RuntimeException("index.length must not be greater than shape.length:(" + Arrays.toString(ind) + ", " + Arrays.toString(shape) + ")");
+		int off=shapeToIndex(Util.fill(ind, shape.length));
+		int shl=shape.length - ind.length;
+		int[] sh=null;
+		int[] str=null;
+		if (shl == 0)
+		{
+			sh = new int[]{1};
+			str = new int[]{1};
+		}
+		else
+		{
+			sh = new int[shl];
+			str = new int[shl];
+			for (int i=0;i < sh.length;i++)
+			{
+				sh[i] = shape[ind.length + i];
+				str[i] = strides[ind.length + i];
+			}
+			System.out.println("offset = " + off + ", new shape :" + Arrays.toString(sh) + ", new stride :" + Arrays.toString(str));
+		}
+		return new Base(data, sh, str, off);
+	}
+	public Base slice(int[]...ind)
+	{
+		// need some improvement.
+		if (ind.length > shape.length)
+			throw new RuntimeException("index.length must not be greater than shape.length.");
+		// int shl=shape.length - ind.length;
+		// if (shl == 0)
+		//	throw new RuntimeException("invalid index for slice.");
+		System.out.println("slicing with range :");
+		int[] sh= new int[shape.length];
+		int[] str=new int[shape.length];
+		ind = Util.fill(ind, shape);
+		// System.out.println(ind.length + ",, " + sh.length);
+		int i=0;
+		int off=0;
+		for (int[] r:ind)
+		{
+			int ln=0;
+			for (int k=r[0];k < r[1];k += r[2])
+				ln++;
+			sh[i] = ln;
+			str[i] = strides[i] * r[2];
+			off += r[0] * strides[i];
+			i++;
+		}
+		// System.out.println("offset = " + off + ", new shape :" + Arrays.toString(sh) + ", new stride :" + Arrays.toString(str));
+		return new Base(data, sh, str, off);
+	}
 	public void fill(float v)
 	{
 		Arrays.fill(data.items, v);
@@ -202,7 +277,7 @@ public class Base
 			int shapeInd = Math.min(index[i + strIndPos], shape[shps] - 1); // uncomment to enable lazy broadcasting(value broadcasting).
 			newPos += shapeInd *  strides[shps];
 		}
-		return newPos; // + offset;
+		return newPos + offset;
 	}
 	public int[] indexToShape(int index)
 	{
@@ -315,7 +390,7 @@ public class Base
 		}
 		if (length != length(newShape))
 			throw new RuntimeException("can't view this array into " + Arrays.toString(newShape) + " shape. Reason!! the length is not equal");
-		Base d=new Base(data, newShape);
+		Base d=new Base(data, newShape, offset);
 		// d.setRequiresGradient(requiresGradient);
 		if (d.requiresGradient())
 		{
@@ -360,7 +435,7 @@ public class Base
 			strd[p] = strides[i];
 			p++;
 		}
-		Base d = new Base(data, sh, strd);
+		Base d = new Base(data, sh, strd, offset);
 		// d.setRequiresGradient(requiresGradient());
 		if (d.requiresGradient())
 		{
@@ -532,7 +607,7 @@ public class Base
 			return this;
 		}
 		int[] sh=Arrays.copyOfRange(shape, c, shape.length);
-		Base d = new Base(data, sh, strides);
+		Base d = new Base(data, sh, strides, offset);
 		d.setRequiresGradient(requiresGradient());
 		if (d.requiresGradient())
 		{

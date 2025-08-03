@@ -19,11 +19,38 @@ public class Main
 	}
 	void a()
 	{
+		System.out.println(5 % 2);
 
-		int[] sh={3, 12};
+		Base d1=NDArray.arange(60).reshapeLocal(6, 10);
+		System.out.println(d1);
+		d1.printArray();
+
+		System.out.println(line(30));
+		Base d2=d1.slice(1).transpose();
+		System.out.println("off :" + d2.offset + ", shape :" + Arrays.toString(d2.shape) + ", strides :" + Arrays.toString(d2.strides));
+		d2.printArray();
+
+		System.out.println(line(30));
+
+		Base c1=d2.slice(2);
+		System.out.println("off :" + c1.offset + ", shape :" + Arrays.toString(c1.shape) + ", strides :" + Arrays.toString(c1.strides));
+		c1.printArray();
+
+		System.out.println(decString("get with single done.", 10));
+
+		Base s1=d1.slice(new int[][]{r(2, 6, 2),r(5, 10)});
+		System.out.println(s1);
+		s1.printArray();
+
+	}
+	void test14()
+	{
+		System.out.println("========== Test 14.0 Conv1d layer backward pass. ==========");
+
+		int[] sh={3,2,7};
 		Base d1=NDArray.arange(length(sh)).reshapeLocal(sh).setRequiresGradient(true);
 
-		Conv1d c=new Conv1d(12, 3, 3, 4); // (input_size, num_features, num_kernels, kernel_size).
+		Conv1d c=new Conv1d(7, 2, 1, 3); // (input_size, num_features, num_kernels, kernel_size).
 		Base out=c.forward(d1);
 		System.out.println(decString("gradient before backward called", 7));
 		System.out.println(out);
@@ -39,6 +66,9 @@ public class Main
 		System.out.println(decString("biase ", 7));
 		System.out.println(c.biase);
 		c.biase.detachGradient().printArray();
+		System.out.println(decString("input ", 7));
+		System.out.println(d1);
+		d1.detachGradient().printArray();
 
 
 	}

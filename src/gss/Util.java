@@ -211,4 +211,49 @@ public class Util
 			f[i] = data[i];
 		return f;
 	}
+	public static int[] fill(int[]sh, int len)
+	{
+		if (sh.length >= len)
+			return sh;
+		int[] s=new int[len];
+		for (int i=0;i < s.length;i++)
+			s[i] = i >= sh.length ?0: sh[i];
+		return s;
+	}
+	public static int[][] fill(int[][] rng, int[] shp)
+	{
+		int[][] r=new int[shp.length][3];
+		for (int i=0;i < shp.length;i++)
+		{
+			if (i < rng.length)
+			{
+				r[i][2] = rng[i][2];
+				r[i][0] = rng[i][0];
+				if (r[i][0] == -1)
+					r[i][0] = 0;
+				r[i][1] = rng[i][1];
+				if (r[i][1] == -1)
+					r[i][1] = shp[i];
+			}
+			else
+			{
+				r[i][0] = 0;
+				r[i][1] = shp[i];
+				r[i][2] = 1;
+			}
+		}
+		return r;
+	}
+	public static int[] r(int end)
+	{
+		return new int[]{0,end,1};
+	}
+	public static int[] r(int start, int end)
+	{
+		return new int[]{start,end,1};
+	}
+	public static int[] r(int start, int end, int inc)
+	{
+		return new int[]{start,end,inc};
+	}
 }
