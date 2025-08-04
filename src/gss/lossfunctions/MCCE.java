@@ -46,82 +46,112 @@ public class MCCE extends LossFunc
 		}
 		loss = -loss; // Negate and return as scalar
 
-		return new Base(new float[]{loss});
+		Base b = new Base(new float[]{loss});
+		b.setRequiresGradient(pred.requiresGradient());
+		if (b.requiresGradient())
+			b.setGradientFunction(mcceGrad, pred, tar);
+		return b;
 	}
 	// backward
-//	private static GradFunc mcceGrad=new GradFunc(""){
-//		@Override
-//		public Data backward(Data host, Data[] childs, Object[] params)
+	private static GradFunc mcceGrad=new GradFunc(""){
+		@Override
+		public Base backward(Base host, Base[] childs, Object params)
+		{
+			Base prd=childs[0]; // 1d array
+			Base trueLabel=childs[1]; // 1d array
+			// host = 0d array(single value)
+			// float[] grd=host.base.data.getGrads();
+			// float[] xv=ch.base.data.getData();
+			// float[] trLabel=childs[1].base.data.getData();
+			// float[] g=MCCE.backward(grd, xv, trLabel);
+			// ch.base.data.setGrad(g); // don't use this method.
+
+			int n = prd.shape[0]; // Number of classes
+			// float[] gradient = new float[n];
+
+			// Recompute softmax during backward pass
+			float[] softmax = new float[n];
+			float expSum = 0.0f;
+			for (int i = 0; i < n; i++)
+			{
+				softmax[i] = (float) Math.exp(prd.get(i));
+				expSum += softmax[i];
+			}
+			for (int i = 0; i < n; i++)
+			{
+				softmax[i] /= expSum;
+			}
+
+			// Gradient formula: (softmax - trueLabel) * grad[0]
+			for (int i = 0; i < n; i++)
+			{
+				prd.setGrad(Util.ar(i), (softmax[i] - trueLabel.get(i)) * host.getGrad(0));
+			}
+
+			// return gradient;
+			return null;
+		}
+	};
+//	private static float[] backward(float[] grad, float[] x, float[] trueLabel)
+//	{
+//		int n = x.length; // Number of classes
+//		float[] gradient = new float[n];
+//
+//		// Recompute softmax during backward pass
+//		float[] softmax = new float[n];
+//		float expSum = 0.0f;
+//		for (int i = 0; i < n; i++)
 //		{
-//			Data ch=childs[0];
-//			float[] grd=host.base.data.getGrads();
-//			float[] xv=ch.base.data.getData();
-//			float[] trLabel=childs[1].base.data.getData();
-//			float[] g=MCCE.backward(grd, xv, trLabel);
-//			ch.base.data.setGrad(g); // don't use this method.
-//			return null;
+//			softmax[i] = (float) Math.exp(x[i]);
+//			expSum += softmax[i];
 //		}
-//	};
-
-	private static float[] backward(float[] grad, float[] x, float[] trueLabel)
-	{
-		int n = x.length; // Number of classes
-		float[] gradient = new float[n];
-
-		// Recompute softmax during backward pass
-		float[] softmax = new float[n];
-		float expSum = 0.0f;
-		for (int i = 0; i < n; i++)
-		{
-			softmax[i] = (float) Math.exp(x[i]);
-			expSum += softmax[i];
-		}
-		for (int i = 0; i < n; i++)
-		{
-			softmax[i] /= expSum;
-		}
-
-		// Gradient formula: (softmax - trueLabel) * grad[0]
-		for (int i = 0; i < n; i++)
-		{
-			gradient[i] = (softmax[i] - trueLabel[i]) * grad[0];
-		}
-
-		return gradient;
-	}
+//		for (int i = 0; i < n; i++)
+//		{
+//			softmax[i] /= expSum;
+//		}
+//
+//		// Gradient formula: (softmax - trueLabel) * grad[0]
+//		for (int i = 0; i < n; i++)
+//		{
+//			gradient[i] = (softmax[i] - trueLabel[i]) * grad[0];
+//		}
+//
+//		return gradient;
+//	}
 
 
 	// example
-//	public static void test()
+//	public static void main(String[]args)
 //	{
 //		MCCE m=new MCCE();
 //		// Forward pass
-//		float[] logits = {2.0f, 1.0f, 0.1f}; // Logits (pre-softmax)
-//		float[] trueLabel = {1.0f, 0.0f, 0.0f}; // One-hot encoded (class 0)
-//		float[] loss = m.forward(logits, trueLabel); 
-//		// Softmax ≈ [0.659, 0.242, 0.099], loss ≈ -log(0.659) ≈ 0.417
-//		print("loss =" + Arrays.toString(loss));
+//		float[] logits = {1.0f, 1.0f, 0.1f}; // Logits (pre-softmax)
+//		float[] trueLabel = {1.0f, 1.0f, 1.0f}; // One-hot encoded (class 0)
+////		float[] loss = m.forward(logits, trueLabel); 
+////		// Softmax ≈ [0.659, 0.242, 0.099], loss ≈ -log(0.659) ≈ 0.417
+////		print("loss =" + Arrays.toString(loss));
+////
+////		// Backward pass
+////		float[] gradient = backward(new float[]{1.0f}, logits, trueLabel);
+////		// gradient ≈ [0.659 - 1 = -0.341, 0.242 - 0 = 0.242, 0.099 - 0 = 0.099]
+////
+////		print("grad =" + Arrays.toString(gradient));
+////
+////		print("==== with Data ====");
 //
-//		// Backward pass
-//		float[] gradient = backward(new float[]{1.0f}, logits, trueLabel);
-//		// gradient ≈ [0.659 - 1 = -0.341, 0.242 - 0 = 0.242, 0.099 - 0 = 0.099]
+//		Base pr=new Base(logits).setRequiresGradient(true);
+//		Base tr=new Base(trueLabel);
 //
-//		print("grad =" + Arrays.toString(gradient));
-//
-//		print("==== with Data ====");
-//
-//		Data pr=new Data(logits).setEnableGradient(true);
-//		Data tr=new Data(trueLabel);
-//
-//		Data rs=m.forward(pr, tr);
-//		print("loss", rs);
-//		print("---- grad ----");
-//		rs.setGrad(1);
+//		Base rs=m.forward(pr, tr);
+//		System.out.println("loss " + rs);
+//		rs.printArray();
+//		System.out.println("---- grad ----");
+//		rs.fillGrad(1);
 //		rs.backward();
-//		printGrad(pr);
-//
-//		Test1.test(Arrays.equals(rs.base.data.getData(), loss), "loss equals with Data");
-//		Test1.test(Arrays.equals(pr.base.data.getGrads(), gradient), "gradient equals with Data");
+//		pr.detachGradient().printArray();
+//		throw new RuntimeException("error on mcce loss func, it is 0 when pred and tar us equal");
+//		// Test1.test(Arrays.equals(rs.base.data.getData(), loss), "loss equals with Data");
+//		// Test1.test(Arrays.equals(pr.base.data.getGrads(), gradient), "gradient equals with Data");
 //	}
 
 	/*

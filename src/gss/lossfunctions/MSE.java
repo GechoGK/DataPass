@@ -35,71 +35,83 @@ public class MSE extends LossFunc
 		loss /= n;
 
 		// Return loss as a 1-element array
-		return new Base(new float[]{loss});
+		Base b = new Base(new float[]{loss});
+		b.setRequiresGradient(pred.requiresGradient());
+		if (b.requiresGradient())
+			b.setGradientFunction(mseGrad, pred, tar);
+		return b;
 	}
-//	private static GradFunc mseGrad=new GradFunc("mean squared error"){
-//		@Override
-//		public Data backward(Data host, Data[] childs, Object[] params)
-//		{
-//			Data ch=childs[0];
-//			float[] grd=host.base.data.getGrads();
-//			float[] xv=ch.base.data.getData();
-//			float[] trLabel=childs[1].base.data.getData();
-//			float[] g=MSE.backward(grd, xv, trLabel);
-//			ch.base.data.setGrad(g); // don't use this method.
-//			return null;
-//		}
-//	};
-	// Class-level variable to store true labels from forward pass
-
-	private static float[] backward(float[] grad, float[] x, float[] trueLabel)
-	{
-		int n = x.length;
-		float[] gradient = new float[n];
-
-		// Compute gradient for each prediction
-		for (int i = 0; i < n; i++)
+	private static GradFunc mseGrad=new GradFunc("mean squared error"){
+		@Override
+		public Base backward(Base host, Base[] childs, Object params)
 		{
-			// Gradient formula: 2 * (x[i] - trueLabel[i]) / n
-			gradient[i] = 2 * (x[i] - trueLabel[i]) / n;
+			Base prd=childs[0]; // 1d array
+			Base trueLabel = childs[1]; // 1d array
+			// host = pd array(single value)
+			// float[] grd=host.base.data.getGrads();
+			// float[] xv=ch.base.data.getData();
+			// float[] trLabel=childs[1].base.data.getData();
+			// float[] g=MSE.backward(grd, xv, trLabel);
+			// ch.base.data.setGrad(g); // don't use this method.
+			int n = prd.length;
+			// float[] gradient = new float[n];
+			// Compute gradient for each prediction
+			for (int i = 0; i < n; i++)
+			{
+				// Gradient formula: 2 * (x[i] - trueLabel[i]) / n
+				prd.setGrad(Util.ar(i), (2 * (prd.get(i) - trueLabel.get(i)) / n) * host.getGrad(0));
+			}
 
-			// Multiply by upstream gradient (grad[0] = 1 for loss functions)
-			gradient[i] *= grad[0];
+			return null;
 		}
-
-		return gradient;
-	}
-
+	};
+	// Class-level variable to store true labels from forward pass
+//	private static float[] backward(float[] grad, float[] x, float[] trueLabel)
+//	{
+//		int n = x.length;
+//		float[] gradient = new float[n];
+//
+//		// Compute gradient for each prediction
+//		for (int i = 0; i < n; i++)
+//		{
+//			// Gradient formula: 2 * (x[i] - trueLabel[i]) / n
+//			gradient[i] = 2 * (x[i] - trueLabel[i]) / n;
+//
+//			// Multiply by upstream gradient (grad[0] = 1 for loss functions)
+//			gradient[i] *= grad[0];
+//		}
+//
+//		return gradient;
+//	}
 	/// example
-
-//	public static void test()
+//	public static void main(String...g)
 //	{
 //		// Forward pass
 //		MSE m=new MSE();
-//		float[] pred = {3.0f, 5.0f};
-//		float[] trueLabel = {1.0f, 2.0f};
-//		float[] loss = m.forward(pred, trueLabel); // Returns [6.5]
-//		print("loss =" + Arrays.toString(loss));
+//		float[] pred = {1.0f, 5.0f};
+//		float[] trueLabel = {4.0f, 5.0f};
+//		// float[] loss = m.forward(pred, trueLabel); // Returns [6.5]
+//		// print("loss =" + Arrays.toString(loss));
 //
 //		// Backward pass
-//		float[] gradFromAbove = {1.0f}; // Upstream gradient (dL/dL = 1)
-//		float[] gradient = backward(gradFromAbove, pred, trueLabel); // Returns [2.0, 3.0]
+////		float[] gradFromAbove = {1.0f}; // Upstream gradient (dL/dL = 1)
+////		float[] gradient = backward(gradFromAbove, pred, trueLabel); // Returns [2.0, 3.0]
+////
+////		print("grad =" + Arrays.toString(gradient));
+////
+////		print("==== with Data ====");
 //
-//		print("grad =" + Arrays.toString(gradient));
+//		Base pr=new Base(pred).setRequiresGradient(true);
+//		Base tr=new Base(trueLabel);
 //
-//		print("==== with Data ====");
-//
-//		Data pr=new Data(pred).setEnableGradient(true);
-//		Data tr=new Data(trueLabel);
-//
-//		Data rs=m.forward(pr, tr);
-//		print("loss", rs);
-//		print("---- grad ----");
-//		rs.setGrad(1);
+//		Base rs=m.forward(pr, tr);
+//		System.out.println("loss :" + rs.get(0));
+//		System.out.println("---- grad ----");
+//		rs.fillGrad(1);
 //		rs.backward();
-//		printGrad(pr);
+//		pr.detachGradient().printArray();
 //
-//		Test1.test(Arrays.equals(rs.base.data.getData(), loss), "loss equals with Data");
-//		Test1.test(Arrays.equals(pr.base.data.getGrads(), gradient), "gradient equals with Data");
+//		// Test1.test(Arrays.equals(rs.base.data.getData(), loss), "loss equals with Data");
+//		// Test1.test(Arrays.equals(pr.base.data.getGrads(), gradient), "gradient equals with Data");
 //	}
 }
