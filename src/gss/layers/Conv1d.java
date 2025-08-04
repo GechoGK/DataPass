@@ -136,7 +136,7 @@ public class Conv1d extends Module
 			sum *= sh[i];
 		}
 		if (sum != output.shape[0])
-			System.out.println("unable to expand the shape from " + Arrays.toString(output.shape) + " to " + Arrays.toString(sh));
+			System.out.println("unable to expand the shape from " + Arrays.toString(output.shape) + " to " + Arrays.toString(sh) + " :: ignored");
 		else
 		{
 			sh[sh.length - 1] = output_size; // last
@@ -154,32 +154,55 @@ public class Conv1d extends Module
 			Base biase=childs[1]; // biase 2d array.
 			Base in=childs[2]; // input 3d array.
 			// Base host = 3d array.
-			// do some logic.
-			System.out.println(line(30));
-			System.out.println("host  :" + host);
-			System.out.println("kern  :" + kern);
-			System.out.println("biase :" + biase);
-			System.out.println("input :" + in);
-			System.out.println(line(30));
-			System.out.println("!!!! backward pass not implemented");
 
-			// Base k1c1=kern.slice(0, 0); // 1d array.
-			// Base i1c1 = in.slice(0, 0); // 1d array.
-
-			for (int kr=0;kr < kern.shape[0];kr++)
-			{
-				for (int kf=0;kf < kern.shape[1];kf++)
+			for (int dl=0;dl < in.shape[0];dl++)
+				for (int kr=0;kr < kern.shape[0];kr++)
 				{
-					// set grad for input
-					//input[kf].grad = host[kr][kf].grad @f kern[kr][kf] // full convolution
-					//  2d array         3d array               3d array
-					// --------------------------------------------
-					// set grad for kernel
-					// kern[kr][kf].grad = host[kr][kf].grad @ input[kf]
-					//   3d array           3d array            2d array
+					for (int kf=0;kf < kern.shape[1];kf++)
+					{
+						// set grad for input
+						//input[dl][kf].grad = host[kr][kf].grad @f kern[kr][kf] // full correlation.
+						//  1d array         1d array               1d array
+						// fullCorrelation(host.slice(kr, kf).detachGradient(), kern.slice(kr, kf), in.slice(dl, kf));
+						for (int i=0;i < in.shape[2];i++) // increment by inc. default = 1.
+						{
+							float sm=0;
+							int ips=(i - kern.shape[2]) + 1;
+							for (int k=0;k < kern.shape[2];k++)
+							{
+								float kv=kern.get(kr, kf, k); //  kernels.get(kr, chn, kp);
+								int kp=ips + k;
+								if (kp >= 0 && kp < host.shape[2])
+									sm += host.getGrad(dl, kr, kp) * kv;
+							}
+							in.setGrad(ar(dl, kf, i), sm);
+						}
+						// --------------------------------------------
+						// set grad for kernel
+						// kern[kr][kf].grad = host[kr][kf].grad @ input[dl][kf] // valid convolution.
+						//   1d array           1d array            1d array
+						// convolution(host.slice(kr, kf).detachGradient(), in.slice(dl, kf), kern.slice(kr, kf));
+						// convolution mode="valid"
+						for (int i=0;i < kern.shape[2];i++) // increment by inc. default = 1.
+						{
+							float sm=0;
+							int kpos=in.shape[2] - 1;
+							for (int k=0;k < in.shape[2];k++)
+							{
+								float kv=in.get(dl, kf, kpos); //  kernels.get(kr, chn, kp);
+								sm += host.getGrad(dl, kr, i + k) * kv; //  in.get(din, chn, w + k) * kv; // get kernel in reverse order
+								kpos--;
+							}
+							// out[din][kr][w] += sm;
+							kern.setGrad(ar(kr, kf, i), sm); // + biase.get(i));
+						}
+						// --------------------------------------------
+						// include biase...
+						// biase.grad = host.grad;
+					}
+					for (int o=0;o < host.shape[2];o++)
+						biase.setGrad(ar(kr, o), host.getGrad(kr, o));
 				}
-			}
-
 			return null;
 		}
 	};

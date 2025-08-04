@@ -93,24 +93,16 @@ public class Base
 		if (length != data.length)
 			throw new RuntimeException("invalid shape or data. they are not equal in length.");
 	}
-	public Base(float[] src, int[]shp, int[] strd)
+	public Base(float[] src, int[]shp, int[] strd, int off)
 	{
 		this.data = new Data(src);
 		this.shape = shp;
 		strides = strd;
+		this.offset = off;
 		length = length(shape);
-		if (length != data.length)
-			throw new RuntimeException("invalid shape or data. they are not equal in length.");
+		// if (length != data.length)
+		//	throw new RuntimeException("invalid shape or data. they are not equal in length.");
 	}
-//	public Base(Data d, int...shp)
-//	{
-//		this.data = d;
-//		this.shape = shp;
-//		strides = genStrides(shape);
-//		length = length(shape);
-//		// if (length != data.length)
-//		// 	throw new RuntimeException("invalid shape or data. they are not equal in length.");
-//	}
 	public Base(Data d, int[]shp, int off)
 	{
 		this.data = d;
@@ -121,15 +113,6 @@ public class Base
 		// if (length != data.length)
 		// 	throw new RuntimeException("invalid shape or data. they are not equal in length.");
 	}
-//	public Base(Data d, int[]shp, int[]strd)
-//	{
-//		this.data = d;
-//		this.shape = shp;
-//		strides = strd;
-//		length = length(shape);
-//		// if (length != data.length)
-//		// 	throw new RuntimeException("invalid shape or data. they are not equal in length.");
-//	}
 	public Base(Data d, int[]shp, int[]strd, int off)
 	{
 		this.data = d;
@@ -139,6 +122,10 @@ public class Base
 		offset = off;
 		// if (length != data.length)
 		// 	throw new RuntimeException("invalid shape or data. they are not equal in length.");
+	}
+	public int getDim()
+	{
+		return shape.length;
 	}
 	// gradient area.
 	public void backward()
@@ -177,7 +164,7 @@ public class Base
 	}
 	public Base detachGradient()
 	{
-		Base d=new Base(data.gradient, shape);
+		Base d=new Base(data.gradient, shape, strides, offset);
 		return d;
 	}
 

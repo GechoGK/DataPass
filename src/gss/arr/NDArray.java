@@ -348,7 +348,6 @@ public class NDArray
 		int len=d1.shape[1] - kr.shape[0] + 1;
 		int[]outShape={d1.shape[0],len};
 		float[] out=new float[d1.shape[0] * len];
-		float[] tmpkr=new float[kr.shape[0]];
 		for (int dr=0;dr < d1.shape[0];dr++)
 		{
 			// iterate over rows of input data.
@@ -362,24 +361,8 @@ public class NDArray
 					for (int k=0;k < kr.shape[0];k++)
 					{
 						float kv=kr.get(kp);
+						// cache kv on array for next time to speedup.
 						sm += d1.get(dr, w + k) * kv; // get kernel in reverse order
-						tmpkr[kp] = kv;
-						kp--; // count downward
-					}
-					out[shapeToIndex(new int[]{dr,w}, outShape)] = sm;
-				}
-			}
-			else
-			{
-				// convolve mode normal.
-				// at the second row of the data, the tmp kernel will be cached so we can use it for faster iteration.
-				for (int w=0;w < len;w++)
-				{
-					float sm=0;
-					int kp=kr.shape[0] - 1;
-					for (int k=0;k < kr.shape[0];k++)
-					{
-						sm += d1.get(dr, w + k) * tmpkr[kp]; // get kernel in reverse order
 						kp--; // count downward
 					}
 					out[shapeToIndex(new int[]{dr,w}, outShape)] = sm;
@@ -398,39 +381,46 @@ public class NDArray
 		int len=d1.shape[1] - kr.shape[0] + 1;
 		int[]outShape={d1.shape[0],len};
 		float[] out=new float[d1.shape[0] * len];
-		float[] tmpkr=new float[kr.shape[0]];
 		for (int dr=0;dr < d1.shape[0];dr++)
 		{
 			// iterate over rows of input data.
-			if (dr == 0)
+			// convolve mode normal.
+			for (int w=0;w < len;w++)
 			{
-				// convolve mode normal.
-				for (int w=0;w < len;w++)
+				float sm=0;
+				for (int k=0;k < kr.shape[0];k++)
 				{
-					float sm=0;
-					for (int k=0;k < kr.shape[0];k++)
-					{
-						float kv=kr.get(k);
-						sm += d1.get(dr, w + k) * kv; // get kernel in reverse order
-					}
-					out[shapeToIndex(new int[]{dr,w}, outShape)] = sm;
+					float kv=kr.get(k);
+					sm += d1.get(dr, w + k) * kv; // get kernel in reverse order
 				}
-			}
-			else
-			{
-				// convolve mode normal.
-				// at the second row of the data, the tmp kernel will be cached so we can use it for faster iteration.
-				for (int w=0;w < len;w++)
-				{
-					float sm=0;
-					for (int k=0;k < kr.shape[0];k++)
-					{
-						sm += d1.get(dr, w + k) * tmpkr[k]; // get kernel in reverse order
-					}
-					out[shapeToIndex(new int[]{dr,w}, outShape)] = sm;
-				}
-			}
+				out[shapeToIndex(new int[]{dr,w}, outShape)] = sm;
+			}		
 		}
 		return new Base(out, outShape);
+	}
+	public static Base fullCorrelate1d(Base a, Base b)
+	{
+		// gradient not implemented.
+		// only supported 1d array of input and kernel.
+		if (a.getDim() != 1 || b.getDim() != 1)
+		{
+			throw new RuntimeException("invalid array size.");
+		}
+		int outSize=(a.shape[0] + b.shape[0]) - 1;
+		Base out = new Base(outSize);
+		for (int i=0;i < outSize;i++) // increment by inc. default = 1.
+		{
+			float sm=0;
+			int ips=(i - b.shape[0]) + 1;
+			for (int k=0;k < b.shape[0];k++)
+			{
+				float kv=b.get(k); //  kernels.get(kr, chn, kp);
+				int kp=ips + k;
+				if (kp >= 0 && kp < a.shape[0])
+					sm += a.get(kp) * kv;
+			}
+			out.set(ar(i), sm);
+		}
+		return out;
 	}
 }

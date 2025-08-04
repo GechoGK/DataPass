@@ -19,7 +19,61 @@ public class Main
 	}
 	void a()
 	{
-		System.out.println(5 % 2);
+
+		
+
+	}
+	void test16()
+	{
+		System.out.println("========== Test 16.0 Conv1d layer backward pass. ==========");
+
+		int[] sh={3,2,7};
+		Base d1=NDArray.arange(length(sh)).reshapeLocal(sh).setRequiresGradient(true);
+
+		Conv1d c=new Conv1d(7, 2, 4, 3); // (input_size, num_features, num_kernels, kernel_size).
+		Base out=c.forward(d1);
+		System.out.println(decString("backward pass", 7));
+		out.fillGrad(1);
+		out.backward();
+		System.out.println("input " + out);
+		out.detachGradient().printArray();
+		System.out.println(decString("kernels ", 7));
+		System.out.println(c.kernels);
+		c.kernels.detachGradient().printArray();
+		System.out.println(decString("biase ", 7));
+		System.out.println(c.biase);
+		c.biase.detachGradient().printArray();
+		System.out.println(decString("input ", 7));
+		System.out.println(d1);
+		d1.detachGradient().printArray();
+
+	}
+	void test15()
+	{
+		System.out.println("========== Test 15.0 convolution and fullCorrelation test. ==========");
+
+		Base a=NDArray.arange(1, 6);
+		Base b=NDArray.arange(1, 4);
+
+		a.printArray();
+		b.printArray();
+		System.out.println(line(10));
+		Base o=NDArray.convolve1d(a, b);
+		o.printArray();
+		// 10, 16, 22
+		System.out.println(line(30));
+		a = NDArray.ones(3);
+		a.printArray();
+		b.printArray();
+		System.out.println(line(10));
+		o = NDArray.fullCorrelate1d(a, b);
+		o.printArray();
+		// 3,5,6,3,1
+
+	}
+	void test14()
+	{
+		System.out.println("========== Test 14.0 slice test. ==========");
 
 		Base d1=NDArray.arange(60).reshapeLocal(6, 10);
 		System.out.println(d1);
@@ -43,35 +97,7 @@ public class Main
 		s1.printArray();
 
 	}
-	void test14()
-	{
-		System.out.println("========== Test 14.0 Conv1d layer backward pass. ==========");
 
-		int[] sh={3,2,7};
-		Base d1=NDArray.arange(length(sh)).reshapeLocal(sh).setRequiresGradient(true);
-
-		Conv1d c=new Conv1d(7, 2, 1, 3); // (input_size, num_features, num_kernels, kernel_size).
-		Base out=c.forward(d1);
-		System.out.println(decString("gradient before backward called", 7));
-		System.out.println(out);
-		out.detachGradient().printArray();
-		System.out.println(decString("backward pass", 7));
-		out.fillGrad(1);
-		out.backward();
-		System.out.println("input " + out);
-		out.detachGradient().printArray();
-		System.out.println(decString("kernels ", 7));
-		System.out.println(c.kernels);
-		c.kernels.detachGradient().printArray();
-		System.out.println(decString("biase ", 7));
-		System.out.println(c.biase);
-		c.biase.detachGradient().printArray();
-		System.out.println(decString("input ", 7));
-		System.out.println(d1);
-		d1.detachGradient().printArray();
-
-
-	}
 	void test13()
 	{
 		System.out.println("========== Test 13.0 MaxPool1d layer backward pass. ==========");
