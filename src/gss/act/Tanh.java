@@ -14,32 +14,33 @@ public class Tanh extends Activation
 		{
 			out[i] = (float)Math.tanh(dt.get(i));
 		}
-		Base arrOut=new Base(out, arr.shape); // .setEnableGradient(arr.requiresGradient());
-		// arrOut.setGradientFunction(tanhGradient, arr);
+		Base arrOut=new Base(out, arr.shape) .setRequiresGradient(arr.requiresGradient());
+		if (arrOut.requiresGradient())
+			arrOut.setGradientFunction(tanhGradient, arr);
 		return arrOut;
 	}
-//	public static GradFunc tanhGradient=new GradFunc("tanh"){
-//		/*
-//		 float tanhBackward(float grad, float x) {
-//		 float tanh_x = (float) Math.tanh(x); // Recompute tanh(x)
-//		 return grad * (1.0f - tanh_x * tanh_x); // Chain rule: grad * (1 - tanh²(x))
-//		 }
-//		 */
-//		@Override
-//		public NDArray backward(NDArray host, NDArray[] childs, Object[] params)
-//		{
-//			NDArray a1=childs[0];
-//			float[] grd=host.base.data.getGrads();
-//			float[] dt=childs[0].base.toArray();
-//			for (int i=0;i < dt.length;i++)
-//			{
-//				float th=(float)Math.tanh(dt[i]);
-//				a1.base.data.setGrad(i, grd[i] * (1f - th * th));
-//			}
-//			// childs[0].base.data.setGrad(dt);
-//			return null;
-//		}
-//	};
+	public static GradFunc tanhGradient=new GradFunc("tanh"){
+		/*
+		 float tanhBackward(float grad, float x) {
+		 float tanh_x = (float) Math.tanh(x); // Recompute tanh(x)
+		 return grad * (1.0f - tanh_x * tanh_x); // Chain rule: grad * (1 - tanh²(x))
+		 }
+		 */
+		@Override
+		public Base backward(Base host, Base[] childs, Object params)
+		{
+			Base ar=childs[0];
+			// float[] grd=host.base.data.getGrads();
+			// float[] dt=childs[0].base.toArray();
+			for (int i=0;i < ar.shape[0];i++)
+			{
+				float th=(float)Math.tanh(ar.get(i));
+				ar.setGrad(Util.ar(i), host.getGrad(i) * (1f - th * th));
+			}
+			// childs[0].base.data.setGrad(dt);
+			return null;
+		}
+	};
 //	public static Value tanh(Value op1)
 //	{
 //		/*

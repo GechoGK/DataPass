@@ -19,35 +19,36 @@ public class Sigmoid extends Activation
 		{
 			out[i] = 1f / (1f + (float)Math.exp(-dt.get(i)));
 		}
-		Base arrOut=new Base(out, arr.shape);// .setEnableGradient(arr.requiresGradient());
+		Base arrOut=new Base(out, arr.shape).setRequiresGradient(arr.requiresGradient());
 		// gradient in progress.
-		// arrOut.setGradientFunction(sigmoidGradient, arr);
+		if (arrOut.requiresGradient())
+			arrOut.setGradientFunction(sigmoidGradient, arr);
 		return arrOut;
 	}
-//	public static GradFunc sigmoidGradient=new GradFunc("sigmoid"){
-//
-//		/*
-//		 float sigmoidBackward(float grad, float x) {
-//		 float sigmoid_x = 1.0f / (1.0f + (float) Math.exp(-x)); // Recompute σ(x)
-//		 return grad * sigmoid_x * (1.0f - sigmoid_x); // Chain rule: grad * σ'(x)
-//		 }
-//		 */
-//		@Override
-//		public NDArray backward(NDArray host, NDArray[] childs, Object[] params)
-//		{
-//			// cache sig. for performance
-//			NDArray a1=childs[0];
-//			float[] grd=host.base.data.getGrads();
-//			float[] dt=a1.base.data.getData();
-//			for (int i=0;i < grd.length;i++)
-//			{
-//				float sig = 1f / (1f + (float)Math.exp(-dt[i]));
-//				a1.base.data.setGrad(i, grd[i] * sig * (1 - sig));
-//			}
-//			// childs[0].base.data.setGrad(dt);
-//			return null;
-//		}
-//	};
+	public static GradFunc sigmoidGradient=new GradFunc("sigmoid"){
+
+		/*
+		 float sigmoidBackward(float grad, float x) {
+		 float sigmoid_x = 1.0f / (1.0f + (float) Math.exp(-x)); // Recompute σ(x)
+		 return grad * sigmoid_x * (1.0f - sigmoid_x); // Chain rule: grad * σ'(x)
+		 }
+		 */
+		@Override
+		public Base backward(Base host, Base[] childs, Object params)
+		{
+			// cache sig. for performance
+			Base a1=childs[0];
+			// float[] grd=host.base.data.getGrads();
+			// float[] dt=a1.base.data.getData();
+			for (int i=0;i < host.shape[0];i++)
+			{
+				float sig = 1f / (1f + (float)Math.exp(-a1.get(i)));
+				a1.setGrad(Util.ar(i), host.getGrad(i) * sig * (1 - sig));
+			}
+			// childs[0].base.data.setGrad(dt);
+			return null;
+		}
+	};
 //	public static Value sigmoid(Value op1)
 //	{
 //		/*

@@ -29,7 +29,12 @@ public class Sequential extends Module
 			return null;
 		Base out=input;
 		for (Module m:modules)
+		{
+			// System.out.print(".");
 			out = m.forward(out);
+			// System.out.println(out);
+		}
+		// System.out.println();
 		return out;
 	}
 	@Override

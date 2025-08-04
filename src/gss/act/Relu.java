@@ -14,27 +14,28 @@ public class Relu extends Activation
 		{
 			out[i] = Math.max(0, dt.get(i));
 		}
-		Base arrOut=new Base(out, arr.shape); // .setEnableGradient(arr.requiresGradient());
+		Base arrOut=new Base(out, arr.shape).setRequiresGradient(arr.requiresGradient());
 		// gradient in progress.
-		// arrOut.setGradientFunction(reluGradient, arr);
+		if (arrOut.requiresGradient())
+			arrOut.setGradientFunction(reluGradient, arr);
 		return arrOut;
 	}
 	// how gradient works by this.grad or this.data ?
-//	public static GradFunc reluGradient=new GradFunc("relu"){
-//		@Override
-//		public NDArray backward(NDArray host, NDArray[] childs, Object[] params)
-//		{
-//			NDArray arr=childs[0];
-//			float[] gd=host.base.data.getGrads();
-//			float[] dt=arr.base.data.getData();
-//			for (int i=0;i < dt.length;i++)
-//			{
-//				if (dt[i] > 0)
-//					arr.base.data.setGrad(i, gd[i]);
-//			}
-//			return null;
-//		}
-//	};
+	public static GradFunc reluGradient=new GradFunc("relu"){
+		@Override
+		public Base backward(Base host, Base[] childs, Object params)
+		{
+			Base arr=childs[0];
+			// Base gd=host.base.data.getGrads();
+			// Base dt=arr.base.data.getData();
+			for (int i=0;i < arr.shape[0];i++)
+			{
+				if (arr.get(i) > 0)
+					arr.setGrad(Util.ar(i), host.getGrad(i));
+			}
+			return null;
+		}
+	};
 //	public static Value relu(Value op1)
 //	{
 //		/*

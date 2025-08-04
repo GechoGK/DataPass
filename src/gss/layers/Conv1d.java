@@ -70,7 +70,6 @@ public class Conv1d extends Module
 		float[] outF=new float[in.shape[0] * n_kernels * output_size];
 		// input iteration.
 		// System.out.println(Arrays.toString(in.shape) + ", " + n_kernels + ", " + n_channels);
-		StringBuilder sb=new StringBuilder(line(30)).append("\n");
 		int pos=0;
 		for (int din=0;din < in.shape[0];din++) // for input data count.
 		{
@@ -94,21 +93,16 @@ public class Conv1d extends Module
 						{
 							float kv=kernels.get(kr, chn, kp);
 							sm += in.get(din, chn, w + k) * kv; // get kernel in reverse order
-							sb.append("sum += in[" + din + "][" + chn + "][" + (w + k) + "] * kerns[" + kr + "][" + chn + "][" + kp + "]\n");
 							kp--;
 						}
 						// out[din][kr][w] += sm;
-						outF[pos++] += sm + biase.get(kr, w);
-						sb.append("out[" + din + "][" + kr + "][" + w + "] = sum\n");
-					}
-					sb.append(decString("kernel channel " + chn + " completed.", 5) + "\n");
+						outF[pos++] += sm + biase.get(kr, w);					
+					}				
 					// pos++;
-				}
-				sb.append(decString("kernel " + kr + " completed.", 5) + "\n");
+				}			
 				// out[din][kr] = karr;
 			}
 		}
-		sb.append(decString("done", 15));
 		// System.out.println(sb.toString());
 		Base output=new Base(outF, new int[]{in.shape[0],kernels.shape[0],output_size});
 		output.setRequiresGradient(kernels.requiresGradient() | biase.requiresGradient() | input.requiresGradient());
@@ -160,22 +154,25 @@ public class Conv1d extends Module
 				{
 					for (int kf=0;kf < kern.shape[1];kf++)
 					{
-						// set grad for input
-						//input[dl][kf].grad = host[kr][kf].grad @f kern[kr][kf] // full correlation.
-						//  1d array         1d array               1d array
-						// fullCorrelation(host.slice(kr, kf).detachGradient(), kern.slice(kr, kf), in.slice(dl, kf));
-						for (int i=0;i < in.shape[2];i++) // increment by inc. default = 1.
-						{
-							float sm=0;
-							int ips=(i - kern.shape[2]) + 1;
-							for (int k=0;k < kern.shape[2];k++)
+				 		if (in.requiresGradient())
+						{			
+							// set grad for input
+							//input[dl][kf].grad = host[kr][kf].grad @f kern[kr][kf] // full correlation.
+							//  1d array         1d array               1d array
+							// fullCorrelation(host.slice(kr, kf).detachGradient(), kern.slice(kr, kf), in.slice(dl, kf));
+							for (int i=0;i < in.shape[2];i++) // increment by inc. default = 1.
 							{
-								float kv=kern.get(kr, kf, k); //  kernels.get(kr, chn, kp);
-								int kp=ips + k;
-								if (kp >= 0 && kp < host.shape[2])
-									sm += host.getGrad(dl, kr, kp) * kv;
+								float sm=0;
+								int ips=(i - kern.shape[2]) + 1;
+								for (int k=0;k < kern.shape[2];k++)
+								{
+									float kv=kern.get(kr, kf, k); //  kernels.get(kr, chn, kp);
+									int kp=ips + k;
+									if (kp >= 0 && kp < host.shape[2])
+										sm += host.getGrad(dl, kr, kp) * kv;
+								}
+								in.setGrad(ar(dl, kf, i), sm);
 							}
-							in.setGrad(ar(dl, kf, i), sm);
 						}
 						// --------------------------------------------
 						// set grad for kernel

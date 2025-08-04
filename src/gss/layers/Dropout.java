@@ -21,7 +21,7 @@ public class Dropout extends Module
 	@Override
 	public Base forward(Base input)
 	{
-		if (!isTraining)
+		if (!isTraining || !input.requiresGradient())
 			return input;
 		Base in=input.as1DArray();
 		float[] output = new float[in.length];
@@ -57,7 +57,7 @@ public class Dropout extends Module
 				throw new RuntimeException("unable to compute dropout backpropagation.: invalid array length between the host and the child.");
 			Base rs=NDArray.mul(grd, new Base(Util.asFloat(mask)));
 
-			c1.detachGradient().set(rs);
+			c1.setGrad(rs);
 			return null;
 		}
 	};

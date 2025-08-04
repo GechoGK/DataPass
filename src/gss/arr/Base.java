@@ -310,6 +310,15 @@ public class Base
 			set(tmpSh, d.get(tmpSh));
 		}
 	}
+	public void setGrad(Base d)
+	{
+		int[] tmpSh=new int[shape.length];
+		for (int i=0;i < length;i++)
+		{
+			Util.indexToShape(i, shape, tmpSh);
+			setGrad(tmpSh, d.get(tmpSh));
+		}
+	}
 	/*
 	 // set multiple values(array value into the data
 	 // @startIndex[] which start index of the destination data.
