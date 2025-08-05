@@ -167,7 +167,10 @@ public class Base
 		Base d=new Base(data.gradient, shape, strides, offset);
 		return d;
 	}
-
+	public float getRawGrad(int ind)
+	{
+		return data.gradient[ind];
+	}
 	public float getGrad(int...index)
 	{
 		int ind=Math.max(0, shapeToIndex(index));

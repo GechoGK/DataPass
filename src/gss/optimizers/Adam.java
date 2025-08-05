@@ -4,6 +4,8 @@ import gss.*;
 import gss.arr.*;
 import java.util.*;
 
+import static gss.Util.*;
+
 public class Adam extends Optimizer
 {
     // Hyperparameters
@@ -12,9 +14,11 @@ public class Adam extends Optimizer
     private final float epsilon;  // Small constant for numerical stability (e.g., 1e-8)
 
     // Internal states (moving averages)
-    private float[][] mm;  // First moment vector (mean)
-    private float[][] vv;  // Second moment vector (uncentered variance)
+    private Base[] mm;  // First moment vector (mean)
+    private Base[] vv;  // Second moment vector (uncentered variance)
     private int t;      // Timestep counter
+
+	// learningRate = 1e-8f;
 
     // Constructor with hyperparameters
     public Adam(List<Base> prms, float lr, float beta1, float beta2, float epsilon)
@@ -36,44 +40,42 @@ public class Adam extends Optimizer
     // Default constructor with common hyperparameters
     public Adam(List<Base>...prms)
 	{
-        this(new ArrayList<>(), 0.001f, 0.8f, 0.999f, 1e-8f);
+        this(new ArrayList<>(), 0.001f, 0.8f, 0.999f, 1e-3f); // 0.001
 		for (List<Base>n:prms)
 			params.addAll(n);
     }
 	public Adam(Base...prms)
 	{
-		this(Arrays.asList(prms), 0.001f, 0.8f, 0.999f, 1e-8f);
+		this(Arrays.asList(prms), 0.001f, 0.8f, 0.999f, 1e-3f); // 0.001
 	}
-//	@Override
-//	public void update()
-//	{
-//		if (mm == null || vv == null)
-//		{
-//            mm = new float[params.size()][]; // already 0.0f
-//            vv = new float[params.size()][]; // already 0.0f;
-//		}
-//		t++;
-//		for (int i=0;i < params.size();i++)
-//		{
-//			float[] m=mm[i];
-//			float[] v=vv[i];
-//			Data ar=params.get(i);
-//			Data grd=ar.base.data.getGrads();
-//			Data dat=ar.base.data.getData();
-//			if (m == null || v == null)
-//			{
-//				mm[i] = new float[dat.length];
-//				vv[i] = new float[dat.length];
-//				Arrays.fill(mm[i], 0.0f);
-//				Arrays.fill(vv[i], 0.0f);
-//				m = mm[i];
-//				v = vv[i];
-//			}
-//			update(grd, dat, m, v);
-//		}
-//	}
+	@Override
+	public void update()
+	{
+		if (mm == null || vv == null)
+		{
+            mm = new Base[params.size()]; // already 0.0f
+            vv = new Base[params.size()]; // already 0.0f;
+		}
+		t++;
+		for (int i=0;i < params.size();i++)
+		{
+			Base m=mm[i];
+			Base v=vv[i];
+			Base prm=params.get(i);
+			// Data grd=ar.base.data.getGrads();
+			// Data dat=ar.base.data.getData();
+			if (m == null || v == null)
+			{
+				mm[i] = new Base(prm.shape);
+				vv[i] = new Base(prm.shape);
+				m = mm[i];
+				v = vv[i];
+			}
+			update(prm, m, v);
+		}
+	}
     // Update parameters using Adam algorithm
-    public float[] update(float[] grad, float[] data, float[] m, float[] v)
+    public Base update(Base prm, Base m, Base v)
 	{
         // Precompute bias correction terms
         float beta1_t = (float) Math.pow(beta1, t);
@@ -82,39 +84,49 @@ public class Adam extends Optimizer
         float vBiasCorrection = 1.0f / (1.0f - beta2_t);
 
         // Update each parameter
-        for (int i = 0; i < data.length; i++)
+		int[] tmpShp=new int[prm.shape.length];
+        for (int i = 0; i < prm.length; i++)
 		{
+			indexToShape(i, prm.shape, tmpShp);
+			int ind=shapeToIndex(tmpShp, prm.shape, prm.strides);
+			// only used for parametets.
             // Update moving averages
-            m[i] = beta1 * m[i] + (1.0f - beta1) * grad[i];
-            v[i] = beta2 * v[i] + (1.0f - beta2) * grad[i] * grad[i];
+			float mi=m.getRaw(i);
+			float vi=v.getRaw(i);
+			float grd=prm.getRawGrad(ind);
+            mi = beta1 * mi + (1.0f - beta1) * grd;
+            vi = beta2 * vi + (1.0f - beta2) * grd * grd;
 
             // Compute bias-corrected estimates
-            float mHat = m[i] * mBiasCorrection;
-            float vHat = v[i] * vBiasCorrection;
+            float mHat = mi * mBiasCorrection;
+            float vHat = vi * vBiasCorrection;
 
             // Update parameter: data = data - lr * mHat / (sqrt(vHat) + epsilon)
-            data[i] -= learningRate * mHat / ((float) Math.sqrt(vHat) + epsilon);
+			prm.setRaw(ind, prm.getRaw(ind) - learningRate * mHat / ((float) Math.sqrt(vHat) + epsilon));
+			m.setRaw(i, mi);
+			v.setRaw(i, vi);
         }
-
-        return data;
+        return prm;
     }
-//	public static void test()
+//	public static void main(String[]args)
 //	{
 //		// Sample data and gradient
 //		float[] data = {1.0f, 2.0f, 3.0f};  // Parameters to update
 //		float[] grad = {0.5f, -0.3f, 1.2f};  // Gradients
 //
-//		NDArray ar=new NDArray(data).setEnableGradient(true);
-//		ar.base.data.setGrad(grad); // not recomended.
+//		Base ar=new Base(data).setRequiresGradient(true);
+//		// set gradient to ar.
+//		for (int i=0;i < grad.length;i++)
+//			ar.setGrad(Util.ar(i), grad[i]); // not recomended.
 //
 //		Adam adam = new Adam(ar);
-//
+//		adam.learningRate = 0.01f;
 //		// Perform Adam update
-//		System.out.println("Updated data: " + Arrays.toString(ar.base.data.getData()));
+//		ar.printArray();
 //		for (int i=0;i < 10;i++)
 //		{
 //			adam.update();
-//			System.out.println("Updated data: " + Arrays.toString(ar.base.data.getData()));
+//			ar.printArray();
 //		}
 //	}
 }

@@ -24,7 +24,8 @@ public class Optimizer
 	{
 		for (Base p:params)
 		{
-			// p.zeroGrad();
+			if (p.requiresGradient())
+				p.zeroGrad();
 			// zero the gradient data.
 		}
 	}

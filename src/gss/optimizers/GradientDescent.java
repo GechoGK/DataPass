@@ -38,7 +38,7 @@ public class GradientDescent extends Optimizer
 				int ind=shapeToIndex(tmpShp, dt.shape, dt.strides);
 
 				float v=dt.getRaw(ind);
-				v += gr.getRaw(ind)*learningRate;
+				v += gr.getRaw(ind) * learningRate;
 				dt.setRaw(ind, v);
 				// dt[i] -= gr[i] * learningRate;
 			}

@@ -91,7 +91,7 @@ public class MultiLabelBinaryCrossEntropy extends LossFunc
 //		catch (IllegalArgumentException e)
 //		{
 //            System.out.println("Exception caught: " + e.getMessage());
-//        }
+//      }
 //    }
 }
 
