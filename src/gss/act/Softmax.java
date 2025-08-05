@@ -9,6 +9,10 @@ import static gss.Util.*;
 public class Softmax extends Activation
 {
 	// need many improvements on forward method.
+	// Base.set(i,...);
+	// Base.get(i);
+	// the above two methods have to be used properly.
+	// not only in this class, but also on other loss functions.
 	@Override
 	public Base forward(Base arr)
 	{
@@ -17,7 +21,7 @@ public class Softmax extends Activation
 		/*
 		 how to calculate?
 		 1. calculate the sum of the array.
-		 2. calculate exponent value for evenry element.
+		 2. calculate exponent value for every element.
 		 3. devide the exponent value with the sum.
 		 !!! then you value will be softmaxes.
 		 what is the use of max value in this calculation.
@@ -26,111 +30,101 @@ public class Softmax extends Activation
 		 so what we need is we need to clip the values that means the largest value will be 1.
 		 x - max will be < 0. the result will be the same.
 		 */
-		Base arr2d=arr.as2DArray();
-		float[][] arrOut=new float[arr2d.shape[0]][arr2d.shape[1]];
-		for (int d=0;d < arr2d.shape[0];d++)
-		{
-			// float[] ar=arr2d[d];
-			int ar=arr2d.shape[1];
-			// Find the maximum value in the input vector
-			double max = arr2d.get(d, 0);
-			for (int i = 1; i < arr2d.shape[1]; i++)
-			{
-				if (arr2d.get(d, i) > max)
-				{
-					max = arr2d.get(d, i);
-				}
-			}
+		Base arr1d=arr.as1DArray();
+		Base out=softmaxForward(arr1d);
 
-			// Calculate exponentials
-			float sum=0;
-			float[] exponentials = new float[ar];
-			for (int i = 0; i < ar; i++)
-			{
-				float exps=(float)Math.exp(arr2d.get(d, i) - max);
-				exponentials[i] = exps;
-				sum += exps;
-			}
-			// Calculate softmax probabilities
-			float[] probabilities = new float[ar];
-			for (int i = 0; i < ar; i++)
-			{
-				probabilities[i] = exponentials[i] / sum;
-			}
-			arrOut[d] = probabilities;
-		}
-		Base out= new Base(flatten(arrOut)).reshape(arr.shape); // .setEnableGradient(arr.requiresGradient());
+		out.reshape(arr.shape).setRequiresGradient(arr.requiresGradient());
 		// gradient calculator in progress.
-		// out.setGradientFunction(softmaxGradient, arr);
+		if (out.requiresGradient())
+			out.setGradientFunction(softmaxGradient, arr);
 		return out;
 	}
-	public static float[] softmaxForward(float[] x)
+	public static Base softmaxForward(Base arr)
 	{
-		int n = x.length;
-		float[] result = new float[n];
-
-		// Numerical stability: subtract max(x) to avoid overflow
-		float max = x[0];
-		for (float val : x)
+		float[] arrOut=new float[arr.shape[0]];
+		// for (int d=0;d < arr2d.shape[0];d++)
+		// {
+		// float[] ar=arr2d[d];
+		int ar=arr.shape[0];
+		// Find the maximum value in the input vector
+		double max = arr.getRaw(0);
+		for (int i = 1; i < arr.shape[0]; i++)
 		{
-			if (val > max) max = val;
+			if (arr.get(i) > max)
+			{
+				max = arr.getRaw(i);
+			}
 		}
 
-		// Compute exponentials and sum
-		float sum = 0.0f;
-		for (int i = 0; i < n; i++)
+		// Calculate exponentials
+		float sum=0;
+		float[] exponentials = new float[ar];
+		for (int i = 0; i < ar; i++)
 		{
-			result[i] = (float) Math.exp(x[i] - max); // Shift by max
-			sum += result[i];
+			float exps=(float)Math.exp(arr.getRaw(i) - max);
+			exponentials[i] = exps;
+			sum += exps;
 		}
-
-		// Normalize
-		for (int i = 0; i < n; i++)
+		// Calculate softmax probabilities
+		float[] probabilities = new float[ar];
+		for (int i = 0; i < ar; i++)
 		{
-			result[i] /= sum;
+			probabilities[i] = exponentials[i] / sum;
 		}
-		return result;
+		arrOut = probabilities;
+		Base out = new Base(arrOut);
+		return out;
 	}
-	public static float[] softmaxBackward(float[] grad, float[] x)
+	public static Base softmaxBackward(Base grad, Base x)
 	{
 		int n = x.length;
-		float[] softmax = softmaxForward(x); // Recompute softmax (no caching)
-		float[] gradInput = new float[n];
+		Base softmax = softmaxForward(x); // Recompute softmax (no caching)
+		// float[] gradInput = new float[n];
 
 		// Compute dot product of grad and softmax (gradᵀ ⋅ softmax)
 		float dot = 0.0f;
 		for (int i = 0; i < n; i++)
 		{
-			dot += grad[i] * softmax[i];
+			dot += grad.getRaw(i) * softmax.getRaw(i);
 		}
 
 		// Compute gradient for each element: gradInput_i = softmax_i * (grad_i - dot)
 		for (int i = 0; i < n; i++)
 		{
-			gradInput[i] = softmax[i] * (grad[i] - dot);
+			x.setRawGrad(i, softmax.getRaw(i) * (grad.getRaw(i) - dot));
 		}
 
-		return gradInput;
+		return x;
 	}
-//	public static GradFunc softmaxGradient=new GradFunc("softmax"){
-//		@Override
-//		public NDArray backward(NDArray host, NDArray[] childs, Object[] params)
-//		{
-//			float[] grd=host.base.toArray();
-//			float[] dt=childs[0].base.toArray();
-//			float[]bc=softmaxBackward(grd, dt);
-//			// softmax in progress.
-//			childs[0].base.data.setGrad(bc); // don't use this method.
-//			return null;
-//		}
-//	};
-//	public static void main2(String[] args)
+	public static GradFunc softmaxGradient=new GradFunc("softmax"){
+		@Override
+		public Base backward(Base host, Base[] childs, Object params)
+		{
+			// float[] grd=host.base.toArray();
+			// float[] dt=childs[0].base.toArray();
+			Base bc=softmaxBackward(host, childs[0]);
+			// softmax in progress.
+			// childs[0].base.data.setGrad(bc); // don't use this method.
+			return null;
+		}
+	};
+//	public static void main(String[] args)
 //	{
 //		float[] input = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f};
-//		NDArray in=new NDArray(input);
-//		NDArray out = new Softmax().forward(in);
-//		float[] output=out.base.toArray();
-//		System.out.println(Arrays.toString(output)); // Example output (values may vary slightly)
+//		Base in=new Base(input).setRequiresGradient(true);
+//		Base out = new Softmax().forward(in);
+//		System.out.println(out);
+//		out.printArray();
+//		System.out.println(line(30));
+//		Base o=NDArray.add(out, NDArray.zeros(1));
+//		System.out.println(o);
+//		o.printArray();
+//		System.out.println(line(10));
+//		o.fillGrad(1);
+//		o.backward();
+//		System.out.println(in.detachGradient());
+//		in.detachGradient().printArray();
+//
 //
 //	}
 

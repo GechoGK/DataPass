@@ -181,6 +181,10 @@ public class Base
 		int ind=shapeToIndex(index);
 		data.gradient[ind] += val;
 	}
+	public void setRawGrad(int ind, float v)
+	{
+		data.gradient[ind] = v;
+	}
 	public void fillGrad(float v)
 	{
 		Arrays.fill(data.gradient, v);
