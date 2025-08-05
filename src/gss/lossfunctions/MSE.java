@@ -89,7 +89,7 @@ public class MSE extends LossFunc
 //		// Forward pass
 //		MSE m=new MSE();
 //		float[] pred = {1.0f, 5.0f};
-//		float[] trueLabel = {4.0f, 5.0f};
+//		float[] trueLabel = {3.0f, 5.0f};
 //		// float[] loss = m.forward(pred, trueLabel); // Returns [6.5]
 //		// print("loss =" + Arrays.toString(loss));
 //
