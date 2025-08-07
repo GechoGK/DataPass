@@ -28,7 +28,7 @@ public class SGDM extends Optimizer
 			params.addAll(p);
 	}
 	@Override
-	public void update()
+	public void step()
 	{
 		if (velocity == null)
 			velocity = new Base[params.size()];

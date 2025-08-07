@@ -1,10 +1,61 @@
+import gss.*;
+import gss.act.*;
 import gss.arr.*;
 import gss.layers.*;
+import gss.lossfunctions.*;
+import gss.optimizers.*;
 
 import static gss.Util.*;
 
 public class Test2_Model
 {
+	public static void main(String[] args)
+	{
+
+		new Test2_Model().a();
+		System.out.println(line(50));
+
+	}
+	void a()
+	{
+
+		Base in=new Base(
+			flatten(new float[][]{
+						{0,0},{0,1},{1,0},{1,1}}), 4, 2);
+
+		Base tar=new Base(new float[]{0,1,1,0}, 4);
+
+		Sequential md=new Sequential();
+		md.add(new Linear(2, 5));
+		md.add(new Linear(5, 1));
+		md.add(new Tanh());
+
+		LossFunc loss=new MSE();
+
+		Adam adam=new Adam(md.getParameters());
+
+		int prmCount = adam.getParametersCount();
+		int epoch=0;
+		while (epoch++ < 20000)
+		{
+			for (int i=0;i < in.shape[0];i++)
+			{
+				Base o=md.forward(in.slice(i));
+				// o.printArray();
+				System.out.print(prmCount + " = " + o.get(0) + " ~~ " + tar.get(i));
+				o = loss.forward(o, tar.slice(i));
+
+				adam.zeroGrad();
+				o.fillGrad(1);
+				o.backward();
+				adam.step();
+				System.out.println("  " + epoch + " :: " + o.get(0));
+
+			}
+		}
+
+
+	}
 	void test1()
 	{
 		System.out.println(decString("Test 1.0 Conv1d layer backward pass.", "=", 10));

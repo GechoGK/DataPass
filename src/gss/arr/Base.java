@@ -84,7 +84,7 @@ public class Base
 		strides = new int[]{1};
 		this.length = length(shape);
 	}
-	public Base(float[] src, int[]shp)
+	public Base(float[] src, int...shp)
 	{
 		this.data = new Data(src);
 		this.shape = shp;
@@ -224,7 +224,7 @@ public class Base
 				sh[i] = shape[ind.length + i];
 				str[i] = strides[ind.length + i];
 			}
-			System.out.println("offset = " + off + ", new shape :" + Arrays.toString(sh) + ", new stride :" + Arrays.toString(str));
+			// System.out.println("offset = " + off + ", new shape :" + Arrays.toString(sh) + ", new stride :" + Arrays.toString(str));
 		}
 		return new Base(data, sh, str, off);
 	}
@@ -236,7 +236,7 @@ public class Base
 		// int shl=shape.length - ind.length;
 		// if (shl == 0)
 		//	throw new RuntimeException("invalid index for slice.");
-		System.out.println("slicing with range :");
+		// System.out.println("slicing with range :");
 		int[] sh= new int[shape.length];
 		int[] str=new int[shape.length];
 		ind = Util.fill(ind, shape);

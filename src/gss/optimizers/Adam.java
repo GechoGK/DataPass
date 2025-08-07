@@ -49,7 +49,7 @@ public class Adam extends Optimizer
 		this(Arrays.asList(prms), 0.001f, 0.8f, 0.999f, 1e-3f); // 0.001
 	}
 	@Override
-	public void update()
+	public void step()
 	{
 		if (mm == null || vv == null)
 		{

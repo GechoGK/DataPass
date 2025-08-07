@@ -24,7 +24,7 @@ public class GradientDescent extends Optimizer
 			params.addAll(ar);
 	}
 	@Override
-	public void update()
+	public void step()
 	{
 		for (Base dt:params)
 		{

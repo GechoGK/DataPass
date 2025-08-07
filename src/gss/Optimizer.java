@@ -16,7 +16,7 @@ public class Optimizer
 	{
 		this.learningRate = lr;
 	}
-	public void update()
+	public void step()
 	{
 		// update the parameters based on their gradient.
 	}
@@ -28,5 +28,12 @@ public class Optimizer
 				p.zeroGrad();
 			// zero the gradient data.
 		}
+	}
+	public int getParametersCount()
+	{
+		int total=0;
+		for (Base b:params)
+			total += b.length;
+		return total;
 	}
 }

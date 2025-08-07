@@ -7,12 +7,12 @@ import java.util.*;
 import static gss.Util.*;
 import static java.util.Arrays.*;
 
-public class Main
+public class Test2_LayereTest
 {
-	public static void main(String[] args)
+	public static void main2(String[] args)
 	{
 
-		new Main().a();
+		new Test2_LayereTest().a();
 
 		System.out.println(line(54));
 
