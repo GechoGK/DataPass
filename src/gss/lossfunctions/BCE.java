@@ -8,10 +8,10 @@ import java.util.*;
 public class BCE extends LossFunc
 {
 	@Override
-	public Base forward(Base pred, Base tar)
+	public Base forward(Base predicted, Base target)
 	{
-		Base prd=pred.as1DArray();
-		Base tr=tar.as1DArray();
+		Base prd=predicted.as1DArray();
+		Base tr=target.as1DArray();
 
 		// Data ar=new Data(bce).setEnableGradient(pred.requiresGradient());
 		// ar.setGradientFunction(bceGrad, pred, tar);
@@ -30,7 +30,7 @@ public class BCE extends LossFunc
 		// Average and negate (BCE formula)
 		loss = -loss / n;
 		Base b = new Base(new float[]{loss});
-		b.setRequiresGradient(pred.requiresGradient());
+		b.setRequiresGradient(prd.requiresGradient());
 		if (b.requiresGradient())
 			b.setGradientFunction(bceGrad, prd, tr);
 		return b;

@@ -34,12 +34,12 @@ public class Test2_Model
 		Base in=NDArray.rand(2, input);
 		Base tr=NDArray.wrap(new float[]{1,0,1,0,1,0}, 2, 3);
 
-		Optimizer opt=new GradientDescent(w1, w2, b1, b2);
+		Optimizer opt=new Adam(w1, w2, b1, b2);
 
-		trainMSE(opt, w1, w2, b1, b2, in, tr); // ≈ 19755, 24330, 10205, 15488, 7940, 6515, 6515, 6817 millis
+		// trainMSE(opt, w1, w2, b1, b2, in, tr); // ≈ 19755, 24330, 10205, 15488, 7940, 6515, 6515, 6817 millis
 		// trainMAE(opt, w1, w2, b1, b2, in, tr); // ≈ 80709, 33369, 27102, 19464, 15508, 22978  millis
 		// trainBCE(opt, w1, w2, b1, b2, in, tr); // ≈ 79235, 74982, 32427, 15759, 16387, 13459, 16758 millis
-		// trainMCCE(opt, w1, w2, b1, b2, in, tr); // slow and inaccurate // ≈ 79272, 20064, 22044, 30453, 7360, 7421, 5817, 7141, 4452, 5733   millis
+		trainMCCE(opt, w1, w2, b1, b2, in, tr); // slow and inaccurate // ≈ 79272, 20064, 22044, 30453, 7360, 7421, 5817, 7141, 4452, 5733   millis
 
 		System.out.println("completed!");
 
@@ -98,13 +98,13 @@ public class Test2_Model
 			// out = new Sigmoid().forward(out);
 			out = NDArray.dot(out, w2);
 			out = NDArray.add(out, b2);
-			// mout = new Sigmoid().forward(out);
+			// out = new Sigmoid().forward(out);
 
 			output = out;
 			out = new MAE().forward(out, tr);
 
 			loss = out.get(0);
-			// print("loss :" + loss);
+			print("loss :" + loss);
 
 			out.fillGrad(1);
 			out.backward();
@@ -162,12 +162,12 @@ public class Test2_Model
 		Base output=null;
 
 		print("!!!! Sigmoid function either broke or not compatable");
-		print("MCCE broke");
+		print("MCCE works but use absolute(Math.abs(x)) value");
 		print("iterating...");
 		float loss=Float.MAX_VALUE;
 		long time=System.currentTimeMillis();
 		int iter=0;
-		while (loss >= 0.001f)
+		while (true | loss >= 0.001f)
 		{
 			Base out =NDArray.dot(in, w1);
 			out = NDArray.add(out, b1);
@@ -180,7 +180,7 @@ public class Test2_Model
 			out = new MCCE().forward(out, tr);
 
 			loss = out.get(0);
-			// print("loss :" + loss);
+			print("loss :" + loss);
 
 			out.fillGrad(1);
 			out.backward();

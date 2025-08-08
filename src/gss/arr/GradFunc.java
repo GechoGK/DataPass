@@ -94,7 +94,7 @@ public abstract class GradFunc
 			 */
 			int[] shape=host.shape;
 			int[] tmpShape=new int[shape.length];
-			for (int i=0;i < shape.length;i++)
+			for (int i=0;i < host.length;i++)
 			{
 				indexToShape(i, shape, tmpShape);
 				float grad=host.getGrad(tmpShape);
@@ -123,7 +123,7 @@ public abstract class GradFunc
 			Base a2=childs[1];
 			int[] shape=host.shape;
 			int[] tmpShape=new int[shape.length];
-			for (int i=0;i < shape.length;i++)
+			for (int i=0;i < host.length;i++)
 			{
 				indexToShape(i, shape, tmpShape);
 				float a=a1.get(tmpShape); // a.data

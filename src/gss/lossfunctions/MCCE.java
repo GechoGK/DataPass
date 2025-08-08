@@ -10,10 +10,10 @@ public class MCCE extends LossFunc
 	// MCCE = (multi label cross entropy).
 	// no softmax is used.
 	@Override
-	public Base forward(Base pred, Base tar)
+	public Base forward(Base predicted, Base target)
 	{
-		Base prd=pred.as1DArray(); // .base.data.getData();
-		Base tr=tar.as1DArray(); // .base.data.getData();
+		Base prd=predicted.as1DArray(); // .base.data.getData();
+		Base tr=target.as1DArray(); // .base.data.getData();
 
 		int n = prd.length; // Number of classes
 		float loss = 0.0f;
@@ -28,7 +28,7 @@ public class MCCE extends LossFunc
 		loss = -loss; // Negate and return as scalar
 
 		Base b = new Base(new float[]{loss});
-		b.setRequiresGradient(pred.requiresGradient());
+		b.setRequiresGradient(prd.requiresGradient());
 		if (b.requiresGradient())
 			b.setGradientFunction(mcceGrad, prd, tr);
 		return b;

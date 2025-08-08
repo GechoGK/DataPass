@@ -185,6 +185,15 @@ public class Base
 	{
 		data.gradient[ind] += v;
 	}
+	public void setGrad(Base d)
+	{
+		int[] tmpSh=new int[shape.length];
+		for (int i=0;i < length;i++)
+		{
+			Util.indexToShape(i, shape, tmpSh);
+			setGrad(tmpSh, d.get(tmpSh));
+		}
+	}
 	public void fillGrad(float v)
 	{
 		Arrays.fill(data.gradient, v);
@@ -307,15 +316,6 @@ public class Base
 		{
 			Util.indexToShape(i, shape, tmpSh);
 			set(tmpSh, d.get(tmpSh));
-		}
-	}
-	public void setGrad(Base d)
-	{
-		int[] tmpSh=new int[shape.length];
-		for (int i=0;i < length;i++)
-		{
-			Util.indexToShape(i, shape, tmpSh);
-			setGrad(tmpSh, d.get(tmpSh));
 		}
 	}
 	/*
@@ -480,6 +480,7 @@ public class Base
 	}
 	public Base copy()
 	{
+		System.out.println("copying...");
 		if (isTransposed()) // or broadcasted.
 		{
 			float[] dt=new float[length];
@@ -607,7 +608,7 @@ public class Base
 		}
 		int[] sh=Arrays.copyOfRange(shape, c, shape.length);
 		Base d = new Base(data, sh, strides, offset);
-		d.setRequiresGradient(requiresGradient());
+		// d.setRequiresGradient(requiresGradient());
 		if (d.requiresGradient())
 		{
 			d.setGradientFunction(trimGradient, this);
