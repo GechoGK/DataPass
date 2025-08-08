@@ -183,7 +183,7 @@ public class Base
 	}
 	public void setRawGrad(int ind, float v)
 	{
-		data.gradient[ind] = v;
+		data.gradient[ind] += v;
 	}
 	public void fillGrad(float v)
 	{
@@ -191,16 +191,8 @@ public class Base
 	}
 	public void zeroGrad()
 	{
-		Arrays.fill(data.gradient, 0);
+		data.zeroGradient();
 	}
-//	public void setGradRaw(int index, float val)
-//	{
-//		gradient[index] = val;
-//	}
-//	public float getGradRaw(int index)
-//	{
-//		return gradient[index];
-//	}
 	// end gradients.
 	public Base slice(int...ind)
 	{
@@ -608,6 +600,10 @@ public class Base
 		{
 			// no change
 			return this;
+		}
+		if (c == shape.length)
+		{
+			c = shape.length == 1 ?1: shape.length - 1;
 		}
 		int[] sh=Arrays.copyOfRange(shape, c, shape.length);
 		Base d = new Base(data, sh, strides, offset);

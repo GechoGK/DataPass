@@ -75,6 +75,67 @@ public abstract class GradFunc
 			return null;
 		}
 	};
+	public static GradFunc multiplicationGradient = new GradFunc("multiplication")
+	{
+		@Override
+		public Base backward(Base host, Base[] childs, Object params)
+		{
+			Base a1=childs[0]; // first operand..
+			Base a2=childs[1]; // second operand.
+			/* for operand 1.
+			 a * b = c
+			 2 * 3 = 6;
+			 gradient calculaion for multiplication.
+			 c.grad = 5;
+			 a.grad = c.grad * b.data
+			 a.grad = 5 * 3 = 15;
+			 b.grad = c.grad * a.data;
+			 b.grad = 5 * 2 = 10
+			 */
+			int[] shape=host.shape;
+			int[] tmpShape=new int[shape.length];
+			for (int i=0;i < shape.length;i++)
+			{
+				indexToShape(i, shape, tmpShape);
+				float grad=host.getGrad(tmpShape);
+				if (a1.requiresGradient())
+					a1.setGrad(tmpShape, grad * a2.get(tmpShape));
+				if (a2.requiresGradient())
+					a2.setGrad(tmpShape, grad * a1.get(tmpShape));
+			}
+			return null;
+		}
+	};
+	public static GradFunc powGradient = new GradFunc("power"){
+		@Override
+		public Base backward(Base host, Base[] childs, Object params)
+		{
+			/*
+			 pow gradient
+			 example.
+			 c = a ** b  // a the power of b.
+			 // grad ==
+			 c.grad = 2;
+			 a.grad = c.grad * b.data * ( a.data ** (b.data - 1))
+			 b.grad = c.grad * ( a.data ** b.data ) * log(a.data)
+			 */
+			Base a1=childs[0];
+			Base a2=childs[1];
+			int[] shape=host.shape;
+			int[] tmpShape=new int[shape.length];
+			for (int i=0;i < shape.length;i++)
+			{
+				indexToShape(i, shape, tmpShape);
+				float a=a1.get(tmpShape); // a.data
+				float b=a2.get(tmpShape); // b.data
+				if (a1.requiresGradient())
+					a1.setGrad(tmpShape, b * host.getGrad(tmpShape) * (float)Math.pow(a, b - 1));
+				if (a2.requiresGradient())
+					a2.setGrad(tmpShape, host.getGrad(tmpShape) * (float)Math.pow(a, b) * (float)Math.log(a));
+			}
+			return null;
+		}
+	};
 	public static GradFunc dotGradient=new GradFunc("dot"){
 		@Override
 		public Base backward(Base host, Base[] childs, Object params)

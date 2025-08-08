@@ -9,56 +9,404 @@ import static gss.Util.*;
 
 public class Test2_Model
 {
-	public static void main(String[] args)
+	public static void main(String[] args) throws Exception
 	{
 
 		new Test2_Model().a();
 		System.out.println(line(50));
 
 	}
-	void a()
+	void a() throws Exception
 	{
+		print(decString("Test 7.0 approximation test with different loss functions.", 7));
+		/*
+		 BCE doesn*t work as expected.
+		 MCCE doesn't works as expected.
+		 al these works without activation functions.
+		 */
+		int input=2;
+		int output=3;
+		Base w1=NDArray.rand(input, 5).setRequiresGradient(true);
+		Base w2=NDArray.rand(5, output).setRequiresGradient(true);
+		Base b1=NDArray.ones(5).setRequiresGradient(true);
+		Base b2=NDArray.ones(output).setRequiresGradient(true);
 
-		Base in=new Base(
-			flatten(new float[][]{
-						{0,0},{0,1},{1,0},{1,1}}), 4, 2);
+		Base in=NDArray.rand(2, input);
+		Base tr=NDArray.wrap(new float[]{1,0,1,0,1,0}, 2, 3);
 
-		Base tar=new Base(new float[]{0,1,1,0}, 4);
+		Optimizer opt=new GradientDescent(w1, w2, b1, b2);
 
-		Sequential md=new Sequential();
-		md.add(new Linear(2, 5));
-		md.add(new Linear(5, 1));
-		md.add(new Tanh());
+		trainMSE(opt, w1, w2, b1, b2, in, tr); // ≈ 19755, 24330, 10205, 15488, 7940, 6515, 6515, 6817 millis
+		// trainMAE(opt, w1, w2, b1, b2, in, tr); // ≈ 80709, 33369, 27102, 19464, 15508, 22978  millis
+		// trainBCE(opt, w1, w2, b1, b2, in, tr); // ≈ 79235, 74982, 32427, 15759, 16387, 13459, 16758 millis
+		// trainMCCE(opt, w1, w2, b1, b2, in, tr); // slow and inaccurate // ≈ 79272, 20064, 22044, 30453, 7360, 7421, 5817, 7141, 4452, 5733   millis
 
-		LossFunc loss=new MSE();
-
-		Adam adam=new Adam(md.getParameters());
-
-		int prmCount = adam.getParametersCount();
-		int epoch=0;
-		while (epoch++ < 20000)
-		{
-			for (int i=0;i < in.shape[0];i++)
-			{
-				Base o=md.forward(in.slice(i));
-				// o.printArray();
-				System.out.print(prmCount + " = " + o.get(0) + " ~~ " + tar.get(i));
-				o = loss.forward(o, tar.slice(i));
-
-				adam.zeroGrad();
-				o.fillGrad(1);
-				o.backward();
-				adam.step();
-				System.out.println("  " + epoch + " :: " + o.get(0));
-
-			}
-		}
-
+		System.out.println("completed!");
 
 	}
+	void trainMSE(Optimizer opt, Base w1, Base w2, Base b1, Base b2, Base in, Base tr)
+	{
+		Base output=null;
+
+		print("!!!! Sigmoid function either broke or not compatable");
+
+		float loss=Float.MAX_VALUE;
+		long time=System.currentTimeMillis();
+		int iter=0;
+		print("iterating...");
+		while (loss >= 0.001f)
+		{
+			Base out =NDArray.dot(in, w1);
+			out = NDArray.add(out, b1);
+			// out = new Sigmoid().forward(out);
+			out = NDArray.dot(out, w2);
+			out = NDArray.add(out, b2);
+			// out = new Sigmoid().forward(out);
+
+			output = out;
+			out = new MSE().forward(out, tr);
+
+			loss = out.get(0);
+			// print("loss :" + loss);
+
+			out.fillGrad(1);
+			out.backward();
+
+			opt.step();
+			opt.zeroGrad();
+			iter++;
+		}
+		time = System.currentTimeMillis() - time; // ≈ 80768 millis.
+		print(time + " millis to complate " + iter + " iterations");
+		print("final output");
+		output.printArray();
+		print(line(30));
+	}
+	void trainMAE(Optimizer opt, Base w1, Base w2, Base b1, Base b2, Base in, Base tr)
+	{
+		Base output=null;
+
+		print("!!!! Sigmoid function either broke or not compatable");
+		print("iterating...");
+		float loss=Float.MAX_VALUE;
+		long time=System.currentTimeMillis();
+		int iter=0;
+		while (loss >= 0.001f)
+		{
+			Base out =NDArray.dot(in, w1);
+			out = NDArray.add(out, b1);
+			// out = new Sigmoid().forward(out);
+			out = NDArray.dot(out, w2);
+			out = NDArray.add(out, b2);
+			// mout = new Sigmoid().forward(out);
+
+			output = out;
+			out = new MAE().forward(out, tr);
+
+			loss = out.get(0);
+			// print("loss :" + loss);
+
+			out.fillGrad(1);
+			out.backward();
+
+			opt.step();
+			opt.zeroGrad();
+			iter++;
+		}
+		time = System.currentTimeMillis() - time; // ≈ 80768 millis.
+		print(time + " millis to complate " + iter + " iterations");
+		print("final output");
+		output.printArray();
+		print(line(30));
+	}
+	void trainBCE(Optimizer opt, Base w1, Base w2, Base b1, Base b2, Base in, Base tr)
+	{
+		Base output=null;
+
+		print("!!!! Sigmoid function either broke or not compatable");
+		print("BCE broke");
+		print("iterating...");
+		float loss=Float.MAX_VALUE;
+		long time=System.currentTimeMillis();
+		int iter=0;
+		while (loss >= 0.001f)
+		{
+			Base out =NDArray.dot(in, w1);
+			out = NDArray.add(out, b1);
+			// out = new Sigmoid().forward(out);
+			out = NDArray.dot(out, w2);
+			out = NDArray.add(out, b2);
+			// out = new Sigmoid().forward(out);
+
+			output = out;
+			out = new BCE().forward(out, tr);
+
+			loss = out.get(0);
+			// print("loss :" + loss);
+
+			out.fillGrad(1);
+			out.backward();
+
+			opt.step();
+			opt.zeroGrad();
+			iter++;
+		}
+		time = System.currentTimeMillis() - time; // ≈ 80768 millis.
+		print(time + " millis to complate " + iter + " iterations");
+		print("final output");
+		output.printArray();
+		print(line(30));
+	}
+	void trainMCCE(Optimizer opt, Base w1, Base w2, Base b1, Base b2, Base in, Base tr)
+	{
+		Base output=null;
+
+		print("!!!! Sigmoid function either broke or not compatable");
+		print("MCCE broke");
+		print("iterating...");
+		float loss=Float.MAX_VALUE;
+		long time=System.currentTimeMillis();
+		int iter=0;
+		while (loss >= 0.001f)
+		{
+			Base out =NDArray.dot(in, w1);
+			out = NDArray.add(out, b1);
+			// out = new Sigmoid().forward(out);
+			out = NDArray.dot(out, w2);
+			out = NDArray.add(out, b2);
+			// out = new Sigmoid().forward(out);
+
+			output = out;
+			out = new MCCE().forward(out, tr);
+
+			loss = out.get(0);
+			// print("loss :" + loss);
+
+			out.fillGrad(1);
+			out.backward();
+
+			opt.step();
+			opt.zeroGrad();
+			iter++;
+		}
+		time = System.currentTimeMillis() - time; // ≈ 80768 millis.
+		print(time + " millis to complate " + iter + " iterations");
+		print("final output");
+		output.printArray();
+		print(line(30));
+	}
+	void test6()
+	{
+		print(decString("Test 6.0 approximation using optimizers.", "✓", 5));
+		Base tr=NDArray.wrap(3, new int[]{5});
+		Base w1=NDArray.rand(1, 1).setRequiresGradient(true);
+		Base b=NDArray.ones(5).setRequiresGradient(true);
+
+		LossFunc mse=new MSE();
+		Optimizer gd=new GradientDescent(w1, b);
+		// gd = new Adam(w1, b);
+		// gd = new SGDM(w1, b);
+
+		Base in=NDArray.wrap(new float[]{1,2,3,4,5}, new int[]{5});
+
+		Base res=null;
+		float loss=100;
+		while (loss >= 0.001)
+		{
+			Base rs=NDArray.dot(w1, in);
+			rs = NDArray.add(rs, b);
+			res = rs;
+			Base ls=mse.forward(rs, tr);
+			loss = ls.get(0);
+			print("loss :", loss);
+			ls.fillGrad(1);
+			ls.backward();
+
+			// print(loss);
+			gd.step();
+
+			gd.zeroGrad();
+
+		}	
+		print(line(10));
+		System.out.print("result :");
+		res.printArray();
+	}
+	void test5()
+	{
+		print(decString("Test 5.0 approximation using array class.", "✓", 5));
+		// gradient descent example.
+		float lr=0.0001f;
+
+		Base t=NDArray.wrap(new float[]{ 12, 15}, 2);
+		Base in=NDArray.wrap(new float[]{2,3,4}, 3);
+
+		Base w=NDArray.rand(new int[]{3, 2}).setRequiresGradient(true);
+		Base b=NDArray.wrap(1, new int[]{2}).setRequiresGradient(true);
+
+		Base res=null;
+		float loss=100;
+
+		while (loss >= 0.0001f)
+		{
+			Base o=NDArray.add(NDArray.dot(in, w), b);
+
+			res = o;
+
+			o = NDArray.sub(t, o);
+			o = NDArray.pow(o, 2);
+			loss = o.get(0);
+			print("loss :", loss);
+			o.fillGrad(1);
+			o.backward();
+
+			Base wgr=NDArray.mul(w.detachGradient(), lr);
+			wgr = NDArray.sub(w, wgr);
+			w.set(wgr);
+
+			Base bgr=NDArray.mul(b.detachGradient(), lr);
+			bgr = NDArray.sub(b, bgr);
+			// NDArray bgr=b.sub(b.getGradient().mul(lr));
+			b.set(bgr);
+
+			w.zeroGrad();
+			b.zeroGrad();
+		}
+		print(line(10));
+		System.out.print("result :");
+		res.printArray();
+	}
+	void test4() throws Exception
+	{
+		print(decString("Test 4.0 approximation using array class.", "✓", 5));
+
+		float lr=0.001f;
+
+		Base t=NDArray.wrap(12, new int[]{1});
+		Base in=NDArray.wrap(2, new int[]{1});
+
+		Base w=NDArray.wrap(0.5f, 1).setRequiresGradient(true);
+		Base b=NDArray.ones(1).setRequiresGradient(true);
+
+		Base res=null;
+		float loss=100;
+		while (loss > 0.001f)
+		{
+			Base o=NDArray.add(NDArray.dot(in, w), b);
+			res = o;
+
+			o = NDArray.sub(t, o);
+			// print(o, o.gradientFunction);
+			o = NDArray.pow(o, 2);
+			loss = o.get(0);
+
+			print("loss :" + loss);
+
+			o.fillGrad(1);
+			o.backward();
+
+			float wv=w.get(0) - w.getGrad(0) * lr;
+			w.set(new int[]{0}, wv);
+
+			float bv=b.get(0) - b.getGrad(0) * lr;
+			b.set(new int[]{0}, bv);
+
+			w.zeroGrad();
+			b.zeroGrad();
+		}
+		print(line(10));
+		print("result :", res.get(0), " ≈≈ ", t.get(0));
+	}
+	void test3() throws Exception
+	{
+		print(decString("Test 3.0 approximation using raw float", "✓", 5));
+
+		float lr=0.001f; // learning rate.
+
+		float t=12; // target.
+
+		float in=2; // input.
+		float w=0.5f; // weight
+		float wg=0; // weight gradient.
+		float b=1; // biase.
+		float bg=0; // biase gradient.
+
+		float loss=100;
+		float result=0;
+		while (loss >= 0.001) // of the loss less than 0.001, it is already approximated.
+		{
+
+			float r=w * in + b; // result ( prediction);
+			result = r;
+			// print(r);
+			// calculating loss.
+			float m=t - r; 
+			loss = (float)Math.pow(m, 2); // loss.
+			print(loss); // loss sholud be closer to 0.
+			// calculating gradients.
+			float g=2 * m;
+			bg = g;
+			wg = g * t;
+			// print(wg + " , " + bg);
+			w += wg * lr;
+			b += bg * lr;
+		}
+		print("result :" + result + " ≈≈≈ " + t);
+	}
+	void test2()
+	{
+		System.out.println(decString("Test 2.0 XOR Test.", "=", 10));
+
+		Base x=new Base(new float[]{0,1,0,0,1,0,1,1}, 4, 2);
+		Base y=new Base(new float[]{1,0,1,0}, 4);
+
+		int hiddenSize=5;
+		// it works with hidden size starts from 2 upto ...
+
+		Linear l1=new Linear(2, hiddenSize);
+		Linear l2=new Linear(hiddenSize, 1);
+
+		Activation a2=new Sigmoid();
+
+		LossFunc lossFunc=new BCE();
+
+		Optimizer optim=new Adam(l1.getParameters(), l2.getParameters());
+		// sometimes when we use Adam optimizer it stuck to local minima, or unable to fit the dataset. so keep try again.
+		optim = new GradientDescent(l1.getParameters(), l2.getParameters());
+		// optim = new SGDM(l1.getParameters(), l2.getParameters());
+
+		optim.learningRate = 0.01f;
+		Base output=null;
+
+		int ps=0;
+		float lsv=1000;
+		while (lsv >= 0.02f)
+		{
+			Base X = l1.forward(x);
+			X = a2.forward(X);
+			X = l2.forward(X);
+			X = a2.forward(X);
+			output = X;
+
+			Base loss=lossFunc.forward(X, y);
+			lsv = loss.get(0);
+
+			System.out.println(ps + " :: " + lsv + " ::: " + X.getRaw(1));
+
+			loss.fillGrad(1);
+			loss.backward();
+
+			optim.step();
+			optim.zeroGrad();
+
+			ps++;
+		}
+		System.out.println(output);
+	}
+
 	void test1()
 	{
-		System.out.println(decString("Test 1.0 Conv1d layer backward pass.", "=", 10));
+		System.out.println(decString("Test 1.0 layers layer backward pass.", "=", 10));
 
 		Sequential sq=new Sequential();
 		sq.add(new Conv1d(800, 1, 10, 21));

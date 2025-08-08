@@ -11,18 +11,18 @@ public class Sigmoid extends Activation
 	 }
 	 */
 	@Override
-	public Base forward(Base arr)
+	public Base forward(Base array)
 	{
-		Base dt=arr.reshape(-1);
-		float[] out=new float[arr.length];
+		Base dt=array.reshape(-1);
+		float[] out=new float[dt.length];
 		for (int i=0;i < dt.length;i++)
 		{
 			out[i] = 1f / (1f + (float)Math.exp(-dt.get(i)));
 		}
-		Base arrOut=new Base(out, arr.shape).setRequiresGradient(arr.requiresGradient());
+		Base arrOut=new Base(out, array.shape).setRequiresGradient(dt.requiresGradient());
 		// gradient in progress.
 		if (arrOut.requiresGradient())
-			arrOut.setGradientFunction(sigmoidGradient, arr);
+			arrOut.setGradientFunction(sigmoidGradient, dt);
 		return arrOut;
 	}
 	public static GradFunc sigmoidGradient=new GradFunc("sigmoid"){

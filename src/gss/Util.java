@@ -256,4 +256,13 @@ public class Util
 	{
 		return new int[]{start,end,inc};
 	}
+	public static void print(Object...objs)
+	{
+		for (Object o:objs)
+		{
+			System.out.print(o);
+			System.out.print(" ");
+		}
+		System.out.println();
+	}
 }

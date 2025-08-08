@@ -30,7 +30,7 @@ public class MCCE extends LossFunc
 		Base b = new Base(new float[]{loss});
 		b.setRequiresGradient(pred.requiresGradient());
 		if (b.requiresGradient())
-			b.setGradientFunction(mcceGrad, pred, tar);
+			b.setGradientFunction(mcceGrad, prd, tr);
 		return b;
 	}
 	// backward
@@ -41,7 +41,7 @@ public class MCCE extends LossFunc
 			Base prd=childs[0]; // 1d array
 			Base trueLabel=childs[1]; // 1d array
 			// host = 0d array(single value)
-			int n = prd.shape[0]; // Number of classes
+			int n = prd.length; // Number of classes
 
 			// Gradient formula: (softmax - trueLabel) * grad[0]
 			for (int i = 0; i < n; i++)

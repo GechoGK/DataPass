@@ -6,18 +6,18 @@ import gss.arr.*;
 public class Relu extends Activation
 {
 	@Override
-	public Base forward(Base arr)
+	public Base forward(Base array)
 	{
-		Base dt=arr.reshape(-1);
+		Base dt=array.reshape(-1);
 		float[] out=new float[dt.length];
 		for (int i=0;i < dt.length;i++)
 		{
 			out[i] = Math.max(0, dt.get(i));
 		}
-		Base arrOut=new Base(out, arr.shape).setRequiresGradient(arr.requiresGradient());
+		Base arrOut=new Base(out, array.shape).setRequiresGradient(dt.requiresGradient());
 		// gradient in progress.
 		if (arrOut.requiresGradient())
-			arrOut.setGradientFunction(reluGradient, arr);
+			arrOut.setGradientFunction(reluGradient, dt);
 		return arrOut;
 	}
 	// how gradient works by this.grad or this.data ?

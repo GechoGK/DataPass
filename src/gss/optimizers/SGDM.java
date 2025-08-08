@@ -27,6 +27,14 @@ public class SGDM extends Optimizer
 		for (List<Base> p:prms)
 			params.addAll(p);
 	}
+	public SGDM(Base...prms, float lr,  float momtm)
+	{
+		this(Arrays.asList(prms), lr, momtm);
+	}
+	public SGDM(Base...prms)
+	{
+		this(Arrays.asList(prms), 0.01f, 0.85f);
+	}
 	@Override
 	public void step()
 	{
@@ -49,7 +57,7 @@ public class SGDM extends Optimizer
 				int ind=shapeToIndex(tmpShp, prm.shape, prm.strides);
 
 				float veli=vl.getRaw(i);
-				veli = momentum * veli + prm.getGrad(ind);
+				veli = momentum * veli + prm.getRawGrad(ind);
 				prm.setRaw(ind, prm.getRaw(ind) - learningRate * veli);
 				vl.setRaw(i, veli);
 			}

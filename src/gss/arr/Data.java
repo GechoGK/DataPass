@@ -36,15 +36,18 @@ public class Data
 	public Data(float[] f, float[] grad)
 	{
 		this.items = f;
-		this.length=items.length;
+		this.length = items.length;
 		this.gradient = grad;
 		this.requiresGradient = true;
 	}
 	public void setGradientEnabled(boolean enable)
 	{
 		this.requiresGradient = enable;
-		if (enable && gradient == null)
-			gradient = new float[items.length];
+		if (enable)
+		{
+			if (gradient == null)
+				gradient = new float[items.length];
+		}
 		else
 			gradient = null;
 	}

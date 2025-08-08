@@ -27,7 +27,7 @@ public class Conv1d extends Module
 	private void init()
 	{
 		output_size = (input_size - kernel_size) + 1; // for normal convolution.
-		kernels = newParam(NDArray.ones(n_kernels, n_channels, kernel_size)); // change NDArray.ones -> NDArray.rand
+		kernels = newParam(NDArray.rand(n_kernels, n_channels, kernel_size)); // change NDArray.ones -> NDArray.rand
 		biase = newParam(NDArray.ones(n_kernels, output_size));
 	}
 	@Override

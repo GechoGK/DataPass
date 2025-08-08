@@ -32,7 +32,7 @@ public class MAE extends LossFunc
 		Base b = new Base(new float[]{loss});
 		b.setRequiresGradient(pred.requiresGradient());
 		if (b.requiresGradient())
-			b.setGradientFunction(maeGrad, pred, tar);
+			b.setGradientFunction(maeGrad, prd, tr);
 		return b;
 	}
 	private static GradFunc maeGrad=new GradFunc("mean absolute error"){
@@ -47,7 +47,7 @@ public class MAE extends LossFunc
 			// float[] xv=ch.base.data.getData();
 			// float[] trLabel=childs[1].base.data.getData();
 			// float[] g=MAE.backward(grd, xv, trLabel);
-			int n = ch.shape[0];
+			int n = ch.length;
 			// float[] gradient = new float[n];
 			// Compute gradient for each prediction
 			for (int i = 0; i < n; i++)

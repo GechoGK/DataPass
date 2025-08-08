@@ -32,7 +32,7 @@ public class BCE extends LossFunc
 		Base b = new Base(new float[]{loss});
 		b.setRequiresGradient(pred.requiresGradient());
 		if (b.requiresGradient())
-			b.setGradientFunction(bceGrad, pred, tar);
+			b.setGradientFunction(bceGrad, prd, tr);
 		return b;
 	}
 	// backward
@@ -48,7 +48,7 @@ public class BCE extends LossFunc
 			// float[] trLabel=childs[1].base.data.getData();
 			// float[] g=BCE.backward(grd, xv, trLabel);
 			// ch.base.data.setGrad(g); // don't use this method.
-			int n = ch.shape[0];
+			int n = ch.length; // ensure 1d array.
 			// float[] gradient = new float[n];
 			final float epsilon = 1e-7f; // Avoid division by 0
 			for (int i = 0; i < n; i++)

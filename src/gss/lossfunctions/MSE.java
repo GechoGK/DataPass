@@ -38,7 +38,7 @@ public class MSE extends LossFunc
 		Base b = new Base(new float[]{loss});
 		b.setRequiresGradient(pred.requiresGradient());
 		if (b.requiresGradient())
-			b.setGradientFunction(mseGrad, pred, tar);
+			b.setGradientFunction(mseGrad, prd, tr);
 		return b;
 	}
 	private static GradFunc mseGrad=new GradFunc("mean squared error"){

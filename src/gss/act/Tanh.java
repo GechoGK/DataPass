@@ -6,17 +6,17 @@ import gss.arr.*;
 public class Tanh extends Activation
 {
 	@Override
-	public Base forward(Base arr)
+	public Base forward(Base array)
 	{
-		Base dt=arr.reshape(-1); //.base.data.data;
+		Base dt=array.reshape(-1); //.base.data.data;
 		float[] out=new float[dt.length];
 		for (int i=0;i < dt.length;i++)
 		{
 			out[i] = (float)Math.tanh(dt.get(i));
 		}
-		Base arrOut=new Base(out, arr.shape) .setRequiresGradient(arr.requiresGradient());
+		Base arrOut=new Base(out, array.shape) .setRequiresGradient(dt.requiresGradient());
 		if (arrOut.requiresGradient())
-			arrOut.setGradientFunction(tanhGradient, arr);
+			arrOut.setGradientFunction(tanhGradient, dt);
 		return arrOut;
 	}
 	public static GradFunc tanhGradient=new GradFunc("tanh"){
