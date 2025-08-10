@@ -2,8 +2,9 @@ package gss.lossfunctions;
 
 import gss.*;
 import gss.arr.*;
-import gss.lossfunctions.*;
-import java.util.*;
+import gss.optimizers.*;
+
+import static gss.Util.*;
 
 public class MAE extends LossFunc
 {
@@ -77,15 +78,14 @@ public class MAE extends LossFunc
 //
 //		return gradient;
 //	}
-
 	// example
 
-//	public static void main(String[]args)
+//	public static void main(String[]args) throws Exception
 //	{
 //		// Forward pass
 //		MAE m=new MAE();
-//		float[] pred = {.001f, 0.20f};
-//		float[] trueLabel = {.9f, 0.50f};
+//		float[][] pred = {{.11f, 0.98f},{.99f,.34f}};
+//		float[][] trueLabel = {{.9f, 0.30f},{.1f,.999f}};
 //
 ////		float[] loss = m.forward(pred, trueLabel); // Returns [2.5]
 ////		print("loss =" + Arrays.toString(loss));
@@ -97,17 +97,30 @@ public class MAE extends LossFunc
 ////
 ////		print("==== with Data ====");
 ////
-//		Base pr=new Base(pred).setRequiresGradient(true);
-//		Base tr=new Base(trueLabel);
+//		Base pr=NDArray.wrap(flatten(pred), 2, 2).setRequiresGradient(true);
+//		Base tr=new Base(flatten(trueLabel), 2, 2);
 //
-//		Base rs=m.forward(pr, tr);
-//		System.out.println("loss" + rs);
-//		rs.printArray();
-//		System.out.println("---- grad ----");
-//		rs.fillGrad(1);
-//		rs.backward();
-//		pr.detachGradient().printArray();
+//		GradientDescent gd=new GradientDescent(pr);
 //
+//		float loss=10;
+//		while (loss >= 0.001f)
+//		{
+//			Base rs=m.forward(pr, tr);
+//			loss = rs.get(0);
+//			print(loss);
+//			// rs.printArray();
+//			// System.out.println("---- grad ----");
+//			rs.fillGrad(1);
+//			rs.backward();
+//
+//			// pr.detachGradient().printArray();
+//			gd.step();
+//			gd.zeroGrad();
+//			// Thread.sleep(100);
+//		}
+//		print(line(20));
+//		print("loss :" + loss);
+//		pr.printArray();
 //		// Test1.test(Arrays.equals(rs.base.data.getData(), loss), "loss equals with Data");
 //		// Test1.test(Arrays.equals(pr.base.data.getGrads(), gradient), "gradient equals with Data");
 //	}

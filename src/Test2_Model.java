@@ -18,12 +18,89 @@ public class Test2_Model
 	}
 	void a() throws Exception
 	{
+
+
+	}
+	Base dot(Base a, Base b)
+	{
+		int[] out=dotShape(a.shape, b.shape);
+		a = a.as2DArray();
+		if (b.getDim() < 2)
+			b = b.reshape(1, -1);
+		else if (b.getDim() == 2)
+		{
+			b = b.transpose(1, 0);
+		}
+		else if (b.getDim() > 2)
+		{
+			b = b.transpose(dotAxis(b.getDim()));
+			b = b.reshape(-1, b.shape[b.shape.length - 1]);
+		}
+		if (b.shape[b.shape.length - 1] != a.shape[a.shape.length - 1])
+			throw new RuntimeException("invalid shape dor dot product.");
+		int[] sh={a.shape[0],b.shape[0]};
+		float[] outData=new float[a.shape[0] * b.shape[0]];
+		for (int ar=0;ar < a.shape[0];ar++)
+			for (int br=0;br < b.shape[0];br++)
+			{
+				float sm=0;	
+				for (int c=0;c < a.shape[1];c++)
+				{
+					sm += a.get(ar, c) * b.get(br, c);
+				}
+				outData[shapeToIndex(new int[]{ar,br}, sh)] = sm;
+			}
+		Base bs=new Base(outData, out).setRequiresGradient(a.requiresGradient() | b.requiresGradient());
+		bs.setGradientFunction(GradFunc.dotGradient, a, b);
+		return bs;
+	}
+	int[] dotAxis(int len)
+	{
+		// the len value expectes to be > 2
+		int[]a=new int[len];
+		for (int i=0;i < len;i++)
+			a[i] = i;
+		int t=a[len - 1];
+		a[len - 1] = a[len - 2];
+		a[len - 2] = t;
+		return a;
+	}
+	private static int[] dotShape(int[]sh1, int[]sh2)
+	{
+		// this method expect the array before transposed.
+		if (n(sh1, 0) != n(sh2, sh2.length == 1 ?0: 1))
+			throw new RuntimeException("incompatable shape for dot product.");
+		int len=sh1.length + sh2.length - 2;
+		// print("length :", len);
+		if (len == 0)
+			return new int[]{1};
+		int[]ns=new int[len];
+		for (int i=0;i < sh1.length - 1;i++)
+			ns[i] = sh1[i];
+		int sh2Start=sh1.length - 1;
+		for (int i=0;i < sh2.length - 2;i++)
+			ns[i + sh2Start] = sh2[i];
+		if (sh2.length >= 2)
+			ns[ns.length - 1] = sh2[sh2.length - 1];
+		return ns;
+	}
+	void draw(Base bs, String s)
+	{
+		System.out.println(s + bs.gradientFunction);
+		for (Base b:bs.childs)
+			draw(b, "   " + s);
+	}
+	void test7()
+	{
+		// doesn't work.
 		print(decString("Test 7.0 approximation test with different loss functions.", 7));
 		/*
 		 BCE doesn*t work as expected.
 		 MCCE doesn't works as expected.
 		 al these works without activation functions.
 		 */
+		if (new Boolean(true) == true)
+			throw new RuntimeException("review the code first");
 		int input=2;
 		int output=3;
 		Base w1=NDArray.rand(input, 5).setRequiresGradient(true);
@@ -38,8 +115,8 @@ public class Test2_Model
 
 		// trainMSE(opt, w1, w2, b1, b2, in, tr); // ≈ 19755, 24330, 10205, 15488, 7940, 6515, 6515, 6817 millis
 		// trainMAE(opt, w1, w2, b1, b2, in, tr); // ≈ 80709, 33369, 27102, 19464, 15508, 22978  millis
-		// trainBCE(opt, w1, w2, b1, b2, in, tr); // ≈ 79235, 74982, 32427, 15759, 16387, 13459, 16758 millis
-		trainMCCE(opt, w1, w2, b1, b2, in, tr); // slow and inaccurate // ≈ 79272, 20064, 22044, 30453, 7360, 7421, 5817, 7141, 4452, 5733   millis
+		trainBCE(opt, w1, w2, b1, b2, in, tr); // ≈ 79235, 74982, 32427, 15759, 16387, 13459, 16758 millis
+		// trainMCCE(opt, w1, w2, b1, b2, in, tr); // slow and inaccurate // ≈ 79272, 20064, 22044, 30453, 7360, 7421, 5817, 7141, 4452, 5733   millis
 
 		System.out.println("completed!");
 
@@ -129,7 +206,7 @@ public class Test2_Model
 		float loss=Float.MAX_VALUE;
 		long time=System.currentTimeMillis();
 		int iter=0;
-		while (loss >= 0.001f)
+		while (true | loss >= 0.001f)
 		{
 			Base out =NDArray.dot(in, w1);
 			out = NDArray.add(out, b1);

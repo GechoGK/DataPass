@@ -7,7 +7,7 @@ public class Test1_NDArrayData
 {
 	public static void test()
 	{
-		
+
 		test1();
 		test2();
 		test3();
@@ -43,25 +43,42 @@ public class Test1_NDArrayData
 		d3.printArray();
 
 	}
-	public static void  test10()
+	public static void test10()
 	{
-		System.out.println("========== Test 10.0 dot product. ==========");
-		System.out.println(Arrays.toString(NDArray.prepareAxisForDot(5))); // new int[5])));
+		print(decString("Test 8.0 dot product test.", 7));
+		/*
+		 // a = [[1,2,3],
+		 // 	 [3,4,5]]	 
+		 // b = [1,2,3]
 
-		Base d1=new Base(new float[]{0,1,2,3,4,5}, new int[]{1,3,2});
-		Base d2=NDArray.arange(3 * 2 * 4).reshapeLocal(4, 2, 3);
-		// 1,3,4,3 shape
-		// check 2==2
-		// 
+		 c =  a.b = (2,3).(3)->(3,1)  3==3
+		 c.shape = (2,1)-> (2)
 
-		System.out.println(d1);
-		d1.printArray();
-		System.out.println(getString("-", 30));
-		System.out.println(d2);
-		d2.printArray();
-		System.out.println(decString("dot product", 5));
-		NDArray.dot(d1, d2).printArray();
+		 */
 
+		Base a=NDArray.arange(2 * 5).reshapeLocal(2, 5).setRequiresGradient(true);
+		Base b=NDArray.arange(5 * 4).reshapeLocal(5, 4).setRequiresGradient(true);
+
+		print(a);
+		a.printArray();
+		print(line(30));
+		print(b);
+		b.printArray();
+		print(line(50));
+
+		Base c=NDArray.dot(a, b);
+		print(c);
+
+		c.printArray();
+		print(line(30));
+		draw(c, "");
+
+	}
+	public static void draw(Base bs, String s)
+	{
+		System.out.println(s + bs.gradientFunction);
+		for (Base b:bs.childs)
+			draw(b, "   " + s);
 	}
 	public static void  test9()
 	{

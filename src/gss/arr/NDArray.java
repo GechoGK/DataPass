@@ -9,7 +9,8 @@ import static gss.arr.GradFunc.*;
 public class NDArray
 {
 	/*
-	 -- dot product needs more improvement.
+	 -- dotGradient product needs more improvement.
+	 -- remove all setRaw functions.
 	 */
 	public static Base arange(float end)
 	{
@@ -85,7 +86,7 @@ public class NDArray
 			indexToShape(i, sh, tmpSh);
 			float op1=d1.get(tmpSh);
 			float op2=d2.get(tmpSh);
-			res.setRaw(i, op1 + op2);
+			res.set(tmpSh, op1 + op2);
 		}
 		return res;
 	}
@@ -102,7 +103,7 @@ public class NDArray
 		{
 			indexToShape(i, sh, tmpSh);
 			float op1=d1.get(tmpSh);
-			res.setRaw(i, op1 + d2);
+			res.set(tmpSh, op1 + d2);
 		}
 		return res;
 	}
@@ -296,120 +297,68 @@ public class NDArray
 		return res;
 	}
 	// dot product start.
-	public static Base dot(Base d1, Base d2)
+	public static Base dot(Base a, Base b)
 	{
-		// fix transposing and reshaping b array
-		// only transposing in enough.
-		/*
-		 if (x.col != y.row)
-		 throw new RuntimeException("two matrixes doesn't match (" + x.col + "," + y.row + ")");
-		 VMat m=new VMat(x.row, y.col);
-		 for (int r=0;r < x.row;r++)
-		 for (int c=0;c < y.col;c++)
-		 {
-		 Value sum=newValue(0);
-		 for (int i=0;i < x.col;i++)
-		 sum = Value.add(sum, Value.mul(x.get(r, i) , y.get(i, c)));
-		 m.put(r, c, sum);
-		 }
-		 return m;
-		 */
-		if (d1.shape.length == 1)
-			d1 = d1.as2DArray();
-		if (d2.getDim() == 1)
-			d2 = d2.as2DArray();
-		int[] newShape=getShapeForDot(d1.shape, d2.shape);
-		// System.out.println("final shape :" + Arrays.toString(newShape));
-		d1 = d1.as2DArray();
-
-		d2 = d2.transpose(prepareAxisForDot(d2.shape.length)).reshape(d2.shape[d2.shape.length - 2], -1);
-		int[]sh1=d1.shape;
-		int[]sh2=d2.shape;
-		if (sh1[1] != sh2[0])
-			throw new RuntimeException("two matrixes doesn't match (" + sh1[1] + "," + sh2[0] + ")");
-		int[] dotShape={sh1[0],sh2.length == 1 ?1: sh2[1]};
-		// System.out.println(".." + Arrays.toString(sh1) + ".." + Arrays.toString(sh2) + "..." + Arrays.toString(dotShape));
-		float[] f=new float[dotShape[0] * dotShape[1]];
-
-		for (int r=0;r < sh1[0];r++)
-			for (int c=0;c < dotShape[1];c++)
-			{
-				float sum=0;
-				for (int i=0;i < sh1[1];i++)
-					sum += d1.get(r, i) * d2.get(i, c);
-				f[shapeToIndex(ar(r, c), dotShape)] = sum;
-			}
-
-		Base d = new Base(f, dotShape).setRequiresGradient(d1.requiresGradient() | d2.requiresGradient());
-		if (d.requiresGradient())
-			d.setGradientFunction(GradFunc.dotGradient, d1, d2);
-		return d.reshape(newShape);
-	}
-	public static int[] prepareAxisForDot(int len)
-	{
-		/*
-		 how to transpose the 2nd array inorder to get expected shape.
-		 // 0,1,2     -> 2,1,0     -> 1,0,2
-		 // 3,2,1,0   -> 3,2,0,1   -> 2,0,1,3
-		 // 4,3,2,1,0 -> 4,3,0,1,2 -> 3,0,1,2,4
-		 // reverse   -> swap      -> shift
-		 // there is always shift.
-		 // number of swaps = dim - 2 from the left before swap.
-		 */
-		int[] ax=new int[len];
-		// how to swap axis.
-		// reverse, flip(swap) , shift
-		// ax[ax.length - 1] = tmp;
-		// reverse;
-		for (int i=0;i < ax.length;i++)
-			ax[i] = ax.length - i - 1;
-		// System.out.println("reversed axis" + Arrays.toString(ax));
-		// swap
-		int sLen=ax.length - 2;
-		for (int i=0;i < sLen / 2;i++)
+		int[] out=dotShape(a.shape, b.shape);
+		a = a.as2DArray();
+		if (b.getDim() < 2)
+			b = b.reshape(1, -1);
+		else if (b.getDim() == 2)
 		{
-			int cp=ax.length - sLen + i;
-			int lp=ax.length - i - 1;
-			int cv=ax[cp];
-			int lv=ax[lp];
-			ax[cp] = lv;
-			ax[lp] = cv;
-			// System.out.println("[" + cp + " <-> " + lp + "], (" + cv + ", " + lv + ")");
+			b = b.transpose(1, 0);
 		}
-		// System.out.println("swapped axis " + Arrays.toString(ax));
-		// left shift
-		int tmp=ax[0];
-		for (int i=0;i < ax.length - 1;i++)
-			ax[i] = ax[i + 1];
-		ax[ax.length - 1] = tmp;
-		// System.out.println("shifted axis :" + Arrays.toString(ax));
-		return ax;
+		else if (b.getDim() > 2)
+		{
+			b = b.transpose(dotAxis(b.getDim()));
+			b = b.reshape(-1, b.shape[b.shape.length - 1]);
+		}
+		if (b.shape[b.shape.length - 1] != a.shape[a.shape.length - 1])
+			throw new RuntimeException("invalid shape dor dot product.");
+		int[] sh={a.shape[0],b.shape[0]};
+		float[] outData=new float[a.shape[0] * b.shape[0]];
+		for (int ar=0;ar < a.shape[0];ar++)
+			for (int br=0;br < b.shape[0];br++)
+			{
+				float sm=0;	
+				for (int c=0;c < a.shape[1];c++)
+				{
+					sm += a.get(ar, c) * b.get(br, c);
+				}
+				outData[shapeToIndex(new int[]{ar,br}, sh)] = sm;
+			}
+		Base bs=new Base(outData, out).setRequiresGradient(a.requiresGradient() | b.requiresGradient());
+		bs.setGradientFunction(GradFunc.dotGradient, a, b);
+		return bs;
 	}
-	private static int[] getShapeForDot(int[]s1, int[]s2)
+	private static int[] dotAxis(int len)
 	{
-		/*
-		 output shape is determined by the given array's shape.
-		 example  a.shape = (x,y,z)
-		 ..       b.shape = (h,i,j) then
-		 ..
-		 ..       c = a.dot(b)
-		 ..
-		 .. first we need to check if "z" and "i" are equal if true.
-		 the output shape(c.shape) would be (x,y,h,j) it increase by 1 dimension.
-
-		 */
-		if (n(s1, 0) != n(s2, 1))
-			throw new RuntimeException("dimensions are not equal to compute the dot product (" + n(s1, 0) + " != " + n(s2, 1) + ")");
-		int[] newShape=new int[s1.length + s2.length - 2];
-
-		for (int i=0;i < s1.length - 1;i++)
-			newShape[i] = s1[i];
-		int str=s1.length - 1;
-		for (int i=0;i < s2.length - 1;i++)
-			newShape[str + i] = s2[i];
-		newShape[newShape.length - 1] = s2[s2.length - 1];
-		// System.out.println("new Shape =" + Arrays.toString(newShape));
-		return newShape;
+		// the len value expectes to be > 2
+		int[]a=new int[len];
+		for (int i=0;i < len;i++)
+			a[i] = i;
+		int t=a[len - 1];
+		a[len - 1] = a[len - 2];
+		a[len - 2] = t;
+		return a;
+	}
+	private static int[] dotShape(int[]sh1, int[]sh2)
+	{
+		// this method expect the array before transposed.
+		if (n(sh1, 0) != n(sh2, sh2.length == 1 ?0: 1))
+			throw new RuntimeException("incompatable shape for dot product.");
+		int len=sh1.length + sh2.length - 2;
+		// print("length :", len);
+		if (len == 0)
+			return new int[]{1};
+		int[]ns=new int[len];
+		for (int i=0;i < sh1.length - 1;i++)
+			ns[i] = sh1[i];
+		int sh2Start=sh1.length - 1;
+		for (int i=0;i < sh2.length - 2;i++)
+			ns[i + sh2Start] = sh2[i];
+		if (sh2.length >= 2)
+			ns[ns.length - 1] = sh2[sh2.length - 1];
+		return ns;
 	}
 	// dot product end.
 	public static Base convolve1d(Base d1, Base kr)

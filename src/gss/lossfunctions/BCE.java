@@ -4,6 +4,9 @@ import gss.*;
 import gss.arr.*;
 import gss.lossfunctions.*;
 import java.util.*;
+import gss.optimizers.*;
+
+import static gss.Util.*;
 
 public class BCE extends LossFunc
 {
@@ -24,7 +27,7 @@ public class BCE extends LossFunc
 			// Clip predictions to [epsilon, 1-epsilon]
 			float tarF=tr.get(i);
 			float p = Math.max(epsilon, Math.min(prd.get(i), 1 - epsilon));
-			loss += tarF * Math.log(p) + (1 - tarF * Math.log(1 - p));
+			loss += tarF * Math.log(p) + (1 - tarF) * Math.log(1 - p);
 		}
 
 		// Average and negate (BCE formula)
@@ -82,12 +85,12 @@ public class BCE extends LossFunc
 //	}
 
 	// example
-//	public static void main(String[]args)
+//	public static void main(String[]args) throws Exception
 //	{
 //		BCE b=new BCE();
 //		// Forward pass
-//		float[] pred = {0.2f, 0.8f};
-//		float[] trueLabel = {1.0f, 0.0f};
+//		float[][] pred = {{0.2f, 0.8f},{0.79f,0.3f}};
+//		float[][]trueLabel = {{1.0f, 0.0f},{1,0}};
 ////		float[] loss = b.forward(pred, trueLabel); // Returns [~1.609]
 ////
 ////		print("loss =" + Arrays.toString(loss));
@@ -99,17 +102,32 @@ public class BCE extends LossFunc
 ////
 ////		print("==== with Data ====");
 //
-//		Base pr=new Base(pred).setRequiresGradient(true);
-//		Base tr=new Base(trueLabel);
+//		Base pr=NDArray.wrap(flatten(pred), 2, 2).setRequiresGradient(true);
+//		Base tr=new Base(flatten(trueLabel), 2, 2);
 //
-//		Base rs=b.forward(pr, tr);
-//		print("loss" + rs);
-//		rs.printArray();
-//		print("---- grad ----");
-//		rs.fillGrad(1);
-//		rs.backward();
-//		pr.detachGradient().printArray();
+//		GradientDescent gd=new GradientDescent(pr);
+//		float loss=10;
+//		while (loss >= 0.001f)
+//		{
+//			Base rs=b.forward(pr, tr);
+//			// print("loss " + rs);
+//			rs.printArray();
+//			loss = rs.get(0);
+//			// print("---- grad ----");
+//			rs.fillGrad(1);
+//			rs.backward();
+//			// pr.detachGradient().printArray();
 //
+//			gd.step();
+//			gd.zeroGrad();
+//
+//			// Thread.sleep(50);
+//			if (loss <= 0.0001f)
+//				break;
+//		}
+//		print(line(20));
+//		print("loss :" + loss);
+//		pr.printArray();
 //		// Test1.test(Arrays.equals(rs.base.data.getData(), loss), "loss equals with Data");
 //		// Test1.test(Arrays.equals(pr.base.data.getGrads(), gradient), "gradient equals with Data");
 //	}

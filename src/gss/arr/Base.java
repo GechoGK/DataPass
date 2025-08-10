@@ -380,9 +380,12 @@ public class Base
 		fillShape(newShape);
 		if (isTransposed())
 		{
-			Base d=copy().reshapeLocal(newShape);
+			// print("reshaping transposed");
+			Base d=copy().reshape(newShape);
+			// print(d.gradientFunction);
 			return d;
 		}
+		// print(length, newShape);
 		if (length != length(newShape))
 			throw new RuntimeException("can't view this array into " + Arrays.toString(newShape) + " shape. Reason!! the length is not equal");
 		Base d=new Base(data, newShape, offset);
@@ -480,13 +483,15 @@ public class Base
 	}
 	public Base copy()
 	{
-		System.out.println("copying...");
+		// System.out.println("copying...");
 		if (isTransposed()) // or broadcasted.
 		{
+			// print("copy transposed");
 			float[] dt=new float[length];
 			Base d=new Base(dt, shape).setRequiresGradient(data.requiresGradient);
 			if (d.requiresGradient())
 				d.setGradientFunction(copyGradient, this);
+			// print(d.gradientFunction);
 			// d.setGradientParams(params);
 			for (int i=0;i < length;i++)
 			{
@@ -499,13 +504,14 @@ public class Base
 		}
 		else
 		{
-			Base d = new Base(Arrays.copyOf(data.items, data.length), shape);
+			// print("copy non-transposed");
+			Base d = new Base(Arrays.copyOf(data.items, data.length), shape); // wrong.
 			d.setRequiresGradient(requiresGradient());
 			if (d.requiresGradient())
 			{
 				d.setGradientFunction(copyGradient, this);
 				// d.setGradientParams(params);
-				d.data.gradient = Arrays.copyOf(data.gradient, data.length);
+				d.data.gradient = Arrays.copyOf(data.gradient, data.length); // wrong.
 			}
 			return d;
 		}

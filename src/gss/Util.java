@@ -260,9 +260,49 @@ public class Util
 	{
 		for (Object o:objs)
 		{
-			System.out.print(o);
+			if (o instanceof int[])
+				System.out.print(Arrays.toString((int[])o));
+			else
+				System.out.print(o);
 			System.out.print(" ");
 		}
 		System.out.println();
+	}
+	public static int[] reshape(int[]newShape, int[]oldShape)
+	{
+		int nIndex=-1;
+		for (int i=0;i < newShape.length;i++)
+		{
+			if (newShape[i] == -1 && nIndex != -1)
+				throw new RuntimeException("the shape can't have multiple -1 values.");
+			else if (newShape[i] == -1)
+				nIndex = i;
+		}
+		if (nIndex != -1)
+		{
+			int length=length(oldShape);
+			newShape[nIndex] = 1;
+			int len=length(newShape);
+			int remSize=length / len;
+			if (length % len != 0)
+				throw new RuntimeException("choose an appropriate array size: unable to fill the missing value.");
+			newShape[nIndex] = remSize;
+		}
+		return newShape;
+	}
+	public static int[] transpose(int[]shape, int...axes)
+	{
+		if (axes.length != shape.length)
+			throw new RuntimeException("invalid axes");
+		int[] sh=new int[shape.length]; // Arrays.copyOf(shape, shape.length);
+		int p=0;
+		for (int i:axes)
+		{
+			if (i >= axes.length)
+				throw new IndexOutOfBoundsException("index must not greater than the dimension o the array");
+			sh[p] = shape[i];
+			p++;
+		}
+		return sh;
 	}
 }
