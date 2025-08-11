@@ -157,22 +157,26 @@ public abstract class GradFunc
 			// host [3,12];
 			// System.out.println(a);
 			// System.out.println(b);
+			print(line(30));
+			print(a);
+			print(b);
 			// System.out.println("= " + host);
 			for (int ar=0;ar < a.shape[0];ar++) // 3
-				for (int bc=0;bc < b.shape[1];bc++) // 12
+				for (int br=0;br < b.shape[0];br++) // 12
 				{
 					// get grad at host.grad[ar][bc];
-					float grd=host.getGrad(ar, bc);
+					float grd=host.getGrad(ar, br);
 					for (int ac=0;ac < a.shape[1];ac++) // 2
 					{
 						float av=a.get(ar, ac);
-						float bv=b.get(ac, bc);
+						float bv=b.get(br, ac);
 						if (a.requiresGradient())
 							a.setGrad(new int[]{ar,ac}, bv * grd);
 						if (b.requiresGradient())			
-							b.setGrad(new int[]{ac,bc}, av * grd);			
+							b.setGrad(new int[]{br,ac}, av * grd);			
 					}
 				}
+			print(line(30));
 			return null;
 		}
 	};

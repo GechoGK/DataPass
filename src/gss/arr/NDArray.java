@@ -9,7 +9,6 @@ import static gss.arr.GradFunc.*;
 public class NDArray
 {
 	/*
-	 -- dotGradient product needs more improvement.
 	 -- remove all setRaw functions.
 	 */
 	public static Base arange(float end)

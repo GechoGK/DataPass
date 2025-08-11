@@ -19,6 +19,23 @@ public class Test2_Model
 	void a() throws Exception
 	{
 
+		Base a=NDArray.arange(3 * 5).reshapeLocal(3, 5).setRequiresGradient(true);
+		Base b=NDArray.arange(5 * 2).reshapeLocal(5, 2).setRequiresGradient(true);
+
+		Base c=NDArray.dot(a, b);
+
+		print(a);
+		a.printArray();
+		print(b);
+		b.printArray();
+		print(c);
+		c.printArray();
+		c.fillGrad(1);
+		c.backward();
+		print(line(30));
+		a.detachGradient().printArray();
+		print(line(10));
+		b.detachGradient().printArray();
 
 	}
 	Base dot(Base a, Base b)
