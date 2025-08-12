@@ -12,7 +12,7 @@ public class Tanh extends Activation
 		float[] out=new float[dt.length];
 		for (int i=0;i < dt.length;i++)
 		{
-			out[i] = (float)Math.tanh(dt.get(i));
+			out[i] = (float)Math.tanh(dt.get(dt.indexToShape(i)));
 		}
 		Base arrOut=new Base(out, array.shape) .setRequiresGradient(dt.requiresGradient());
 		if (arrOut.requiresGradient())
@@ -32,10 +32,11 @@ public class Tanh extends Activation
 			Base ar=childs[0];
 			// float[] grd=host.base.data.getGrads();
 			// float[] dt=childs[0].base.toArray();
-			for (int i=0;i < ar.shape[0];i++)
+			for (int i=0;i < ar.length;i++)
 			{
-				float th=(float)Math.tanh(ar.get(i));
-				ar.setGrad(Util.ar(i), host.getGrad(i) * (1f - th * th));
+				int[] sh=ar.indexToShape(i);
+				float th=(float)Math.tanh(ar.get(sh));
+				ar.setGrad(sh, host.getGrad(host.indexToShape(i)) * (1f - th * th));
 			}
 			// childs[0].base.data.setGrad(dt);
 			return null;

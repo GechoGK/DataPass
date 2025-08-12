@@ -8,6 +8,7 @@ public class Data
 {
 	public float[] items;
 	public float[] gradient;
+	public Value[] gradValues;
 	public boolean requiresGradient;
 	public int length=0;
 
@@ -47,13 +48,45 @@ public class Data
 		{
 			if (gradient == null)
 				gradient = new float[items.length];
+			if (gradValues == null)
+				gradValues = new DValue[items.length];
 		}
 		else
+		{
 			gradient = null;
+			gradValues = null;
+		}
 	}
 	public void zeroGradient()
 	{
 		if (requiresGradient)
 			Arrays.fill(gradient, 0);
+	}
+	public Value getValue(int pos)
+	{
+		if (gradValues == null)
+			gradValues = new DValue[items.length];
+		Value v=gradValues[pos];
+		if (v == null)	
+		{
+			v = new DValue(this, pos);
+			gradValues[pos] = v;
+		}
+		return v;
+	}
+	public Value setValue(int pos, Value v)
+	{
+		// System.out.println("setting flat " + ind + " = " + v);
+		if (gradValues == null)
+		 	gradValues = new DValue[items.length];
+		DValue dv=(DValue)gradValues[pos];
+		if (dv == null)
+		{
+			dv = new DValue(this, pos);
+			gradValues[pos] = dv;
+		}
+		dv.set(v);
+		// System.out.println(dv);
+		return dv;
 	}
 }

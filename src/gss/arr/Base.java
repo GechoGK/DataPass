@@ -187,20 +187,31 @@ public class Base
 	}
 	public void setGrad(Base d)
 	{
-		int[] tmpSh=new int[shape.length];
+		if (length != d.length)
+			throw new RuntimeException("the length of the given array doesn't match the current array.");
 		for (int i=0;i < length;i++)
 		{
-			Util.indexToShape(i, shape, tmpSh);
-			setGrad(tmpSh, d.get(tmpSh));
+			int[]sh=indexToShape(i);
+			setGrad(sh, d.get(d.indexToShape(i)));
 		}
 	}
-	public void fillGrad(float v)
+	public void setGrad(float v)
 	{
 		Arrays.fill(data.gradient, v);
 	}
 	public void zeroGrad()
 	{
 		data.zeroGradient();
+	}
+	public Value getValue(int...index)
+	{
+		int ind=Math.max(0, shapeToIndex(index));
+		return data.getValue(ind);
+	}
+	public void setValue(Value v, int...index)
+	{
+		int ind=shapeToIndex(index);
+		data.setValue(ind, v);
 	}
 	// end gradients.
 	public Base slice(int...ind)

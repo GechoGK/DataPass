@@ -6,19 +6,63 @@ import gss.lossfunctions.*;
 import gss.optimizers.*;
 
 import static gss.Util.*;
+import static gss.arr.GradFunc.*;
 
-public class Test2_Model
+public class Test2_Func
 {
-	public static void main(String[] args) throws Exception
+	public static void main2(String[] args) throws Exception
 	{
 
-		new Test2_Model().a();
+		new Test2_Func().a();
 		System.out.println(line(50));
 
 	}
 	void a() throws Exception
 	{
 
+		Base b1=NDArray.arange(10).setRequiresGradient(true);
+		Base b2=NDArray.arange(10).setRequiresGradient(true);
+
+		b1.printArray();
+		b2.printArray();
+		Base b3=new Base(10).setRequiresGradient(true);
+		for (int i=0;i < b1.length;i++)
+		{
+			Value r=b1.getValue(i).add(b2.getValue(i));
+			b3.setValue(r, i);
+		}
+		b3.setGradientFunction(GradFunc.itemGradient);
+		print(b3);
+		b3.printArray();
+		print(line(30));
+		b3.setGrad(2);
+		b3.backward();
+
+		b1.detachGradient().printArray();
+		b2.detachGradient().printArray();
+	}
+	void tree(Base arr, String t)
+    {
+		System.out.println(t + arr);
+		if (arr.gradientFunction == GradFunc.itemGradient)
+        {
+			System.out.println(t + "listing child gradient");
+			for (int i=0;i < arr.length;i++)
+				treeV(arr.getValue(i), t);
+		}
+		if (arr.childs != null && arr.childs.size() != 0)
+			for (Base ar:arr.childs)
+				tree(ar, t.replace("_", " ").replace("|", " ") + "|_____ ");
+	}
+	void treeV(Value vl, String t)
+    {
+		System.out.println(t + vl);
+		if (vl.args != null && vl.args.size() != 0)
+			for (Value  vv:vl.args)
+				treeV(vv, t.replace("_", " ").replace("|", " ") + "|_____ ");
+	}
+	void test8()
+	{
 		Base a=NDArray.arange(3 * 5).reshapeLocal(3, 5).setRequiresGradient(true);
 		Base b=NDArray.arange(5 * 2).reshapeLocal(5, 2).setRequiresGradient(true);
 
@@ -30,7 +74,7 @@ public class Test2_Model
 		b.printArray();
 		print(c);
 		c.printArray();
-		c.fillGrad(1);
+		c.setGrad(1);
 		c.backward();
 		print(line(30));
 		a.detachGradient().printArray();
@@ -116,8 +160,8 @@ public class Test2_Model
 		 MCCE doesn't works as expected.
 		 al these works without activation functions.
 		 */
-		if (new Boolean(true) == true)
-			throw new RuntimeException("review the code first");
+		// if (new Boolean(true) == true)
+		// 	throw new RuntimeException("review the code first");
 		int input=2;
 		int output=3;
 		Base w1=NDArray.rand(input, 5).setRequiresGradient(true);
@@ -125,15 +169,15 @@ public class Test2_Model
 		Base b1=NDArray.ones(5).setRequiresGradient(true);
 		Base b2=NDArray.ones(output).setRequiresGradient(true);
 
-		Base in=NDArray.rand(2, input);
+		Base in=NDArray.wrap(new float[]{0.5f,0.2f}, input);
 		Base tr=NDArray.wrap(new float[]{1,0,1,0,1,0}, 2, 3);
 
-		Optimizer opt=new Adam(w1, w2, b1, b2);
+		Optimizer opt=new GradientDescent(w1, w2, b1, b2);
 
 		// trainMSE(opt, w1, w2, b1, b2, in, tr); // ≈ 19755, 24330, 10205, 15488, 7940, 6515, 6515, 6817 millis
 		// trainMAE(opt, w1, w2, b1, b2, in, tr); // ≈ 80709, 33369, 27102, 19464, 15508, 22978  millis
-		trainBCE(opt, w1, w2, b1, b2, in, tr); // ≈ 79235, 74982, 32427, 15759, 16387, 13459, 16758 millis
-		// trainMCCE(opt, w1, w2, b1, b2, in, tr); // slow and inaccurate // ≈ 79272, 20064, 22044, 30453, 7360, 7421, 5817, 7141, 4452, 5733   millis
+		// trainBCE(opt, w1, w2, b1, b2, in, tr); // ≈ 79235, 74982, 32427, 15759, 16387, 13459, 16758 millis
+		trainMCCE(opt, w1, w2, b1, b2, in, tr); // slow and inaccurate // ≈ 79272, 20064, 22044, 30453, 7360, 7421, 5817, 7141, 4452, 5733   millis
 
 		System.out.println("completed!");
 
@@ -163,12 +207,13 @@ public class Test2_Model
 			loss = out.get(0);
 			// print("loss :" + loss);
 
-			out.fillGrad(1);
+			out.setGrad(1);
 			out.backward();
 
 			opt.step();
 			opt.zeroGrad();
 			iter++;
+			// Thread.sleep(100);
 		}
 		time = System.currentTimeMillis() - time; // ≈ 80768 millis.
 		print(time + " millis to complate " + iter + " iterations");
@@ -200,7 +245,7 @@ public class Test2_Model
 			loss = out.get(0);
 			print("loss :" + loss);
 
-			out.fillGrad(1);
+			out.setGrad(1);
 			out.backward();
 
 			opt.step();
@@ -223,22 +268,22 @@ public class Test2_Model
 		float loss=Float.MAX_VALUE;
 		long time=System.currentTimeMillis();
 		int iter=0;
-		while (true | loss >= 0.001f)
+		while (loss >= 0.001f)
 		{
 			Base out =NDArray.dot(in, w1);
 			out = NDArray.add(out, b1);
 			// out = new Sigmoid().forward(out);
 			out = NDArray.dot(out, w2);
 			out = NDArray.add(out, b2);
-			// out = new Sigmoid().forward(out);
+			out = new Sigmoid().forward(out);
 
 			output = out;
 			out = new BCE().forward(out, tr);
 
 			loss = out.get(0);
-			// print("loss :" + loss);
+			print("loss :" + loss);
 
-			out.fillGrad(1);
+			out.setGrad(1);
 			out.backward();
 
 			opt.step();
@@ -261,7 +306,7 @@ public class Test2_Model
 		float loss=Float.MAX_VALUE;
 		long time=System.currentTimeMillis();
 		int iter=0;
-		while (true | loss >= 0.001f)
+		while (Math.abs(loss) >= 0.001f)
 		{
 			Base out =NDArray.dot(in, w1);
 			out = NDArray.add(out, b1);
@@ -276,7 +321,7 @@ public class Test2_Model
 			loss = out.get(0);
 			print("loss :" + loss);
 
-			out.fillGrad(1);
+			out.setGrad(1);
 			out.backward();
 
 			opt.step();
@@ -313,7 +358,7 @@ public class Test2_Model
 			Base ls=mse.forward(rs, tr);
 			loss = ls.get(0);
 			print("loss :", loss);
-			ls.fillGrad(1);
+			ls.setGrad(1);
 			ls.backward();
 
 			// print(loss);
@@ -351,7 +396,7 @@ public class Test2_Model
 			o = NDArray.pow(o, 2);
 			loss = o.get(0);
 			print("loss :", loss);
-			o.fillGrad(1);
+			o.setGrad(1);
 			o.backward();
 
 			Base wgr=NDArray.mul(w.detachGradient(), lr);
@@ -396,7 +441,7 @@ public class Test2_Model
 
 			print("loss :" + loss);
 
-			o.fillGrad(1);
+			o.setGrad(1);
 			o.backward();
 
 			float wv=w.get(0) - w.getGrad(0) * lr;
@@ -460,14 +505,14 @@ public class Test2_Model
 		Linear l1=new Linear(2, hiddenSize);
 		Linear l2=new Linear(hiddenSize, 1);
 
-		Activation a2=new Sigmoid();
+		Activation a2=new Tanh();
 
-		LossFunc lossFunc=new BCE();
+		LossFunc lossFunc=new MSE();
 
 		Optimizer optim=new Adam(l1.getParameters(), l2.getParameters());
 		// sometimes when we use Adam optimizer it stuck to local minima, or unable to fit the dataset. so keep try again.
-		optim = new GradientDescent(l1.getParameters(), l2.getParameters());
-		// optim = new SGDM(l1.getParameters(), l2.getParameters());
+		// optim = new GradientDescent(l1.getParameters(), l2.getParameters());
+		optim = new SGDM(l1.getParameters(), l2.getParameters());
 
 		optim.learningRate = 0.01f;
 		Base output=null;
@@ -476,26 +521,30 @@ public class Test2_Model
 		float lsv=1000;
 		while (lsv >= 0.02f)
 		{
-			Base X = l1.forward(x);
-			X = a2.forward(X);
-			X = l2.forward(X);
-			X = a2.forward(X);
-			output = X;
+			lsv = 0;
+			for (int i=0;i < 4;i++)
+			{
+				Base X = l1.forward(x.slice(i));
+				// X = a2.forward(X);
+				X = l2.forward(X);
+				// X = a2.forward(X);
+				output = X;
 
-			Base loss=lossFunc.forward(X, y);
-			lsv = loss.get(0);
+				Base loss=lossFunc.forward(X, y.slice(i));
+				lsv += loss.get(0);
 
-			System.out.println(ps + " :: " + lsv + " ::: " + X.getRaw(1));
+				print("loss :", lsv);
 
-			loss.fillGrad(1);
-			loss.backward();
+				loss.setGrad(1);
+				loss.backward();
 
-			optim.step();
-			optim.zeroGrad();
-
+				optim.step();
+				optim.zeroGrad();
+			}
 			ps++;
 		}
-		System.out.println(output);
+		print(output);
+		output.printArray();
 	}
 
 	void test1()
@@ -531,7 +580,7 @@ public class Test2_Model
 
 		Base out=sq.forward(d);
 		// System.out.println(decString("forward complete.", 10));
-		out.fillGrad(1);
+		out.setGrad(1);
 		out.backward();
 		System.out.println(decString("complete.", 10));
 		// System.out.println(out);

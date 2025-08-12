@@ -32,7 +32,7 @@ public class Test2_LayereTest
 		Conv1d c=new Conv1d(7, 2, 4, 3); // (input_size, num_features, num_kernels, kernel_size).
 		Base out=c.forward(d1);
 		System.out.println(decString("backward pass", 7));
-		out.fillGrad(1);
+		out.setGrad(1);
 		out.backward();
 		System.out.println("input " + out);
 		out.detachGradient().printArray();
@@ -111,7 +111,7 @@ public class Test2_LayereTest
 		System.out.println(out);
 		out.printArray();
 		System.out.println(decString("after MaxPool1d layer backward.", 10));
-		out.fillGrad(3);
+		out.setGrad(3);
 		out.backward();
 		Base g=d1.detachGradient();
 		System.out.println(g);
@@ -133,7 +133,7 @@ public class Test2_LayereTest
 
 		grd.printArray();
 		System.out.println(decString("after backward method", 10));
-		out.fillGrad(5);
+		out.setGrad(5);
 		out.backward();
 		grd.printArray();
 
@@ -150,7 +150,7 @@ public class Test2_LayereTest
 		System.out.println(out);
 		out.printArray();
 		System.out.println(out.gradientFunction);
-		out.fillGrad(1);
+		out.setGrad(1);
 		out.backward();
 		l1.weight.detachGradient().printArray();
 
@@ -167,7 +167,7 @@ public class Test2_LayereTest
 		System.out.println(b);
 		System.out.println(b.gradientFunction);
 		b.printArray();
-		b.fillGrad(2);
+		b.setGrad(2);
 		b.backward();
 		System.out.println(line(30));
 
@@ -197,7 +197,7 @@ public class Test2_LayereTest
 		// System.out.println(dot);
 		// dot.printArray();
 		// System.out.println(dot.gradientFunction);
-		dot.fillGrad(1);
+		dot.setGrad(1);
 		dot.backward();
 
 		System.out.println(decString("gradient of host", 10));
@@ -229,7 +229,7 @@ public class Test2_LayereTest
 		d3.printArray();
 		System.out.println(line(30));
 
-		d3.fillGrad(3);
+		d3.setGrad(3);
 		d3.backward();
 
 		d1.detachGradient().printArray();

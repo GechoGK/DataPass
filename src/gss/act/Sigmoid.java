@@ -17,7 +17,7 @@ public class Sigmoid extends Activation
 		float[] out=new float[dt.length];
 		for (int i=0;i < dt.length;i++)
 		{
-			out[i] = 1f / (1f + (float)Math.exp(-dt.get(i)));
+			out[i] = 1f / (1f + (float)Math.exp(-dt.get(dt.indexToShape(i))));
 		}
 		Base arrOut=new Base(out, array.shape).setRequiresGradient(dt.requiresGradient());
 		// gradient in progress.
@@ -40,10 +40,11 @@ public class Sigmoid extends Activation
 			Base a1=childs[0];
 			// float[] grd=host.base.data.getGrads();
 			// float[] dt=a1.base.data.getData();
-			for (int i=0;i < host.shape[0];i++)
+			for (int i=0;i < host.length;i++)
 			{
-				float sig = 1f / (1f + (float)Math.exp(-a1.get(i)));
-				a1.setGrad(Util.ar(i), host.getGrad(i) * sig * (1 - sig));
+				int sh[]=a1.indexToShape(i);
+				float sig = 1f / (1f + (float)Math.exp(-a1.get(sh)));
+				a1.setGrad(sh, host.getGrad(host.indexToShape(i)) * sig * (1 - sig));
 			}
 			// childs[0].base.data.setGrad(dt);
 			return null;

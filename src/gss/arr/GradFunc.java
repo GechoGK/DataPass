@@ -1,5 +1,7 @@
 package gss.arr;
 
+import java.util.*;
+
 import static gss.Util.*;
 
 public abstract class GradFunc
@@ -154,12 +156,10 @@ public abstract class GradFunc
 			 */
 			Base a=childs[0]; // [3,2]
 			Base b=childs[1]; // [2,12]
+			print("...", host.shape);
 			// host [3,12];
-			// System.out.println(a);
-			// System.out.println(b);
-			print(line(30));
-			print(a);
-			print(b);
+			// print(a);
+			// print(b);
 			// System.out.println("= " + host);
 			for (int ar=0;ar < a.shape[0];ar++) // 3
 				for (int br=0;br < b.shape[0];br++) // 12
@@ -176,7 +176,6 @@ public abstract class GradFunc
 							b.setGrad(new int[]{br,ac}, av * grd);			
 					}
 				}
-			print(line(30));
 			return null;
 		}
 	};
@@ -228,5 +227,30 @@ public abstract class GradFunc
 			return null;
 		}
 	};
-
+	public static GradFunc itemGradient = new GradFunc("item"){
+		@Override
+		public Base backward(Base host, Base[] childs, Object params)
+		{
+			// iterate over each stores Value classes and then call backward on them.
+			if (!host.requiresGradient())
+				return null;
+			// System.out.println("== .." + host);
+			HashSet<Value> tmpLst=new HashSet<>();
+			HashSet<Value> lst=new HashSet<>();
+			for (int i=0;i < host.length;i++)
+				lst.add(host.getValue(host.indexToShape(i)));
+			while (lst.size() != 0)
+			{
+				for (Value v:lst)
+				{
+					v.backward();
+					tmpLst.addAll(v.args);
+				}
+				lst.clear();
+				lst.addAll(tmpLst);
+				tmpLst.clear();
+			}
+			return null;
+		}
+	};
 }

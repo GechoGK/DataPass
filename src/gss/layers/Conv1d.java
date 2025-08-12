@@ -116,7 +116,7 @@ public class Conv1d extends Module
 		 others (2) = input data depth maybe more.
 		 but the ouput is always 3d, even if the input is 5d like.
 		 --- input.shape = {2,3,2,5,12}
-		 --- 12 = input length , 5 = features , 2,3,2 = data depth. an be multiplied.
+		 --- 12 = input length , 5 = features , 2,3,2 = data depth. and multiplied.
 		 output = 12, n_kernels, inputLength-kernel_size.
 		 so what we do is we extract shapes from input array then we apply it into output without touching the last two shapes on the output.
 		 */

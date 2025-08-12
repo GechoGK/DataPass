@@ -12,7 +12,7 @@ public class Relu extends Activation
 		float[] out=new float[dt.length];
 		for (int i=0;i < dt.length;i++)
 		{
-			out[i] = Math.max(0, dt.get(i));
+			out[i] = Math.max(0, dt.get(dt.indexToShape(i)));
 		}
 		Base arrOut=new Base(out, array.shape).setRequiresGradient(dt.requiresGradient());
 		// gradient in progress.
@@ -28,10 +28,10 @@ public class Relu extends Activation
 			Base arr=childs[0];
 			// Base gd=host.base.data.getGrads();
 			// Base dt=arr.base.data.getData();
-			for (int i=0;i < arr.shape[0];i++)
+			for (int i=0;i < arr.length;i++)
 			{
-				if (arr.get(i) > 0)
-					arr.setGrad(Util.ar(i), host.getGrad(i));
+				if (arr.get(arr.indexToShape(i)) > 0)
+					arr.setGrad(arr.indexToShape(i), host.getGrad(host.indexToShape(i)));
 			}
 			return null;
 		}

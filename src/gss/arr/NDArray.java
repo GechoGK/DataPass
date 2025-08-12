@@ -296,6 +296,7 @@ public class NDArray
 		return res;
 	}
 	// dot product start.
+
 	public static Base dot(Base a, Base b)
 	{
 		int[] out=dotShape(a.shape, b.shape);
@@ -314,7 +315,8 @@ public class NDArray
 		if (b.shape[b.shape.length - 1] != a.shape[a.shape.length - 1])
 			throw new RuntimeException("invalid shape dor dot product.");
 		int[] sh={a.shape[0],b.shape[0]};
-		float[] outData=new float[a.shape[0] * b.shape[0]];
+		Base bs=new Base(sh);
+		// float[] outData=new float[a.shape[0] * b.shape[0]];
 		for (int ar=0;ar < a.shape[0];ar++)
 			for (int br=0;br < b.shape[0];br++)
 			{
@@ -323,13 +325,13 @@ public class NDArray
 				{
 					sm += a.get(ar, c) * b.get(br, c);
 				}
-				outData[shapeToIndex(new int[]{ar,br}, sh)] = sm;
+				bs.set(new int[]{ar,br}, sm);
 			}
-		Base bs=new Base(outData, out).setRequiresGradient(a.requiresGradient() | b.requiresGradient());
-		bs.setGradientFunction(GradFunc.dotGradient, a, b);
+		bs.setRequiresGradient(a.requiresGradient() | b.requiresGradient());
+		bs = bs.setGradientFunction(GradFunc.dotGradient, a, b).reshape(out);
 		return bs;
 	}
-	private static int[] dotAxis(int len)
+	public static int[] dotAxis(int len)
 	{
 		// the len value expectes to be > 2
 		int[]a=new int[len];
@@ -340,7 +342,7 @@ public class NDArray
 		a[len - 2] = t;
 		return a;
 	}
-	private static int[] dotShape(int[]sh1, int[]sh2)
+	public static int[] dotShape(int[]sh1, int[]sh2)
 	{
 		// this method expect the array before transposed.
 		if (n(sh1, 0) != n(sh2, sh2.length == 1 ?0: 1))
@@ -362,9 +364,9 @@ public class NDArray
 	// dot product end.
 	public static Base convolve1d(Base d1, Base kr)
 	{
-		// this convolve only support 1d, 1d kern.
-		kr = kr.trim();
-		if (kr.trim().shape.length != 1)
+		// this convolve only support 1d kernel.
+		// kr = kr.trim();
+		if (kr.shape.length != 1)
 			throw new RuntimeException("convolve 1d error : expected 1d kernel array");
 		d1 = d1.as2DArray();
 		int len=d1.shape[1] - kr.shape[0] + 1;
@@ -372,23 +374,19 @@ public class NDArray
 		float[] out=new float[d1.shape[0] * len];
 		for (int dr=0;dr < d1.shape[0];dr++)
 		{
-			// iterate over rows of input data.
-			if (dr == 0)
+			// convolve mode normal.
+			for (int w=0;w < len;w++)
 			{
-				// convolve mode normal.
-				for (int w=0;w < len;w++)
+				float sm=0;
+				int kp=kr.shape[0] - 1;
+				for (int k=0;k < kr.shape[0];k++)
 				{
-					float sm=0;
-					int kp=kr.shape[0] - 1;
-					for (int k=0;k < kr.shape[0];k++)
-					{
-						float kv=kr.get(kp);
-						// cache kv on array for next time to speedup.
-						sm += d1.get(dr, w + k) * kv; // get kernel in reverse order
-						kp--; // count downward
-					}
-					out[shapeToIndex(new int[]{dr,w}, outShape)] = sm;
+					float kv=kr.get(kp);
+					// cache kv on array for next time to speedup.
+					sm += d1.get(dr, w + k) * kv; // get kernel in reverse order
+					kp--; // count downward
 				}
+				out[shapeToIndex(new int[]{dr,w}, outShape)] = sm;
 			}
 		}
 		return new Base(out, outShape);

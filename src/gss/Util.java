@@ -1,5 +1,6 @@
 package gss;
 
+import gss.arr.*;
 import java.util.*;
 
 public class Util
@@ -29,6 +30,10 @@ public class Util
 			stride *= shape[i];
 		}
 		return flatIndex;
+	}
+	public static int[] indexToShape(int index, int[]shape)
+	{
+		return indexToShape(index, shape, new int[shape.length]);
 	}
 	public static int[] indexToShape(int index, int[]shape, int[]out)
 	{
@@ -304,5 +309,26 @@ public class Util
 			p++;
 		}
 		return sh;
+	}
+	public static boolean equals(Base b1, Base b2)
+	{
+		return equals(b1, b2, false);
+	}
+	public static boolean equals(Base b1, Base b2, boolean checkGrad)
+	{
+		if (!Arrays.equals(b1.shape, b2.shape))
+			return false;
+		for (int i=0;i < b1.length;i++)
+		{
+			int ind[]=indexToShape(i, b1.shape);
+			if (b1.get(ind) != b2.get(ind))
+				return false;
+			if (checkGrad)
+			{
+				if (b1.getGrad(ind) != b2.getGrad(ind))
+					return false;
+			}
+		}
+		return true;
 	}
 }
