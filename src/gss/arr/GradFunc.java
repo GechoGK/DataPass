@@ -156,7 +156,7 @@ public abstract class GradFunc
 			 */
 			Base a=childs[0]; // [3,2]
 			Base b=childs[1]; // [2,12]
-			print("...", host.shape);
+			// print("...", host.shape);
 			// host [3,12];
 			// print(a);
 			// print(b);
@@ -176,6 +176,21 @@ public abstract class GradFunc
 							b.setGrad(new int[]{br,ac}, av * grd);			
 					}
 				}
+			return null;
+		}
+	};
+	public static GradFunc convolveGradient=new GradFunc("convolve"){
+		@Override
+		public Base backward(Base host, Base[] childs, Object params)
+		{
+			Base in=childs[0]; // 1d array.
+			Base kr=childs[1]; // 1d array.
+
+			// problem when the kernel is larger than the input data.
+			// kernel gradient.(validCorrelation();
+			NDArray.correlate1dValid(host.detachGradient(), in, kr.detachGradient());
+			// input gradient.(fullCorrelation(o.grad,kr.item)
+			NDArray.correlate1dFull(host.detachGradient(), kr, in.detachGradient());
 			return null;
 		}
 	};

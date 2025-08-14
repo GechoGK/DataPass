@@ -1,42 +1,11 @@
+import gss.*;
 import gss.arr.*;
+import java.util.*;
 
 import static gss.Util.*;
 
 public class TestValue
 {
-	public static Base convolve1d2(Base d1, Base kr)
-	{
-		// this convolve only support 1d, 1d kern.
-		kr = kr.trim();
-		if (kr.trim().shape.length != 1)
-			throw new RuntimeException("convolve 1d error : expected 1d kernel array");
-		d1 = d1.as2DArray();
-		int len=d1.shape[1] - kr.shape[0] + 1;
-		int[]outShape={d1.shape[0],len};
-		float[] out=new float[d1.shape[0] * len];
-		for (int dr=0;dr < d1.shape[0];dr++)
-		{
-			// iterate over rows of input data.
-			if (dr == 0)
-			{
-				// convolve mode normal.
-				for (int w=0;w < len;w++)
-				{
-					float sm=0;
-					int kp=kr.shape[0] - 1;
-					for (int k=0;k < kr.shape[0];k++)
-					{
-						float kv=kr.get(kp);
-						// cache kv on array for next time to speedup.
-						sm += d1.get(dr, w + k) * kv; // get kernel in reverse order
-						kp--; // count downward
-					}
-					out[shapeToIndex(new int[]{dr,w}, outShape)] = sm;
-				}
-			}
-		}
-		return new Base(out, outShape);
-	}
 	public static Base relu(Base arr)
 	{
 		// Value[] f=arr.base.toValueArray();
@@ -102,15 +71,44 @@ public class TestValue
 		for (int ar=0;ar < a.shape[0];ar++)
 			for (int br=0;br < b.shape[0];br++)
 			{
-				float sm=0;	
+				Value sm=new Value(0);	
 				for (int c=0;c < a.shape[1];c++)
 				{
-					sm += a.get(ar, c) * b.get(br, c);
+					sm = sm.add(a.getValue(ar, c).mul(b.getValue(br, c)));
 				}
-				bs.set(new int[]{ar,br}, sm);
+				bs.setValue(sm, Util.ar(ar, br));
 			}
 		bs.setRequiresGradient(a.requiresGradient() | b.requiresGradient());
 		bs = bs.setGradientFunction(GradFunc.dotGradient, a, b).reshape(out);
 		return bs;
+	}
+	public static Base convolve1d2(Base a, Base b, Base out)
+	{
+		// valid convolution.
+		if (a.getDim() != 1 || b.getDim() != 1)
+			throw new RuntimeException("convolve 1d error : expected 1d kernel array and 1d data.");
+		int len=Math.max(a.length, b.length) - Math.min(a.length, b.length) + 1;
+		if (out == null)
+			out = new Base(len).setRequiresGradient(a.requiresGradient() | b.requiresGradient());
+		int wi=0;
+		int iinc=a.length > b.length ?1: 0;
+		int kinc=b.length > a.length ?1: 0;
+		int wr=b.length > a.length ?len - 1: 0;
+		for (int w=0;w < len;w++)
+		{
+			Value sm=new Value(0);
+			int kl=b.length - 1;
+			for (int i=0;i < Math.min(a.length, b.length);i++)
+			{
+				Value aa=b.getValue(kl - wr);
+				Value bb=a.getValue(i + wi);
+				sm = sm.add(aa.mul(bb));
+				kl--;
+			}
+			wr -= kinc;
+			wi += iinc;
+			out.setValue(sm, w);
+		}
+		return out.setGradientFunction(GradFunc.itemGradient);
 	}
 }

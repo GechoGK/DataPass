@@ -33,12 +33,12 @@ public class Test1_NDArrayData
 		k.printArray();
 
 		System.out.println("\n" + decString("convolution 1d", 30));
-		Base d3=NDArray.convolve1d(d1, k);
+		Base d3=NDArray.convolve1d(d1.reshape(-1), k);
 		System.out.println(d3);
 		d3.printArray();
 
 		System.out.println("\n" + decString("correlation 1d", 30));
-		d3 = NDArray.correlate1d(d1, k);
+		d3 = NDArray.correlate1d(d1.reshape(-1), k);
 		System.out.println(d3);
 		d3.printArray();
 

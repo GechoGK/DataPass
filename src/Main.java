@@ -7,31 +7,150 @@ import static gss.arr.NDArray.*;
 
 public class Main
 {
-	public static void main(String[] args)
+	public static void main(String[] args) throws Exception
 	{
 
 		new Main().a();
 
 	}
-	void a()
+	void a() throws Exception
 	{
 
-		Base b1=NDArray.arange(30).reshapeLocal(3, 10).setRequiresGradient(true);
-		Base k1=NDArray.arange(5).reshapeLocal(5).setRequiresGradient(true);
+		test5();
 
-		Base o1=NDArray.convolve1d(b1, k1);
+	}
+	float[] convF(float[]a, float[]b)
+	{
+		// works.
+		int len=(a.length + b.length) - 1;
+		float[] f=new float[len];
+		for (int i=0;i < len;i++) // increment by inc. default = 1.
+		{
+			float sm=0;
+			int kr=b.length - 1;
+			int ips=-(b.length - 1) + i;
+			for (int k=0;k < b.length;k++)
+			{
+				int kp=ips + k;
+				if (kp >= 0 && kp < a.length)
+				{
+					float kv=b[kr]; //  kernels.get(kr, chn, kp);
+					sm += a[kp] * kv;
+				}
+				kr--;
+			}
+			f[i] = sm;
+		}
+		return f;
+	}
+	Base corr(Base a, Base b)
+	{
+		// works.
+		int len=Math.max(a.length, b.length) - Math.min(a.length, b.length) + 1;
+		Base f=new Base(len);
+		int wi=0;
+		int iinc=a.length > b.length ?1: 0;
+		int kinc=b.length > a.length ?1: 0;
+		int wr=b.length > a.length ?len - 1: 0;
+		for (int w=0;w < len;w++)
+		{
+			float sm=0;
+			int kl=0;
+			for (int i=0;i < Math.min(a.length, b.length);i++)
+			{
+				float aa=b.get(i + wr);
+				float bb=a.get(i + wi);
+				sm += aa * bb;
+				kl++;
+			}
+			wr -= kinc;
+			wi += iinc;
+			f.set(ar(w), sm);
+		}
+		return f;
+	}
+	Base conv(Base a, Base b)
+	{
+		// works.
+		int len=Math.max(a.length, b.length) - Math.min(a.length, b.length) + 1;
+		Base f=new Base(len);
+		int wi=0;
+		int iinc=a.length > b.length ?1: 0;
+		int kinc=b.length > a.length ?1: 0;
+		int wr=b.length > a.length ?len - 1: 0;
+		for (int w=0;w < len;w++)
+		{
+			float sm=0;
+			int kl=b.length - 1;
+			for (int i=0;i < Math.min(a.length, b.length);i++)
+			{
+				float aa=b.get(kl - wr);
+				float bb=a.get(i + wi);
+				sm += aa * bb;
+				kl--;
+			}
+			wr -= kinc;
+			wi += iinc;
+			f.set(ar(w), sm);
+		}
+		return f;
+	}
+	void test5()
+	{
+		print(decString("Test 5.0 convolution 1D valid.", 10));
+		Base b1=NDArray.wrap(new float[]{1, 2, 3, 4, 5, 6}).setRequiresGradient(true);
+		Base k1=NDArray.wrap(new float[]{2, 3, 4}).setRequiresGradient(true);
+
+		Base b2=b1.copy();
+		Base k2=k1.copy();
+
+		Base o1=NDArray.convolve1d(b1, k1, 0);
+		o1.setGrad(NDArray.arange(2, o1.length + 2));
+		o1.backward();
+		print(decString("input", 7));
 		b1.printArray();
 		print(line(7));
-		k1.printArray();
-		print(line(10));
-		o1.printArray();
-		print(line(30));
-		o1.setGrad(NDArray.arange(1, o1.length + 1));
-		o1.backward();
 		b1.detachGradient().printArray();
-		print(line(10));
+		print(decString("kernel", 7));
+		k1.printArray();
+		print(line(7));
 		k1.detachGradient().printArray();
+		print(decString("output", 7));
+		o1.printArray();
+		print(line(7));
+		o1.detachGradient().printArray();
+		print(line(50));
+
+		// Base b2=NDArray.wrap(new float[]{1, 2, 3, 4, 5, 6,7}).setRequiresGradient(true);
+		// Base k2=NDArray.wrap(new float[]{2, 3, 4}).setRequiresGradient(true);
+
+		Base o2=TestValue.convolve1d2(b2, k2, null);
+		o2.setGrad(NDArray.arange(2, o2.length + 2));
+		o2.backward();
+		print(decString("input", 7));
+		b2.printArray();
+		print(line(7));
+		b2.detachGradient().printArray();
+		print(decString("kernel", 7));
+		k2.printArray();
+		print(line(7));
+		k2.detachGradient().printArray();
+		print(decString("output", 7));
+		o2.printArray();
+		print(line(7));
+		o2.detachGradient().printArray();
 		print(line(30));
+
+		print(line(30));
+
+		if (Util.equals(o1, o2))
+			print(decString("data equals", "✓", 7));
+		else
+			throw new RuntimeException("faild to verify array data equality.");
+		if (Util.equals(b1.detachGradient(), b2.detachGradient()) && Util.equals(k1.detachGradient(), k2.detachGradient()))
+			print(decString("gradient equals", "✓", 7));
+		else
+			throw new RuntimeException("faild to verify array gradient equality.");
 	}
 	void test4()
 	{
@@ -43,9 +162,9 @@ public class Main
 		Base b2=NDArray.arange(50).reshapeLocal(2, 5, 5).setRequiresGradient(true);
 
 		Base b3=NDArray.dot(b1, b2);
-		b1.printArray();
-		print(line(10));
-		b2.printArray();
+		// b1.printArray();
+		// print(line(10));
+		// b2.printArray();
 		print(b3);
 		b3.printArray();
 		print(line(20));
@@ -60,9 +179,9 @@ public class Main
 		Base d2=NDArray.arange(50).reshapeLocal(2, 5, 5).setRequiresGradient(true);
 
 		Base d3=TestValue.dot2(d1, d2);
-		d1.printArray();
-		print(line(10));
-		d2.printArray();
+		// d1.printArray();
+		// print(line(10));
+		// d2.printArray();
 		print(d3);
 		d3.printArray();
 		print(line(20));
@@ -73,7 +192,7 @@ public class Main
 		d2.detachGradient().printArray();
 		print(line(30));
 
-		if (Util.equals(b1, d1) && Util.equals(b2, d2))
+		if (Util.equals(b3, d3))
 			print(decString("data equals", "✓", 7));
 		else
 			throw new RuntimeException("faild to verify array data equality.");
@@ -105,7 +224,7 @@ public class Main
 		b2.backward();
 		b.detachGradient().printArray();
 
-		if (Util.equals(bg, b))
+		if (Util.equals(o, b2))
 			print(decString("data equals", "✓", 7));
 		else
 			throw new RuntimeException("faild to verify array equality.");
@@ -138,14 +257,14 @@ public class Main
 		b2.backward();
 		b.detachGradient().printArray();
 
-		if (Util.equals(bg, b))
+		if (Util.equals(o, b2))
 			print(decString("data equals", "✓", 7));
 		else
 			throw new RuntimeException("faild to verify array equality.");
 		if (Util.equals(bg.detachGradient(), b.detachGradient()))
 			print(decString("gradient equals", "✓", 7));
 		else
-			throw new RuntimeException("faild to verify array equality.");
+			print("faild to verify array gradient equality.");
 	}
 	void test1()
 	{
@@ -170,7 +289,7 @@ public class Main
 		b2.backward();
 		b.detachGradient().printArray();
 
-		if (Util.equals(bg, b))
+		if (Util.equals(o, b2))
 			print(decString("data equals", "✓", 7));
 		else
 			throw new RuntimeException("faild to verify array equality.");

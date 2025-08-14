@@ -267,6 +267,8 @@ public class Util
 		{
 			if (o instanceof int[])
 				System.out.print(Arrays.toString((int[])o));
+			else if (o instanceof float[])
+				System.out.print(Arrays.toString((float[])o));
 			else
 				System.out.print(o);
 			System.out.print(" ");

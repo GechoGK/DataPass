@@ -42,6 +42,10 @@ public class NDArray
 		Base d=new Base(f, sh);
 		return d;
 	}
+	public static Base wrap(float...v)
+	{
+		return new Base(v, new int[]{v.length});
+	}
 	public static Base wrap(float[]v, int...sh)
 	{
 		return new Base(v, sh);
@@ -364,83 +368,192 @@ public class NDArray
 	// dot product end.
 	public static Base convolve1d(Base d1, Base kr)
 	{
-		// this convolve only support 1d kernel.
-		// kr = kr.trim();
-		if (kr.shape.length != 1)
-			throw new RuntimeException("convolve 1d error : expected 1d kernel array");
-		d1 = d1.as2DArray();
-		int len=d1.shape[1] - kr.shape[0] + 1;
-		int[]outShape={d1.shape[0],len};
-		float[] out=new float[d1.shape[0] * len];
-		for (int dr=0;dr < d1.shape[0];dr++)
+		return convolve1d(d1, kr, 0); // by default mode = normal.
+	}
+	public static Base convolve1d(Base d1, Base kr, int mode)
+	{
+		Base out=null;
+		if (mode == 0) // mode valid
+			out = convolve1dValid(d1, kr, null);
+		else if (mode == 1) // mode full.
+			out = convolve1dFull(d1, kr, null);
+		if (out == null)
+			return null;
+		out.setRequiresGradient(d1.requiresGradient() | kr.requiresGradient());
+		if (out.requiresGradient())
+			out.setGradientFunction(GradFunc.convolveGradient, d1, kr);
+		return out;
+	}
+	public static Base convolve1dValid(Base a, Base b, Base out)
+	{
+		/*
+		 example 1.
+		 a = [1,2,3] any data.
+		 b = [2,3,4] mostly kernel. and flipped.
+		 c = a @ b
+		 = 1*4 + 2*3 + 3*2 = 4 + 6 + 6 = 16.
+		 example 2
+		 a = [1,2,3,4,5] any data.
+		 b = [2,3,4] mostly kernel. and flipped.
+		 c = a @ b
+		 = 1*4 + 2*3 + 3*2 = 4 + 6 + 6    = 16.
+		 = 2*4 + 3*3 + 4*2 = 8 + 9 + 8    = 25
+		 = 3*4 + 4*3 + 5*2 = 12 + 12 + 10 = 34
+
+		 */
+		// this convolve only support 1d data and 1d kernel.
+		if (a.getDim() != 1 || b.getDim() != 1)
+			throw new RuntimeException("convolve 1d error : expected 1d kernel array and 1d data.");
+		int len=Math.max(a.length, b.length) - Math.min(a.length, b.length) + 1;
+		if (out == null)
+			out = new Base(len);
+		int wi=0;
+		int iinc=a.length > b.length ?1: 0;
+		int kinc=b.length > a.length ?1: 0;
+		int wr=b.length > a.length ?len - 1: 0;
+		for (int w=0;w < len;w++)
 		{
-			// convolve mode normal.
-			for (int w=0;w < len;w++)
+			float sm=0;
+			int kl=b.length - 1;
+			for (int i=0;i < Math.min(a.length, b.length);i++)
 			{
-				float sm=0;
-				int kp=kr.shape[0] - 1;
-				for (int k=0;k < kr.shape[0];k++)
-				{
-					float kv=kr.get(kp);
-					// cache kv on array for next time to speedup.
-					sm += d1.get(dr, w + k) * kv; // get kernel in reverse order
-					kp--; // count downward
-				}
-				out[shapeToIndex(new int[]{dr,w}, outShape)] = sm;
+				float aa=b.get(kl - wr);
+				float bb=a.get(i + wi);
+				sm += aa * bb;
+				kl--;
 			}
+			wr -= kinc;
+			wi += iinc;
+			out.set(ar(w), sm);
 		}
-		return new Base(out, outShape);
+		return out;
+	}
+	public static Base convolve1dFull(Base a, Base b, Base outData)
+	{
+		/*
+		 example 1.
+		 a = [1,2,3] any data.
+		 b = [2,3,4] mostly kernel. and flipped.
+		 c = a @f b
+		 = [0,0,1]
+		 = [4,3,2] = 1*2 = 2
+		 = [0,1,2]
+		 = [4,3.2] = 2*2 + 1*3 = 4 + 3 = 7
+		 = [1,2,3]
+		 = [4,3,2] = 1*4 + 2*3 + 3*2 = 4 + 6 + 6 = 16.
+		 = [2,3,0]
+		 = [4,3,2] = 2*4 + 3*3 = 8 + 9 = 17
+		 = [3,0,0]
+		 = [4,3,2] = 3*4 = 12
+		 example 2 // not tested.
+		 a = [1,2,3,4,5] any data.
+		 b = [2,3,4] mostly kernel. and flipped.
+		 c = a @f b
+		 = [0,0,1]
+		 = [4,3,2] = 1*2 = 2
+		 = [0,1,2]
+		 = [4,3.2] = 2*2 + 1*3 = 4 + 3 = 7
+		 = [1,2,3]
+		 = [4,3,2] = 1*4 + 2*3 + 3*2 = 4 + 6 + 6 = 16.
+		 = [2,3,4]
+		 = [4,3,2] = 2*4 + 3*3 + 4*2 = 8+9+8=25
+		 = [3,4,5]
+		 = [4,3,2] = 3*4 + 4*3 + 5*2 = 12+12+10 = 34
+		 = [4,5,0]
+		 = [4,3,2] = 4*4 + 5*3 = 16+15 =31
+		 = [5,0,0]
+		 = [4,3,2] = 5*4 = 20
+		 */
+		// only supported 1d array of input and kernel.
+		if (a.getDim() != 1 || b.getDim() != 1)
+			throw new RuntimeException("convolution 1d error : expected 1d kernel array and 1d data");;
+		int len=(a.shape[0] + b.shape[0]) - 1;
+		if (outData == null)
+			outData = new Base(len);
+		for (int i=0;i < len;i++) // increment by inc. default = 1.
+		{
+			float sm=0;
+			int kr=b.length - 1;
+			int ips=-(b.length - 1) + i;
+			for (int k=0;k < b.length;k++)
+			{
+				int kp=ips + k;
+				if (kp >= 0 && kp < a.shape[0])
+				{
+					float kv=b.get(kr); //  kernels.get(kr, chn, kp);
+					sm += a.get(kp) * kv;
+				}
+				kr--;
+			}
+			outData.set(ar(i) , sm);
+		}
+		return outData;
 	}
 	public static Base correlate1d(Base d1, Base kr)
 	{
-		// this convolve, only support 1d kern.
-		kr = kr.trim();
-		if (kr.trim().shape.length != 1)
-			throw new RuntimeException("correlation 1d error : expected 1d kernel array");
-		d1 = d1.as2DArray();
-		int len=d1.shape[1] - kr.shape[0] + 1;
-		int[]outShape={d1.shape[0],len};
-		float[] out=new float[d1.shape[0] * len];
-		for (int dr=0;dr < d1.shape[0];dr++)
-		{
-			// iterate over rows of input data.
-			// convolve mode normal.
-			for (int w=0;w < len;w++)
-			{
-				float sm=0;
-				for (int k=0;k < kr.shape[0];k++)
-				{
-					float kv=kr.get(k);
-					sm += d1.get(dr, w + k) * kv; // get kernel in reverse order
-				}
-				out[shapeToIndex(new int[]{dr,w}, outShape)] = sm;
-			}		
-		}
-		return new Base(out, outShape);
+		return correlate1d(d1, kr, 0);
 	}
-	public static Base fullCorrelate1d(Base a, Base b)
+	public static Base correlate1d(Base d1, Base kr, int mode)
+	{
+		Base out=null;
+		if (mode == 0) // mode valid.
+			out = correlate1dValid(d1, kr, null);
+		else if (mode == 1) // modr full.
+			out = correlate1dFull(d1, kr, null);
+		return out;
+	}
+	public static Base correlate1dValid(Base a, Base b, Base f)
+	{
+		if (a.getDim() != 1 || b.getDim() != 1)
+			throw new RuntimeException("correlation 1d error : expected 1d kernel array and 1d data");
+		int len=Math.max(a.length, b.length) - Math.min(a.length, b.length) + 1;
+		if (f == null)
+			f = new Base(len);
+		int wi=0;
+		int iinc=a.length > b.length ?1: 0;
+		int kinc=b.length > a.length ?1: 0;
+		int wr=b.length > a.length ?len - 1: 0;
+		for (int w=0;w < len;w++)
+		{
+			float sm=0;
+			int kl=0;
+			for (int i=0;i < Math.min(a.length, b.length);i++)
+			{
+				float aa=b.get(i + wr);
+				float bb=a.get(i + wi);
+				sm += aa * bb;
+				kl++;
+			}
+			wr -= kinc;
+			wi += iinc;
+			f.set(ar(w), sm);
+		}
+		return f;
+	}
+	public static Base correlate1dFull(Base a, Base b, Base outData)
 	{
 		// gradient not implemented.
 		// only supported 1d array of input and kernel.
 		if (a.getDim() != 1 || b.getDim() != 1)
-		{
-			throw new RuntimeException("invalid array size.");
-		}
-		int outSize=(a.shape[0] + b.shape[0]) - 1;
-		Base out = new Base(outSize);
-		for (int i=0;i < outSize;i++) // increment by inc. default = 1.
+			throw new RuntimeException("correlation 1d error : expected 1d kernel array and 1d data");;
+		int len=(a.shape[0] + b.shape[0]) - 1;
+		if (outData == null)
+			outData = new Base(len);
+		for (int i=0;i < len;i++) // increment by inc. default = 1.
 		{
 			float sm=0;
-			int ips=(i - b.shape[0]) + 1;
-			for (int k=0;k < b.shape[0];k++)
+			int ips=-(b.length - 1) + i;
+			for (int k=0;k < b.length;k++)
 			{
-				float kv=b.get(k); //  kernels.get(kr, chn, kp);
 				int kp=ips + k;
 				if (kp >= 0 && kp < a.shape[0])
+				{
+					float kv=b.get(k); //  kernels.get(kr, chn, kp);
 					sm += a.get(kp) * kv;
+				}
 			}
-			out.set(ar(i), sm);
+			outData.set(ar(i) , sm);
 		}
-		return out;
+		return outData;
 	}
 }

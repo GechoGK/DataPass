@@ -193,10 +193,10 @@ public class Conv1d extends Module
 							// out[din][kr][w] += sm;
 							kern.setGrad(ar(kr, kf, i), sm); // + biase.get(i));
 						}
-						// --------------------------------------------
-						// include biase...
-						// biase.grad = host.grad;
 					}
+					// --------------------------------------------
+					// include biase...
+					// biase.grad = host.grad;
 					for (int o=0;o < host.shape[2];o++)
 						biase.setGrad(ar(kr, o), host.getGrad(kr, o));
 				}

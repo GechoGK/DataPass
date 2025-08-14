@@ -10,7 +10,7 @@ import static gss.arr.GradFunc.*;
 
 public class Test2_Func
 {
-	public static void main2(String[] args) throws Exception
+	public static void test(String[] args) throws Exception
 	{
 
 		new Test2_Func().a();
@@ -20,6 +20,19 @@ public class Test2_Func
 	void a() throws Exception
 	{
 
+		test1();
+		// test2();
+		test3();
+		test4();
+		test5();
+		test6();
+		test7();
+		test8();
+		test9();
+
+	}
+	void test9()
+	{
 		Base b1=NDArray.arange(10).setRequiresGradient(true);
 		Base b2=NDArray.arange(10).setRequiresGradient(true);
 
@@ -177,7 +190,7 @@ public class Test2_Func
 		// trainMSE(opt, w1, w2, b1, b2, in, tr); // ≈ 19755, 24330, 10205, 15488, 7940, 6515, 6515, 6817 millis
 		// trainMAE(opt, w1, w2, b1, b2, in, tr); // ≈ 80709, 33369, 27102, 19464, 15508, 22978  millis
 		// trainBCE(opt, w1, w2, b1, b2, in, tr); // ≈ 79235, 74982, 32427, 15759, 16387, 13459, 16758 millis
-		trainMCCE(opt, w1, w2, b1, b2, in, tr); // slow and inaccurate // ≈ 79272, 20064, 22044, 30453, 7360, 7421, 5817, 7141, 4452, 5733   millis
+		// trainMCCE(opt, w1, w2, b1, b2, in, tr); // slow and inaccurate // ≈ 79272, 20064, 22044, 30453, 7360, 7421, 5817, 7141, 4452, 5733   millis
 
 		System.out.println("completed!");
 
@@ -243,7 +256,7 @@ public class Test2_Func
 			out = new MAE().forward(out, tr);
 
 			loss = out.get(0);
-			print("loss :" + loss);
+			// print("loss :" + loss);
 
 			out.setGrad(1);
 			out.backward();
@@ -281,7 +294,7 @@ public class Test2_Func
 			out = new BCE().forward(out, tr);
 
 			loss = out.get(0);
-			print("loss :" + loss);
+			// print("loss :" + loss);
 
 			out.setGrad(1);
 			out.backward();
@@ -319,7 +332,7 @@ public class Test2_Func
 			out = new MCCE().forward(out, tr);
 
 			loss = out.get(0);
-			print("loss :" + loss);
+			// print("loss :" + loss);
 
 			out.setGrad(1);
 			out.backward();
@@ -338,7 +351,7 @@ public class Test2_Func
 	{
 		print(decString("Test 6.0 approximation using optimizers.", "✓", 5));
 		Base tr=NDArray.wrap(3, new int[]{5});
-		Base w1=NDArray.rand(1, 1).setRequiresGradient(true);
+		Base w1=NDArray.rand(5, 1).setRequiresGradient(true);
 		Base b=NDArray.ones(5).setRequiresGradient(true);
 
 		LossFunc mse=new MSE();
@@ -352,12 +365,12 @@ public class Test2_Func
 		float loss=100;
 		while (loss >= 0.001)
 		{
-			Base rs=NDArray.dot(w1, in);
+			Base rs=NDArray.dot(in, w1);
 			rs = NDArray.add(rs, b);
 			res = rs;
 			Base ls=mse.forward(rs, tr);
 			loss = ls.get(0);
-			print("loss :", loss);
+			// print("loss :", loss);
 			ls.setGrad(1);
 			ls.backward();
 
@@ -370,6 +383,8 @@ public class Test2_Func
 		print(line(10));
 		System.out.print("result :");
 		res.printArray();
+		print("≈≈");
+		tr.printArray();
 	}
 	void test5()
 	{
@@ -395,7 +410,7 @@ public class Test2_Func
 			o = NDArray.sub(t, o);
 			o = NDArray.pow(o, 2);
 			loss = o.get(0);
-			print("loss :", loss);
+			// print("loss :", loss);
 			o.setGrad(1);
 			o.backward();
 
@@ -414,6 +429,8 @@ public class Test2_Func
 		print(line(10));
 		System.out.print("result :");
 		res.printArray();
+		print("≈≈");
+		t.printArray();
 	}
 	void test4() throws Exception
 	{
@@ -439,7 +456,7 @@ public class Test2_Func
 			o = NDArray.pow(o, 2);
 			loss = o.get(0);
 
-			print("loss :" + loss);
+			// print("loss :" + loss);
 
 			o.setGrad(1);
 			o.backward();
@@ -481,7 +498,7 @@ public class Test2_Func
 			// calculating loss.
 			float m=t - r; 
 			loss = (float)Math.pow(m, 2); // loss.
-			print(loss); // loss sholud be closer to 0.
+			// print(loss); // loss sholud be closer to 0.
 			// calculating gradients.
 			float g=2 * m;
 			bg = g;
@@ -519,7 +536,7 @@ public class Test2_Func
 
 		int ps=0;
 		float lsv=1000;
-		while (lsv >= 0.02f)
+		while (lsv >= 0.05f)
 		{
 			lsv = 0;
 			for (int i=0;i < 4;i++)
@@ -533,7 +550,7 @@ public class Test2_Func
 				Base loss=lossFunc.forward(X, y.slice(i));
 				lsv += loss.get(0);
 
-				print("loss :", lsv);
+				// print("loss :", lsv);
 
 				loss.setGrad(1);
 				loss.backward();

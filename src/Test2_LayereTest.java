@@ -9,7 +9,7 @@ import static java.util.Arrays.*;
 
 public class Test2_LayereTest
 {
-	public static void main2(String[] args)
+	public static void test(String[] args)
 	{
 
 		new Test2_LayereTest().a();
@@ -19,8 +19,23 @@ public class Test2_LayereTest
 	}
 	void a()
 	{
-
-
+		test1();
+		test2();
+		test3();
+		test4();
+		test5();
+		test6();
+		test7();
+		test8();
+		test9();
+		test10();
+		test11();
+		test12();
+		test13();
+		test14();
+		test15();
+		test16();
+		
 	}
 	void test16()
 	{
@@ -65,7 +80,7 @@ public class Test2_LayereTest
 		a.printArray();
 		b.printArray();
 		System.out.println(line(10));
-		o = NDArray.fullCorrelate1d(a, b);
+		o = NDArray.correlate1dFull(a, b, null);
 		o.printArray();
 		// 3,5,6,3,1
 
