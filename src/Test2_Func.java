@@ -54,7 +54,7 @@ public class Test2_Func
 		b1.detachGradient().printArray();
 		b2.detachGradient().printArray();
 	}
-	void tree(Base arr, String t)
+	public static void tree(Base arr, String t)
     {
 		System.out.println(t + arr);
 		if (arr.gradientFunction == GradFunc.itemGradient)
@@ -67,7 +67,7 @@ public class Test2_Func
 			for (Base ar:arr.childs)
 				tree(ar, t.replace("_", " ").replace("|", " ") + "|_____ ");
 	}
-	void treeV(Value vl, String t)
+	public static void treeV(Value vl, String t)
     {
 		System.out.println(t + vl);
 		if (vl.args != null && vl.args.size() != 0)

@@ -175,6 +175,14 @@ public class Value
 			a1.setGrad(self.getGrad() * (float)Math.exp(a1.getData()));
 		}
 	};
+	public static Value max(Value v1, Value v2)
+	{
+		return v1.getData() >= v2.getData() ?v1: v1;
+	}
+	public static Value min(Value v1, Value v2)
+	{
+		return v1.getData() >= v2.getData() ?v2: v1;
+	}
 	public Value step()
 	{
 		Value v=new Value(getData());

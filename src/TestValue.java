@@ -111,4 +111,45 @@ public class TestValue
 		}
 		return out.setGradientFunction(GradFunc.itemGradient);
 	}
+	public static Base bce(Base prd, Base tr)
+	{
+		// doesn't work.
+		Base b=new Base(1).setRequiresGradient(prd.requiresGradient());
+		int n = prd.length;
+		Value loss = new Value(0);
+		Value epsilon = new Value(1e-7f); // Avoid log(0)
+
+		for (int i = 0; i < n; i++)
+		{
+			// Clip predictions to [epsilon, 1-epsilon]
+			Value tarF=tr.getValue(i);
+			Value p = Value.max(epsilon, Value.min(prd.getValue(i), new Value(1).sub(epsilon)));
+			// loss = loss.add(p);
+			loss = loss.add(tarF.mul(p.log()).add((new Value(1).sub(tarF).mul(new Value(1).sub(p).log()))));
+		}
+
+		// Average and negate (BCE formula)
+		loss = loss.mul(new Value(-1f)).div(new Value(n));
+		b.setValue(loss, 0);
+		b.setGradientFunction(GradFunc.itemGradient);
+		return b;
+	}
+	public static Base mse(Base prd, Base tr)
+	{
+		int n = prd.length;
+		Value loss = new Value(0.0f);
+		Base b=new Base(1).setRequiresGradient(prd.requiresGradient());
+		// Compute sum of squared errors
+		for (int i = 0; i < n; i++)
+		{
+			Value diff = prd.getValue(i).sub(tr.getValue(i));
+			loss = loss.add(diff.pow(new Value(2)));
+		}
+
+		// Average the sum
+		loss = loss.div(new Value(n)); // /= n;
+		b.setValue(loss, 0);
+		b.setGradientFunction(GradFunc.itemGradient);
+		return b;
+	}
 }

@@ -4,6 +4,7 @@ import gss.arr.*;
 
 import static gss.Util.*;
 import static gss.arr.NDArray.*;
+import gss.lossfunctions.*;
 
 public class Main
 {
@@ -16,7 +17,29 @@ public class Main
 	void a() throws Exception
 	{
 
-		test5();
+		Base b=new Base(new float[]{.2f,.5f,.9f}).setRequiresGradient(true);
+		Base bt=new Base(new float[]{0,0,1}).setRequiresGradient(true);
+		Base b2=b.copy();
+		Base bt2=bt.copy();
+		b.printArray();
+		bt.printArray();
+
+		Base c=new BCE().forward(b, bt);
+		print(c);
+		c.printArray();
+		c.setGrad(1);
+		c.backward();
+		b.detachGradient().printArray();
+		print(line(30));
+
+		Base c2=TestValue.bce(b2, bt2);
+		print(c2);
+		c2.printArray();
+		c2.setGrad(1);
+		c2.backward();
+		b2.detachGradient().printArray();
+		
+		// Test2_Func.tree(c2, "");
 
 	}
 	float[] convF(float[]a, float[]b)
