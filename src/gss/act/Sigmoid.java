@@ -19,9 +19,9 @@ public class Sigmoid extends Activation
 		{
 			out[i] = 1f / (1f + (float)Math.exp(-dt.get(dt.indexToShape(i))));
 		}
-		Base arrOut=new Base(out, array.shape).setRequiresGradient(dt.requiresGradient());
+		Base arrOut=new Base(out, array.shape).setRequiresGradient(dt.hasGradient());
 		// gradient in progress.
-		if (arrOut.requiresGradient())
+		if (arrOut.hasGradient())
 			arrOut.setGradientFunction(sigmoidGradient, dt);
 		return arrOut;
 	}

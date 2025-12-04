@@ -1,10 +1,10 @@
 import gss.*;
 import gss.act.*;
 import gss.arr.*;
+import gss.lossfunctions.*;
 
 import static gss.Util.*;
 import static gss.arr.NDArray.*;
-import gss.lossfunctions.*;
 
 public class Main
 {

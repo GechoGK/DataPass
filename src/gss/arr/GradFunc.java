@@ -42,9 +42,9 @@ public abstract class GradFunc
 			for (int i=0;i < host.length;i++)
 			{
 				indexToShape(i, shape, tmpShape);
-				if (a1.requiresGradient())
+				if (a1.hasGradient())
 					a1.setGrad(tmpShape, host.getGrad(tmpShape));
-				if (a2.requiresGradient())
+				if (a2.hasGradient())
 					a2.setGrad(tmpShape, host.getGrad(tmpShape));
 			}
 			return null;
@@ -69,9 +69,9 @@ public abstract class GradFunc
 			for (int i=0;i < host.length;i++)
 			{
 				indexToShape(i, shape, tmpShape);
-				if (a1.requiresGradient())
+				if (a1.hasGradient())
 					a1.setGrad(tmpShape, host.getGrad(tmpShape));
-				if (a2.requiresGradient())
+				if (a2.hasGradient())
 					a2.setGrad(tmpShape, -host.getGrad(tmpShape));
 			}
 			return null;
@@ -100,9 +100,9 @@ public abstract class GradFunc
 			{
 				indexToShape(i, shape, tmpShape);
 				float grad=host.getGrad(tmpShape);
-				if (a1.requiresGradient())
+				if (a1.hasGradient())
 					a1.setGrad(tmpShape, grad * a2.get(tmpShape));
-				if (a2.requiresGradient())
+				if (a2.hasGradient())
 					a2.setGrad(tmpShape, grad * a1.get(tmpShape));
 			}
 			return null;
@@ -130,9 +130,9 @@ public abstract class GradFunc
 				indexToShape(i, shape, tmpShape);
 				float a=a1.get(tmpShape); // a.data
 				float b=a2.get(tmpShape); // b.data
-				if (a1.requiresGradient())
+				if (a1.hasGradient())
 					a1.setGrad(tmpShape, b * host.getGrad(tmpShape) * (float)Math.pow(a, b - 1));
-				if (a2.requiresGradient())
+				if (a2.hasGradient())
 					a2.setGrad(tmpShape, host.getGrad(tmpShape) * (float)Math.pow(a, b) * (float)Math.log(a));
 			}
 			return null;
@@ -170,9 +170,9 @@ public abstract class GradFunc
 					{
 						float av=a.get(ar, ac);
 						float bv=b.get(br, ac);
-						if (a.requiresGradient())
+						if (a.hasGradient())
 							a.setGrad(new int[]{ar,ac}, bv * grd);
-						if (b.requiresGradient())			
+						if (b.hasGradient())			
 							b.setGrad(new int[]{br,ac}, av * grd);			
 					}
 				}
@@ -247,7 +247,7 @@ public abstract class GradFunc
 		public Base backward(Base host, Base[] childs, Object params)
 		{
 			// iterate over each stores Value classes and then call backward on them.
-			if (!host.requiresGradient())
+			if (!host.hasGradient())
 				return null;
 			// System.out.println("== .." + host);
 			HashSet<Value> tmpLst=new HashSet<>();

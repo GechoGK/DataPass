@@ -36,8 +36,8 @@ public class MSE extends LossFunc
 
 		// Return loss as a 1-element array
 		Base b = new Base(new float[]{loss});
-		b.setRequiresGradient(prd.requiresGradient());
-		if (b.requiresGradient())
+		b.setRequiresGradient(prd.hasGradient());
+		if (b.hasGradient())
 			b.setGradientFunction(mseGrad, prd, tr);
 		return b;
 	}

@@ -41,7 +41,7 @@ public class MaxPool1d extends Module
 		int[] nsh=input.shape.clone();
 		nsh[nsh.length - 1] = newLen; // nsh[nsh.length - 1] / poolSize;
 		// outData.reshapeLocal(nsh);
-		outData.setRequiresGradient(input.requiresGradient());
+		outData.setRequiresGradient(input.hasGradient());
 		outData.setGradientFunction(maxPool1dGradient, input);
 		outData.setGradientParams(index);
 		return outData.reshape(nsh);

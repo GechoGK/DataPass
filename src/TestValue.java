@@ -9,7 +9,7 @@ public class TestValue
 	public static Base relu(Base arr)
 	{
 		// Value[] f=arr.base.toValueArray();
-		Base out=new Base(arr.shape).setRequiresGradient(arr.requiresGradient());
+		Base out=new Base(arr.shape).setRequiresGradient(arr.hasGradient());
 		out.setGradientFunction(GradFunc.itemGradient);
 		for (int i=0;i < arr.length;i++)
 		{
@@ -27,7 +27,7 @@ public class TestValue
 		 }
 		 */
 		// Value[] f=arr.base.toValueArray();
-		Base out=new Base(arr.shape).setRequiresGradient(arr.requiresGradient());
+		Base out=new Base(arr.shape).setRequiresGradient(arr.hasGradient());
 		out.setGradientFunction(GradFunc.itemGradient);
 		for (int i=0;i < arr.length;i++)
 		{
@@ -40,7 +40,7 @@ public class TestValue
 	public static Base tanh(Base arr)
 	{
 		// Value[] f=arr.base.toValueArray();
-		Base out=new Base(arr.shape).setRequiresGradient(arr.requiresGradient());
+		Base out=new Base(arr.shape).setRequiresGradient(arr.hasGradient());
 		out.setGradientFunction(GradFunc.itemGradient);
 		for (int i=0;i < arr.length;i++)
 		{
@@ -78,7 +78,7 @@ public class TestValue
 				}
 				bs.setValue(sm, Util.ar(ar, br));
 			}
-		bs.setRequiresGradient(a.requiresGradient() | b.requiresGradient());
+		bs.setRequiresGradient(a.hasGradient() && b.hasGradient());
 		bs = bs.setGradientFunction(GradFunc.dotGradient, a, b).reshape(out);
 		return bs;
 	}
@@ -89,7 +89,7 @@ public class TestValue
 			throw new RuntimeException("convolve 1d error : expected 1d kernel array and 1d data.");
 		int len=Math.max(a.length, b.length) - Math.min(a.length, b.length) + 1;
 		if (out == null)
-			out = new Base(len).setRequiresGradient(a.requiresGradient() | b.requiresGradient());
+			out = new Base(len).setRequiresGradient(a.hasGradient() && b.hasGradient());
 		int wi=0;
 		int iinc=a.length > b.length ?1: 0;
 		int kinc=b.length > a.length ?1: 0;
@@ -114,7 +114,7 @@ public class TestValue
 	public static Base bce(Base prd, Base tr)
 	{
 		// doesn't work.
-		Base b=new Base(1).setRequiresGradient(prd.requiresGradient());
+		Base b=new Base(1).setRequiresGradient(prd.hasGradient());
 		int n = prd.length;
 		Value loss = new Value(0);
 		Value epsilon = new Value(1e-7f); // Avoid log(0)
@@ -138,7 +138,7 @@ public class TestValue
 	{
 		int n = prd.length;
 		Value loss = new Value(0.0f);
-		Base b=new Base(1).setRequiresGradient(prd.requiresGradient());
+		Base b=new Base(1).setRequiresGradient(prd.hasGradient());
 		// Compute sum of squared errors
 		for (int i = 0; i < n; i++)
 		{

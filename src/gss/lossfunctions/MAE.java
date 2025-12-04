@@ -31,8 +31,8 @@ public class MAE extends LossFunc
 
 		// Return loss as a 1-element array
 		Base b = new Base(new float[]{loss});
-		b.setRequiresGradient(prd.requiresGradient());
-		if (b.requiresGradient())
+		b.setRequiresGradient(prd.hasGradient());
+		if (b.hasGradient())
 			b.setGradientFunction(maeGrad, prd, tr);
 		return b;
 	}

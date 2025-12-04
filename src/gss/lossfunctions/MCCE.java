@@ -28,8 +28,8 @@ public class MCCE extends LossFunc
 		loss = -loss; // Negate and return as scalar
 
 		Base b = new Base(new float[]{loss});
-		b.setRequiresGradient(prd.requiresGradient());
-		if (b.requiresGradient())
+		b.setRequiresGradient(prd.hasGradient());
+		if (b.hasGradient())
 			b.setGradientFunction(mcceGrad, prd, tr);
 		return b;
 	}

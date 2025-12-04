@@ -33,9 +33,9 @@ public class Softmax extends Activation
 		Base arr1d=array.as1DArray();
 		Base out=softmaxForward(arr1d);
 
-		out.reshape(array.shape).setRequiresGradient(arr1d.requiresGradient());
+		out.reshape(array.shape).setRequiresGradient(arr1d.hasGradient());
 		// gradient calculator in progress.
-		if (out.requiresGradient())
+		if (out.hasGradient())
 			out.setGradientFunction(softmaxGradient, arr1d);
 		return out;
 	}

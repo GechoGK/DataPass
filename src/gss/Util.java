@@ -333,4 +333,16 @@ public class Util
 		}
 		return true;
 	}
+	public static void error(Object o)
+	{
+		throw new RuntimeException(o + "");
+	}
+	public static float[] copy(float[]src)
+	{
+		return Arrays.copyOf(src, src.length);
+	}
+	public static int[] copy(int[]src)
+	{
+		return Arrays.copyOf(src, src.length);
+	}
 }

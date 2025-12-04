@@ -11,7 +11,7 @@ public abstract class Module
 
 	public Base newParam(Base arr)
 	{
-		if (!arr.requiresGradient())
+		if (!arr.hasGradient())
 			arr.setRequiresGradient(true);
 		if (!params.contains(arr))
 			params.add(arr);

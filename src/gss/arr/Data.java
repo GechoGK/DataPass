@@ -9,7 +9,7 @@ public class Data
 	public float[] items;
 	public float[] gradient;
 	public Value[] gradValues;
-	public boolean requiresGradient;
+	public boolean hasGradient;
 	public int length=0;
 
 	public Data(int...shape)
@@ -39,11 +39,11 @@ public class Data
 		this.items = f;
 		this.length = items.length;
 		this.gradient = grad;
-		this.requiresGradient = true;
+		this.hasGradient = true;
 	}
 	public void setGradientEnabled(boolean enable)
 	{
-		this.requiresGradient = enable;
+		this.hasGradient = enable;
 		if (enable)
 		{
 			if (gradient == null)
@@ -56,11 +56,6 @@ public class Data
 			gradient = null;
 			gradValues = null;
 		}
-	}
-	public void zeroGradient()
-	{
-		if (requiresGradient)
-			Arrays.fill(gradient, 0);
 	}
 	public Value getValue(int pos)
 	{

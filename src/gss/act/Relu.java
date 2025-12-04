@@ -14,9 +14,9 @@ public class Relu extends Activation
 		{
 			out[i] = Math.max(0, dt.get(dt.indexToShape(i)));
 		}
-		Base arrOut=new Base(out, array.shape).setRequiresGradient(dt.requiresGradient());
+		Base arrOut=new Base(out, array.shape).setRequiresGradient(dt.hasGradient());
 		// gradient in progress.
-		if (arrOut.requiresGradient())
+		if (arrOut.hasGradient())
 			arrOut.setGradientFunction(reluGradient, dt);
 		return arrOut;
 	}

@@ -8,212 +8,128 @@ import static gss.arr.GradFunc.*;
 
 public class Base
 {
-	/*
-	 improvement
-	 in this class set and get methods are usefull.
-	 and we can optimize the functions by making a method for a specific dimension.
-	 */
-	// for this data, (view, broadcast, reshape and transpose) is enough.
-	/*
-	 there are mothods that use axes to di their function.
-	 when that happens, to iterate over a specific axis use strides.
-	 example.
-	 a = [[1,2,3],[4,5,6]];
-	 a.shape = [2,3]
-	 a.strides = [3,1];
-	 axes[0] jumps using stride[0] = 3.
-	 for(int i=0;i<a.shape[0];i++)
-	 a[strides[0 * i] = 5;
-
-	 >>  print(a)
-	 >> [[5,2,3],[5,5,6]];
-	 //////// !!!!! ///////
-	 this stride also used for slicing. 
-	 example.
-	 a = [[1,2,3],[4,5,6]];
-	 a.shape = [2,3]
-	 a.strides = [3,1];
-	 // now let's slice into othet dim.
-	 b = a[:1]
-	 >> b
-	 >> [2,5]
-	 >> b.shape => [2]
-	 >> b.strides => [3]
-	 >> offset => 1.
-	 */
-	// new methods to add.
-	/*
-	 public Data get(int...index){
-	 return ...;
-	 }
-	 public void set(Data d,int...index){
-	 ....
-	 }
-	 public Data slice(Range...ranges){
-	 return ...;
-	 }
-	 */
-	/*
-	 note:
-	 // avoid shape manipulation wuthout creating a new Base instance.
-	 // in that process the gradient tracker will lost it's computation graph.
-	 so, if you are using gradients and changing the shape of the Base class without new instance, please don't use these function
-	 example.
-	 -- reshapeLocal. that doesn't return a new Base class....
-	 */
+	// warning !!!
+	// reshapeLocal review.
+	// don't assign arrays directly, because it entirely used on both sides of the array.
+	// fix. shape = shp;
+	// fix. strides = strds;
+	// fix. data.items = data.items;
 	public int[] shape;
 	public int[] strides;
 	public int length;
 	public int offset=0;
+	// internal data.
 	public Data data;
-	public List<Base> childs = new ArrayList<>();
-	public Object params=null;
-	public GradFunc gradientFunction;
 
-	public Base(int...shape)
+	public GradFunc gradientFunction;
+	public List<Base> childs;
+	public Object params;
+
+	public Base(int...shp)
 	{
-		this.shape = shape;
+		if (shp.length == 0)
+			error("");
+		this.shape = Util.copy(shp);
 		this.strides = genStrides(shape);
 		this.length = length(shape);
 		this.data = new Data(shape);
+		this.offset = 0;
 	}
 	public Base(float[] src)
 	{
 		this.data = new Data(src);
 		this.shape = new int[]{data.length};
-		strides = new int[]{1};
+		this.strides = new int[]{1};
 		this.length = length(shape);
+		this.offset = 0;
 	}
 	public Base(float[] src, int...shp)
 	{
 		this.data = new Data(src);
-		this.shape = shp;
-		strides = genStrides(shape);
-		length = length(shape);
+		this.shape = Util.copy(shp);
+		this.strides = genStrides(shape);
+		this.length = length(shape);
+		this.offset = 0;
 		if (length != data.length)
 			throw new RuntimeException("invalid shape or data. they are not equal in length.");
 	}
-	public Base(float[] src, int[]shp, int[] strd, int off)
+//	public Base(float[] src, int[]shp, int[] strd, int off)
+//	{
+////		this.data = new Data(src);
+////		this.shape = shp;
+////		this.strides = strd;
+////		this.offset = off;
+////		this.length = length(shape);
+//		newBase(new Data(src), shp, strd, off);
+//	}
+//	public Base(Data d, int[]shp, int off)
+//	{
+////		this.data = d;
+////		this.shape = shp;
+////		this.strides = genStrides(shape);
+////		this.length = length(shape);
+////		this.offset = off;
+//		newBase(d, shp, genStrides(shp), off);
+//	}
+//	public Base(Data d, int[]shp, int[]strd, int off)
+//	{
+////		this.data = d;
+////		this.shape = shp;
+////		this.strides = strd;
+////		this.length = length(shape);
+////		this.offset = off;
+//		newBase(d, shp, strd, off);
+//	}
+	protected Base newBase(int[]shp)
 	{
-		this.data = new Data(src);
-		this.shape = shp;
-		strides = strd;
-		this.offset = off;
-		length = length(shape);
-		// if (length != data.length)
-		//	throw new RuntimeException("invalid shape or data. they are not equal in length.");
+		return new Base(shp);
 	}
-	public Base(Data d, int[]shp, int off)
+	protected Base newBase(float[]src)
 	{
-		this.data = d;
-		this.shape = shp;
-		this.strides = genStrides(shape);
-		this.length = length(shape);
-		this.offset = off;
-		// if (length != data.length)
-		// 	throw new RuntimeException("invalid shape or data. they are not equal in length.");
+		return new Base(src);
 	}
-	public Base(Data d, int[]shp, int[]strd, int off)
+	protected Base newBase(float[]src, int...shp)
 	{
-		this.data = d;
-		this.shape = shp;
-		strides = strd;
-		length = length(shape);
-		offset = off;
-		// if (length != data.length)
-		// 	throw new RuntimeException("invalid shape or data. they are not equal in length.");
+		if (length(shp) != src.length)
+			error("the length of the array must be equal to the shape total length");
+		Base b=newBase(src);
+		b.shape = Util.copy(shp);
+		b.strides = genStrides(shp);
+		b.length = length(shp);
+		b.offset = 0;
+		return b;
+	}
+	public Base newBase(int[]shp, int[]strd, int off)
+	{
+		Base b=newBase(shp);
+		b.strides = Util.copy(strd);
+		b.length = length(shp);
+		b.offset = off;
+		return b;
+	}
+	public Base newBase(Data d, int[]shp, int off)
+	{
+		Base b=newBase(shp);
+		b.data = d;
+		b.length = length(shp);
+		b.offset = off;
+		return b;
+	}
+	public Base newBase(Data d, int[]shp, int[]strd, int off)
+	{
+		Base b=newBase(shp);
+		b.data = d;
+		b.strides = Util.copy(strd);
+		b.length = length(shp);
+		b.offset = off;
+		return b;
 	}
 	public int getDim()
 	{
 		return shape.length;
 	}
 	// gradient area.
-	public void backward()
-	{
-		if (gradientFunction == null)
-			return;
-		// throw new RuntimeException("gradient function not found = " + gradientFunction);
-		// System.out.println("backward " + gradientFunction);
-		gradientFunction.backward(this, childs.toArray(new Base[0]), params);
-		for (Base arr:childs)
-		{
-			// System.out.println("=== " + arr.gradientFunction + " == " + this);
-			arr.backward();
-		}
-	}
-	public Base setRequiresGradient(boolean enableGrad)
-	{
-		data.setGradientEnabled(enableGrad);
-		return this;
-	}
-	public boolean requiresGradient()
-	{
-		return data.requiresGradient;
-	}
-	public Base setGradientFunction(GradFunc func, Base...chlds)
-	{
-		this.gradientFunction = func;
-		this.childs.clear();
-		for (Base ar:chlds)
-			this.childs.add(ar);
-		return this;
-	}
-	public void setGradientParams(Object prms)
-	{
-		params = prms;
-	}
-	public Base detachGradient()
-	{
-		Base d=new Base(data.gradient, shape, strides, offset);
-		return d;
-	}
-	public float getRawGrad(int ind)
-	{
-		return data.gradient[ind];
-	}
-	public float getGrad(int...index)
-	{
-		int ind=Math.max(0, shapeToIndex(index));
-		return data.gradient[ind];
-	}
-	public void setGrad(int[]index, float val)
-	{
-		int ind=shapeToIndex(index);
-		data.gradient[ind] += val;
-	}
-	public void setRawGrad(int ind, float v)
-	{
-		data.gradient[ind] += v;
-	}
-	public void setGrad(Base d)
-	{
-		if (length != d.length)
-			throw new RuntimeException("the length of the given array doesn't match the current array.");
-		for (int i=0;i < length;i++)
-		{
-			int[]sh=indexToShape(i);
-			setGrad(sh, d.get(d.indexToShape(i)));
-		}
-	}
-	public void setGrad(float v)
-	{
-		Arrays.fill(data.gradient, v);
-	}
-	public void zeroGrad()
-	{
-		data.zeroGradient();
-	}
-	public Value getValue(int...index)
-	{
-		int ind=Math.max(0, shapeToIndex(index));
-		return data.getValue(ind);
-	}
-	public void setValue(Value v, int...index)
-	{
-		int ind=shapeToIndex(index);
-		data.setValue(ind, v);
-	}
-	// end gradients.
+	// end gradient area.
 	public Base slice(int...ind)
 	{
 		if (ind.length > shape.length)
@@ -238,18 +154,21 @@ public class Base
 			}
 			// System.out.println("offset = " + off + ", new shape :" + Arrays.toString(sh) + ", new stride :" + Arrays.toString(str));
 		}
-		return new Base(data, sh, str, off);
+		return newBase(data, sh, str, off);
 	}
 	public Base slice(int[]...ind)
 	{
 		// need some improvement.
+		// if ind length not equal to shape length.
+		// it must fill the rest by default.  fix it.
+		// the ind array expexted to be 3 inength(start, end, increment);
 		if (ind.length > shape.length)
 			throw new RuntimeException("index.length must not be greater than shape.length.");
 		// int shl=shape.length - ind.length;
 		// if (shl == 0)
 		//	throw new RuntimeException("invalid index for slice.");
 		// System.out.println("slicing with range :");
-		int[] sh= new int[shape.length];
+		int[] sh = new int[shape.length];
 		int[] str=new int[shape.length];
 		ind = Util.fill(ind, shape);
 		// System.out.println(ind.length + ",, " + sh.length);
@@ -266,13 +185,26 @@ public class Base
 			i++;
 		}
 		// System.out.println("offset = " + off + ", new shape :" + Arrays.toString(sh) + ", new stride :" + Arrays.toString(str));
-		return new Base(data, sh, str, off);
+		return newBase(data, sh, str, off);
 	}
 	public void fill(float v)
 	{
-		Arrays.fill(data.items, v);
+		// don't fill all items.
+		// instead loop over items and set their value.
+		if (!isOriginal())
+		{
+			// print("off :" + offset + ", " + length);
+			int[]tmpSh=new int[shape.length];
+			for (int i=0;i < offset + length;i++)
+			{
+				tmpSh = indexToShape(i);
+				set(tmpSh, v);
+			}
+		}
+		else
+			Arrays.fill(data.items, offset, offset + length, v);
 	}
-	public int shapeToIndex(int...index)
+	private int shapeToIndex(int...index)
 	{
 		int newPos=0;
 		int strShPos = Math.max(0, shape.length - index.length);
@@ -280,7 +212,10 @@ public class Base
 		for (int i = 0;i < Math.min(shape.length, index.length);i++)
 		{
 			int shps=i + strShPos;
-			int shapeInd = Math.min(index[i + strIndPos], shape[shps] - 1); // uncomment to enable lazy broadcasting(value broadcasting).
+			int shapeInd = Math.min(index[i + strIndPos], shape[shps] - 1); 
+			// lazy broadcasting enabled --^
+			// to disable use
+			// int shapeInd = index[i+strIndPos] // it will automatically throw error when out of range.
 			newPos += shapeInd *  strides[shps];
 		}
 		return newPos + offset;
@@ -322,6 +257,10 @@ public class Base
 	}
 	public void set(Base d)
 	{
+		// lazy set value.
+		// it doesn't check the dimension equality and the length equality.
+		if (d.shape.length != this.shape.length) // dimension is not equal
+			throw new RuntimeException("invalid dimension to set.");
 		int[] tmpSh=new int[shape.length];
 		for (int i=0;i < length;i++)
 		{
@@ -332,11 +271,12 @@ public class Base
 	/*
 	 // set multiple values(array value into the data
 	 // @startIndex[] which start index of the destination data.
-	 // @values[] floag value that is going to copied.
+	 // @values[] float value that is going to copied.
 	 !! if the values array is greater than the destination array,
-	 // it will write up the maximum data length, the rest will trimmed.
+	 // it will write up to the maximum data it can hold, the rest will trimmed.
 
 	 */
+	// !! does it work on transposed array ?????
 	public void set(int[]startIndex, float...values)
 	{
 		int ind=shapeToIndex(startIndex);
@@ -358,34 +298,43 @@ public class Base
 	// not tested.
 	public float getRaw(int index)
 	{
-		return data.items[index];
+		if (index >= data.length && index < offset)
+			throw new IndexOutOfBoundsException("invalid index " + index + " it must be less than (" + length + ")");
+		return data.items[offset + index];
 	}
-	public float[] getRaw(int index, int count)
-	{
-		float[] f=new float[count];
-		for (int i=0;i < count;i++)
-			f[i] = data.items[index + i];
-		return f;
-	}
-	public float[] getRaw(int index, float[]out, int count)
-	{
-		float[] f=new float[count];
-		for (int i=0;i < count;i++)
-			f[i] = data.items[index + i];
-		return f;
-	}
+//	// not tested.
+//	public float[] getRaw(int index, int count)
+//	{
+//		float[] f=new float[count];
+//		for (int i=0;i < count;i++)
+//			f[i] = data.items[index + i];
+//		return f;
+//	}
+//	// not tested.
+//	// out array size must be greater than count.
+//	public float[] getRaw(int index, float[]out, int count)
+//	{
+//		if (out.length < count)
+//			throw new RuntimeException("give an array that can hold up to count @count :" + count);
+//		for (int i=0;i < count;i++)
+//			out[i] = data.items[index + i];
+//		return out;
+//	}
 	// not tested.
 	public void setRaw(int index, float val)
 	{
-		data.items[index] = val;
+		if (index >= length && index < offset)
+			throw new IndexOutOfBoundsException("invalid index " + index + " it must be less than (" + length + ")");
+		data.items[offset + index] = val;
 	}
 	// not tested.
-	public void setRaw(int index, float[] dt)
-	{
-		int pos=0;
-		for (int i=index;i < Math.min(dt.length, data.length - index);i++)
-			data.items[index] = dt[pos++];
-	}
+//	public void setRaw(int index, float[] dt)
+//	{
+//		int pos=0;
+//		for (int i=index;i < Math.min(dt.length, data.length - index);i++)
+//			data.items[index] = dt[pos++];
+//	}
+	// data manipulation functions.
 	public Base reshape(int...newShape)
 	{
 		fillShape(newShape);
@@ -399,27 +348,28 @@ public class Base
 		// print(length, newShape);
 		if (length != length(newShape))
 			throw new RuntimeException("can't view this array into " + Arrays.toString(newShape) + " shape. Reason!! the length is not equal");
-		Base d=new Base(data, newShape, offset);
+		Base d=newBase(data, newShape, offset);
 		// d.setRequiresGradient(requiresGradient);
-		if (d.requiresGradient())
-		{
-			d.setGradientFunction(reshapeGradient, this);
-			// d.setGradientFunction(gradientFunction);
-			// d.setGradientParams(params);
-			// d.gradient = gradient;
-		}
+//		if (d.requiresGradient())
+//		{
+//			d.setGradientFunction(reshapeGradient, this);
+//			// d.setGradientFunction(gradientFunction);
+//			// d.setGradientParams(params);
+//			// d.gradient = gradient;
+//		}
 		return d;
 	}
 	public Base reshapeLocal(int...newShape)
 	{
 		fillShape(newShape);
 		if (isTransposed())
-			throw new RuntimeException("unable to modify the shape of transposed array.");
-		this.shape = newShape;
-		strides = genStrides(shape);
-		length = length(shape);
-		if (length != data.length)
-			throw new RuntimeException("invalid shape or data. they are not equal in length.");
+			error("unable to modify the shape of transposed array.");
+		this.shape = Util.copy(newShape);
+		this.strides = genStrides(shape);
+		this.length = length(shape);
+		// error in sub array --v uncomment to see it.
+		// if (length != data.length)
+		// 	throw new RuntimeException("invalid shape or data. they are not equal in length.");
 		return this;
 	}
 	public Base transpose()
@@ -444,14 +394,14 @@ public class Base
 			strd[p] = strides[i];
 			p++;
 		}
-		Base d = new Base(data, sh, strd, offset);
+		Base d = newBase(data, sh, strd, offset);
 		// d.setRequiresGradient(requiresGradient());
-		if (d.requiresGradient())
-		{
-			d.setGradientFunction(transposeGradient, this);
-			// d.setGradientParams(params);
-			// d.gradient = gradient;
-		}
+//		if (d.requiresGradient())
+//		{
+//			d.setGradientFunction(transposeGradient, this);
+//			// d.setGradientParams(params);
+//			// d.gradient = gradient;
+//		}
 		return d;
 	}
 	public int[] fillShape(int...shp)
@@ -492,103 +442,124 @@ public class Base
 		int[] strd=genStrides(shape);
 		return !Arrays.equals(strd, strides);
 	}
+	public boolean isSliced()
+	{
+		return data.length != length;
+	}
+	public boolean isOriginal()
+	{
+		return !isTransposed() && !isSliced();
+	}
 	public Base copy()
 	{
 		// System.out.println("copying...");
-		if (isTransposed()) // or broadcasted.
+		if (!isOriginal()) // or broadcasted.
 		{
 			// print("copy transposed");
 			float[] dt=new float[length];
-			Base d=new Base(dt, shape).setRequiresGradient(data.requiresGradient);
-			if (d.requiresGradient())
-				d.setGradientFunction(copyGradient, this);
+			Base d=newBase(dt, shape);
+//			d.setRequiresGradient(data.requiresGradient);
+//			if (d.requiresGradient())
+//				d.setGradientFunction(copyGradient, this);
 			// print(d.gradientFunction);
 			// d.setGradientParams(params);
 			for (int i=0;i < length;i++)
 			{
 				int[] shp=indexToShape(i);
 				dt[i] = get(shp);
-				if (d.requiresGradient())
-					d.data.gradient[i] = getGrad(shp);
+//				if (d.requiresGradient())
+//					d.data.gradient[i] = getGrad(shp);
 			}
 			return d;
 		}
 		else
 		{
 			// print("copy non-transposed");
-			Base d = new Base(Arrays.copyOf(data.items, data.length), shape); // wrong.
-			d.setRequiresGradient(requiresGradient());
-			if (d.requiresGradient())
-			{
-				d.setGradientFunction(copyGradient, this);
-				// d.setGradientParams(params);
-				d.data.gradient = Arrays.copyOf(data.gradient, data.length); // wrong.
-			}
+			// don't use data.items.
+			Base d = newBase(Arrays.copyOfRange(data.items, offset, offset + length), shape); // wrong.
+//			d.setRequiresGradient(requiresGradient());
+//			if (d.requiresGradient())
+//			{
+//				d.setGradientFunction(copyGradient, this);
+//				// d.setGradientParams(params);
+//				d.data.gradient = Arrays.copyOf(data.gradient, data.length); // wrong.
+//			}
 			return d;
 		}
 	}
 	// not tested
 	// needs some improvements.
 	// it must support broadcasting.
-	// the new shape can be a broadcast if the original shape.
-	// the reshape method can't give that ability.
+
 	public Base copyTo(int...newShape)
 	{
 		if (Arrays.equals(newShape, shape))
+		{
 			return copy();
+		}
 		if (isBrodcastable(newShape))
 		{
 			int len=length(newShape);
 			float[] dt=new float[len];
-			Base d=new Base(dt, newShape).setRequiresGradient(requiresGradient());
-			if (d.requiresGradient())
-				d.setGradientFunction(copyToGradient, this);
-			d.setGradientParams(params);
+			Base d=newBase(dt, newShape);
+//			d.setRequiresGradient(requiresGradient());
+//			if (d.requiresGradient())
+//				d.setGradientFunction(copyToGradient, this);
+//			d.setGradientParams(params);
 			for (int i=0;i < len;i++)
 			{
 				int[] shp=indexToShape(i);
 				dt[i] = get(shp);
-				if (d.requiresGradient())
-					d.data.gradient[i] = getGrad(shp);
+//				if (d.requiresGradient())
+//					d.data.gradient[i] = getGrad(shp);
 			}
 			return d;
 		}
-		return copy().reshapeLocal(newShape);
+		Base b = copy();
+		return b.reshapeLocal(newShape);
 	}
 	@Override
 	public String toString()
 	{
-		String inf="shape : " + Arrays.toString(shape) + " len :" + length + (isTransposed() ?" : transposed.": ".") + (requiresGradient() ?" :: gradient = " + requiresGradient(): "");
-		return inf;
+		String inf="shape : " + Arrays.toString(shape) + " len :" + length + (isTransposed() ?" : transposed.": ".");
+		return inf + "\n" + getArrayAsString();
 	}
 	public void printArray()
 	{
-		int dm=shape.length;
-		int[] cShape=new int[dm];
-		StringBuilder sb=new StringBuilder();
-		printArray2(cShape, 0, sb);
-		String s=sb.toString();
-		s = s.replace("],", "],\n");
-		System.out.println(s);
+		print(toString());
 	}
-	private void printArray2(int[]sh, int dm, StringBuilder sb)
+	public String getArrayAsString()
 	{
-		if (sh.length == dm)
+		StringBuilder sb=new StringBuilder();
+		genArray(this, sb, 0);
+		// printArray2(cShape, 0, sb, "");
+		String s=sb.toString().trim();
+		if (s.endsWith(","))
+			s = s.substring(0, s.length() - 1);
+		return s;
+	}
+	private void genArray(Base b, StringBuilder sb, int idt)
+	{
+		String indent=Util.getString(" ", idt);
+		if (b.getDim() == 1)
 		{
-			sb.append(get(sh));
-			return;// "" + get(sh);
-		}
-		sb.append("[");
-		for (int i = 0; i < shape[dm]; i++)
-		{
-			if (i > 0)
+			sb.append(indent);
+			sb.append("[");
+			for (int i=0;i < b.shape[0];i++)
 			{
-				sb.append(", "); // Separator between elements
+				if (i != 0)
+					sb.append(", ");
+				sb.append(b.get(i));
 			}
-			sh[dm] = i; // Set current dimension index
-			printArray2(sh, dm + 1, sb); // Recurse to next dimension
+			sb.append("],\n");
+			return;
 		}
-		sb.append("]");
+		sb.append(indent);
+		sb.append("[\n");
+		for (int i=0;i < b.shape[0];i++)
+			genArray(b.slice(i), sb, idt + 2);
+		sb.append(indent);
+		sb.append("],\n");
 	}
 	public Base as1DArray()
 	{
@@ -624,15 +595,171 @@ public class Base
 			c = shape.length == 1 ?1: shape.length - 1;
 		}
 		int[] sh=Arrays.copyOfRange(shape, c, shape.length);
-		Base d = new Base(data, sh, strides, offset);
+		Base d = newBase(data, sh, strides, offset);
 		// d.setRequiresGradient(requiresGradient());
-		if (d.requiresGradient())
-		{
-			d.setGradientFunction(trimGradient, this);
-			// d.setGradientParams(params);
-			// d.data.gradient = data.gradient;
-		}
+//		if (d.requiresGradient())
+//		{
+//			d.setGradientFunction(trimGradient, this);
+//			// d.setGradientParams(params);
+//			// d.data.gradient = data.gradient;
+//		}
 		return d;
 	}
+	// set and get method for specific dim.
+	public void set1d(int x, float val)
+	{
+		if (isOriginal())
+			setRaw(x, val);
+		else if (getDim() == 1)
+			set(ar(x), val); 
+		else
+			set(indexToShape(x), val);
+	}
+	// in progress.
+//	public void set2d(int x, int y, float val)
+//	{
+//
+//	}
+//	// in progress.
+//	public void set3d(int x, int y, int z, float val)
+//	{
+//
+//	}
+	public float get1d(int x)
+	{
+		if (isOriginal())
+			return getRaw(x);
+		else if (shape.length == 1)
+			return get(ar(x));
+		else
+			return get(indexToShape(x));
+	}
+	// in progress.
+//	public float getFrom2d(int x, int y)
+//	{
+//		return 0;
+//	}
+//	// in progress.
+//	public float getFrom3d(int x, int y, int z)
+//	{
+//		return 0;
+//	}
+	// gradient area.
+	public boolean hasGradient()
+	{
+		return data.hasGradient;
+	}
+	public Base setRequiresGradient(boolean b)
+	{
+		data.setGradientEnabled(b);
+		return this;
+	}
+	public Base detachGradient()
+	{
+		if (!hasGradient())
+			error("the array has no gradient to detach. please enable first by calling arr.setRequiresGradient(true);");
+		return newBase(new Data(data.gradient), shape, strides, offset);
+	}
+	public void setGrad(int v)
+	{
+		fillGrad(v);
+	}
+	public void setGrad(int[]index, float val)
+	{
+		int ind=shapeToIndex(index);
+		data.gradient[ind] = val;
+	}
+	public float getGrad(int...index)
+	{
+		int ind=Math.max(0, shapeToIndex(index));
+		return data.gradient[ind];
+	}
+	public void fillGrad(float v)
+	{
+		if (!hasGradient())
+			error("the array has no gradient to fill. please enable first by calling arr.setRequiresGradient(true);");
+		// don't fill all items.
+		// instead loop over items and set their value.
+		if (!isOriginal())
+		{
+			// print("off :" + offset + ", " + length);
+			int[]tmpSh=new int[shape.length];
+			for (int i=0;i < offset + length;i++)
+			{
+				tmpSh = indexToShape(i);
+				setGrad(tmpSh, v);
+			}
+		}
+		else
+			Arrays.fill(data.gradient, offset, offset + length, v);
+	}
+	public void setGrad(Base d)
+	{
+		if (!hasGradient())
+			error("the array has no gradient to set. please enable first by calling arr.setRequiresGradient(true);");
+		// lazy set value.
+		// it doesn't check the dimension equality and the length equality.
+		if (d.shape.length != this.shape.length) // dimension is not equal
+			throw new RuntimeException("invalid dimension to set.");
+		int[] tmpSh=new int[shape.length];
+		for (int i=0;i < length;i++)
+		{
+			Util.indexToShape(i, shape, tmpSh);
+			setGrad(tmpSh, d.get(tmpSh));
+		}
+	}
+	// not implemented.
+	public Base setGradientFunction(GradFunc func, Base...chlds)
+	{
+		if (!hasGradient())
+			error("gradient not enabled. enable by calling base.setRequiresGradient();");
+		if (childs == null)
+			childs = new ArrayList<>();
+		for (Base b:chlds)
+			childs.add(b);
+		gradientFunction = func;
+		return this;
+	}
+	public Base backward()
+	{
+		// fix it.
+		// backward method should be in an new method, which collects all childs and apply backward method.
+		// that helps to prevent reccursion functions.
+		if (!hasGradient() || gradientFunction == null)
+			error("no gradient function found for backward pass.");
+		gradientFunction.backward(this, childs.toArray(new Base[0]), params);
+		return this;
+	}
+	public Base setGradientParams(Object prms)
+	{
+		params = prms;
+		return this;
+	}
+	public Base zeroGrad()
+	{
+		fillGrad(0);
+		return this;
+	}
+	public void setRawGrad(int index, float val)
+	{
+		if (index >= length && index < offset)
+			throw new IndexOutOfBoundsException("invalid index " + index + " it must be less than (" + length + ")");
+		data.gradient[offset + index] = val;
+	}
+	public float getRawGrad(int index)
+	{
+		if (index >= data.length && index < offset)
+			throw new IndexOutOfBoundsException("invalid index " + index + " it must be less than (" + length + ")");
+		return data.gradient[offset + index];
+	}
+	// value area.
+	public Base setValue(Value v, int...shp)
+	{
+		data.setValue(shapeToIndex(shp), v);
+		return this;
+	}
+	public Value getValue(int...shp)
+	{
+		return data.getValue(shapeToIndex(shp));
+	}
 }
-

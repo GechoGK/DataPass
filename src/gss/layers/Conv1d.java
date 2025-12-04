@@ -105,7 +105,7 @@ public class Conv1d extends Module
 		}
 		// System.out.println(sb.toString());
 		Base output=new Base(outF, new int[]{in.shape[0],kernels.shape[0],output_size});
-		output.setRequiresGradient(kernels.requiresGradient() | biase.requiresGradient() | input.requiresGradient());
+		output.setRequiresGradient(kernels.hasGradient() | biase.hasGradient() | input.hasGradient());
 		output.setGradientFunction(conv1dGradient, kernels, biase, in);
 		// System.out.println("... " + input + " >>> " + d);
 		// needs reshaping.
@@ -154,7 +154,7 @@ public class Conv1d extends Module
 				{
 					for (int kf=0;kf < kern.shape[1];kf++)
 					{
-				 		if (in.requiresGradient())
+				 		if (in.hasGradient())
 						{			
 							// set grad for input
 							//input[dl][kf].grad = host[kr][kf].grad @f kern[kr][kf] // full correlation.

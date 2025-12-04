@@ -79,8 +79,8 @@ public class NDArray
 	public static Base add(Base d1, Base d2)
 	{
 		int[] sh=getCommonShape(d1.shape, d2.shape);
-		Base res=new Base(sh).setRequiresGradient(d1.requiresGradient() | d2.requiresGradient());
-		if (res.requiresGradient())
+		Base res=new Base(sh).setRequiresGradient(d1.hasGradient() | d2.hasGradient());
+		if (res.hasGradient())
 			res.setGradientFunction(additionGradient, d1, d2);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
@@ -96,9 +96,9 @@ public class NDArray
 	public static Base add(Base d1, float d2)
 	{
 		int[] sh=d1.shape;
-		Base res=new Base(sh).setRequiresGradient(d1.requiresGradient());
+		Base res=new Base(sh).setRequiresGradient(d1.hasGradient());
 		Base data2=new Base(new float[]{d2}); // don't use for computation, it is just for gradient.
-		if (res.requiresGradient())
+		if (res.hasGradient())
 			res.setGradientFunction(additionGradient, d1, data2);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
@@ -114,8 +114,8 @@ public class NDArray
 	public static Base sub(Base d1, Base d2)
 	{
 		int[] sh=getCommonShape(d1.shape, d2.shape);
-		Base res=new Base(sh).setRequiresGradient(d1.requiresGradient() | d2.requiresGradient());
-		if (res.requiresGradient())
+		Base res=new Base(sh).setRequiresGradient(d1.hasGradient() | d2.hasGradient());
+		if (res.hasGradient())
 			res.setGradientFunction(subtractionGradient, d1, d2);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
@@ -131,9 +131,9 @@ public class NDArray
 	public static Base sub(Base d1, float d2)
 	{
 		int[] sh=d1.shape;
-		Base res=new Base(sh).setRequiresGradient(d1.requiresGradient());
+		Base res=new Base(sh).setRequiresGradient(d1.hasGradient());
 		Base data2=new Base(new float[]{d2}); // don't use for computation, it is just for gradient.
-		if (res.requiresGradient())
+		if (res.hasGradient())
 			res.setGradientFunction(subtractionGradient, d1, data2);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
@@ -149,9 +149,9 @@ public class NDArray
 	public static Base sub(float d1, Base d2)
 	{
 		int[] sh=d2.shape;
-		Base res=new Base(sh).setRequiresGradient(d2.requiresGradient());
+		Base res=new Base(sh).setRequiresGradient(d2.hasGradient());
 		Base data1=new Base(new float[]{d1}); // don't use for computation, it is just for gradient.
-		if (res.requiresGradient())
+		if (res.hasGradient())
 			res.setGradientFunction(subtractionGradient, data1, d2);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
@@ -167,8 +167,8 @@ public class NDArray
 	public static Base mul(Base d1, Base d2)
 	{
 		int[] sh=getCommonShape(d1.shape, d2.shape);
-		Base res=new Base(sh).setRequiresGradient(d1.requiresGradient() | d2.requiresGradient());
-		if (res.requiresGradient())
+		Base res=new Base(sh).setRequiresGradient(d1.hasGradient() | d2.hasGradient());
+		if (res.hasGradient())
 			res.setGradientFunction(multiplicationGradient, d1, d2);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
@@ -184,9 +184,9 @@ public class NDArray
 	public static Base mul(Base d1, float d2)
 	{
 		int[] sh=d1.shape;
-		Base res=new Base(sh).setRequiresGradient(d1.requiresGradient());
+		Base res=new Base(sh).setRequiresGradient(d1.hasGradient());
 		Base data2=new Base(new float[]{d2}); // don't use for computation, it is just for gradient.
-		if (res.requiresGradient())
+		if (res.hasGradient())
 			res.setGradientFunction(multiplicationGradient, d1, data2);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
@@ -250,8 +250,8 @@ public class NDArray
 	public static Base pow(Base d1, Base d2)
 	{
 		int[] sh=getCommonShape(d1.shape, d2.shape);
-		Base res=new Base(sh).setRequiresGradient(d1.requiresGradient() | d2.requiresGradient());
-		if (res.requiresGradient())
+		Base res=new Base(sh).setRequiresGradient(d1.hasGradient() | d2.hasGradient());
+		if (res.hasGradient())
 			res.setGradientFunction(powGradient, d1, d2);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
@@ -267,9 +267,9 @@ public class NDArray
 	public static Base pow(Base d1, float d2)
 	{
 		int[] sh=d1.shape;
-		Base res=new Base(sh).setRequiresGradient(d1.requiresGradient());
+		Base res=new Base(sh).setRequiresGradient(d1.hasGradient());
 		Base data2=new Base(new float[]{d2}); // don't use for computation, it is just for gradient.
-		if (res.requiresGradient())
+		if (res.hasGradient())
 			res.setGradientFunction(powGradient, d1, data2);
 
 		int len=res.length; // length of the array.
@@ -285,9 +285,9 @@ public class NDArray
 	public static Base pow(float d1, Base d2)
 	{
 		int[] sh=d2.shape;
-		Base res=new Base(sh).setRequiresGradient(d2.requiresGradient());
+		Base res=new Base(sh).setRequiresGradient(d2.hasGradient());
 		Base data1=new Base(new float[]{d1}); // don't use for computation, it is just for gradient.
-		if (res.requiresGradient())
+		if (res.hasGradient())
 			res.setGradientFunction(powGradient, data1, d2);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
@@ -331,7 +331,7 @@ public class NDArray
 				}
 				bs.set(new int[]{ar,br}, sm);
 			}
-		bs.setRequiresGradient(a.requiresGradient() | b.requiresGradient());
+		bs.setRequiresGradient(a.hasGradient() | b.hasGradient());
 		bs = bs.setGradientFunction(GradFunc.dotGradient, a, b).reshape(out);
 		return bs;
 	}
@@ -379,8 +379,8 @@ public class NDArray
 			out = convolve1dFull(d1, kr, null);
 		if (out == null)
 			return null;
-		out.setRequiresGradient(d1.requiresGradient() | kr.requiresGradient());
-		if (out.requiresGradient())
+		out.setRequiresGradient(d1.hasGradient() | kr.hasGradient());
+		if (out.hasGradient())
 			out.setGradientFunction(GradFunc.convolveGradient, d1, kr);
 		return out;
 	}

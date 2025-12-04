@@ -33,8 +33,8 @@ public class BCE extends LossFunc
 		// Average and negate (BCE formula)
 		loss = -loss / n;
 		Base b = new Base(new float[]{loss});
-		b.setRequiresGradient(prd.requiresGradient());
-		if (b.requiresGradient())
+		b.setRequiresGradient(prd.hasGradient());
+		if (b.hasGradient())
 			b.setGradientFunction(bceGrad, prd, tr);
 		return b;
 	}

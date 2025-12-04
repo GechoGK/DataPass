@@ -21,7 +21,7 @@ public class Dropout extends Module
 	@Override
 	public Base forward(Base input)
 	{
-		if (!isTraining || !input.requiresGradient())
+		if (!isTraining || !input.hasGradient())
 			return input;
 		Base in=input.as1DArray();
 		float[] output = new float[in.length];
@@ -41,7 +41,7 @@ public class Dropout extends Module
             }
         }
         Base b = new Base(output, input.shape);
-		b.setRequiresGradient(input.requiresGradient());
+		b.setRequiresGradient(input.hasGradient());
 		b.setGradientFunction(dropoutGradient, in);
 		b.setGradientParams(mask);
 		return b;

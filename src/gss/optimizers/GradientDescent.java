@@ -28,7 +28,7 @@ public class GradientDescent extends Optimizer
 	{
 		for (Base dt:params)
 		{
-			if (!dt.requiresGradient())
+			if (!dt.hasGradient())
 				continue;
 			// Base gr=dt.detachGradient();
 			int[] tmpShp=new int[dt.shape.length];

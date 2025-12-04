@@ -10,7 +10,7 @@ import static gss.arr.GradFunc.*;
 
 public class Test2_Func
 {
-	public static void test(String[] args) throws Exception
+	public static void main(String[] args) throws Exception
 	{
 
 		new Test2_Func().a();
@@ -21,7 +21,7 @@ public class Test2_Func
 	{
 
 		test1();
-		// test2();
+		test2(); // xor test have problems.
 		test3();
 		test4();
 		test5();
@@ -33,6 +33,7 @@ public class Test2_Func
 	}
 	void test9()
 	{
+		print(decString("Test 9.0 : arrat value test.", 9));
 		Base b1=NDArray.arange(10).setRequiresGradient(true);
 		Base b2=NDArray.arange(10).setRequiresGradient(true);
 
@@ -76,6 +77,7 @@ public class Test2_Func
 	}
 	void test8()
 	{
+		print(decString("Test 8.0 dot product test.", 8));
 		Base a=NDArray.arange(3 * 5).reshapeLocal(3, 5).setRequiresGradient(true);
 		Base b=NDArray.arange(5 * 2).reshapeLocal(5, 2).setRequiresGradient(true);
 
@@ -124,7 +126,7 @@ public class Test2_Func
 				}
 				outData[shapeToIndex(new int[]{ar,br}, sh)] = sm;
 			}
-		Base bs=new Base(outData, out).setRequiresGradient(a.requiresGradient() | b.requiresGradient());
+		Base bs=new Base(outData, out).setRequiresGradient(a.hasGradient() | b.hasGradient());
 		bs.setGradientFunction(GradFunc.dotGradient, a, b);
 		return bs;
 	}
@@ -516,7 +518,7 @@ public class Test2_Func
 		Base x=new Base(new float[]{0,1,0,0,1,0,1,1}, 4, 2);
 		Base y=new Base(new float[]{1,0,1,0}, 4);
 
-		int hiddenSize=5;
+		int hiddenSize=2;
 		// it works with hidden size starts from 2 upto ...
 
 		Linear l1=new Linear(2, hiddenSize);
@@ -524,14 +526,14 @@ public class Test2_Func
 
 		Activation a2=new Tanh();
 
-		LossFunc lossFunc=new MSE();
+		LossFunc lossFunc=new BCE();
 
 		Optimizer optim=new Adam(l1.getParameters(), l2.getParameters());
 		// sometimes when we use Adam optimizer it stuck to local minima, or unable to fit the dataset. so keep try again.
 		// optim = new GradientDescent(l1.getParameters(), l2.getParameters());
 		optim = new SGDM(l1.getParameters(), l2.getParameters());
 
-		optim.learningRate = 0.01f;
+		optim.learningRate = 0.1f;
 		Base output=null;
 
 		int ps=0;
@@ -550,7 +552,7 @@ public class Test2_Func
 				Base loss=lossFunc.forward(X, y.slice(i));
 				lsv += loss.get(0);
 
-				// print("loss :", lsv);
+				print("loss :", lsv);
 
 				loss.setGrad(1);
 				loss.backward();
@@ -566,7 +568,7 @@ public class Test2_Func
 
 	void test1()
 	{
-		System.out.println(decString("Test 1.0 layers layer backward pass.", "=", 10));
+		System.out.println(decString("Test 1.0 layers backward pass.", "=", 10));
 
 		Sequential sq=new Sequential();
 		sq.add(new Conv1d(800, 1, 10, 21));
