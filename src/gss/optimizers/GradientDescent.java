@@ -31,15 +31,12 @@ public class GradientDescent extends Optimizer
 			if (!dt.hasGradient())
 				continue;
 			// Base gr=dt.detachGradient();
-			int[] tmpShp=new int[dt.shape.length];
+			// int[] tmpShp=new int[dt.shape.length];
 			for (int i=0;i < dt.length;i++)
 			{
-				indexToShape(i, dt.shape, tmpShp);
-				int ind=shapeToIndex(tmpShp, dt.shape, dt.strides);
-
-				float v=dt.getRaw(ind);
-				v -= dt.getRawGrad(ind) * learningRate;
-				dt.setRaw(ind, v);
+				float v=dt.get1d(i);
+				v -= dt.get1dGrad(i) * learningRate;
+				dt.set1d(i, v);
 				// dt[i] -= gr[i] * learningRate;
 			}
 		}

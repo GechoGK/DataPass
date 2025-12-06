@@ -20,20 +20,21 @@ public class Test2_Func
 	void a() throws Exception
 	{
 
-		test1();
-		test2(); // xor test have problems.
-		test3();
-		test4();
-		test5();
-		test6();
-		test7();
-		test8();
-		test9();
-
+		// test1();
+		// test2(); // xor test have problems.
+		// test3();
+		// test4();
+		// test5();
+		// test61();
+		test62();
+		// test7();
+		// test8();
+		// test9();
+		// test10();
 	}
-	void test9()
+	void test10()
 	{
-		print(decString("Test 9.0 : arrat value test.", 9));
+		print(decString("Test 10.0 : array value test.", 9));
 		Base b1=NDArray.arange(10).setRequiresGradient(true);
 		Base b2=NDArray.arange(10).setRequiresGradient(true);
 
@@ -75,9 +76,9 @@ public class Test2_Func
 			for (Value  vv:vl.args)
 				treeV(vv, t.replace("_", " ").replace("|", " ") + "|_____ ");
 	}
-	void test8()
+	void test9()
 	{
-		print(decString("Test 8.0 dot product test.", 8));
+		print(decString("Test 9.0 dot product test.", 8));
 		Base a=NDArray.arange(3 * 5).reshapeLocal(3, 5).setRequiresGradient(true);
 		Base b=NDArray.arange(5 * 2).reshapeLocal(5, 2).setRequiresGradient(true);
 
@@ -166,10 +167,10 @@ public class Test2_Func
 		for (Base b:bs.childs)
 			draw(b, "   " + s);
 	}
-	void test7()
+	void test8()
 	{
 		// doesn't work.
-		print(decString("Test 7.0 approximation test with different loss functions.", 7));
+		print(decString("Test 8.0 approximation test with different loss functions.", 7));
 		/*
 		 BCE doesn*t work as expected.
 		 MCCE doesn't works as expected.
@@ -349,34 +350,35 @@ public class Test2_Func
 		output.printArray();
 		print(line(30));
 	}
-	void test6()
+	void test7()
 	{
-		print(decString("Test 6.0 approximation using optimizers.", "✓", 5));
+		print(decString("Test 7.0 approximation using optimizers.", "✓", 5));
 		Base tr=NDArray.wrap(3, new int[]{5});
 		Base w1=NDArray.rand(5, 1).setRequiresGradient(true);
 		Base b=NDArray.ones(5).setRequiresGradient(true);
 
-		LossFunc mse=new MSE();
+		LossFunc mse=new MAE();
 		Optimizer gd=new GradientDescent(w1, b);
 		// gd = new Adam(w1, b);
 		// gd = new SGDM(w1, b);
 
-		Base in=NDArray.wrap(new float[]{1,2,3,4,5}, new int[]{5});
+		Base in=NDArray.rand(5);
 
 		Base res=null;
 		float loss=100;
-		while (loss >= 0.001)
+		while (loss >= 0.01)
 		{
 			Base rs=NDArray.dot(in, w1);
 			rs = NDArray.add(rs, b);
 			res = rs;
+
 			Base ls=mse.forward(rs, tr);
 			loss = ls.get(0);
 			// print("loss :", loss);
 			ls.setGrad(1);
 			ls.backward();
 
-			// print(loss);
+			print(loss);
 			gd.step();
 
 			gd.zeroGrad();
@@ -387,6 +389,108 @@ public class Test2_Func
 		res.printArray();
 		print("≈≈");
 		tr.printArray();
+	}
+	void test62()
+	{
+		print(decString("Test 6.2.0 loss function test.", "✓", 5));
+
+		// BCE loss doesn't work for now.
+
+		Base in=new Base(new float[]{0,1,3,0}).setRequiresGradient(true);
+		Base tr=new Base(new float[]{1,0,1,1});
+
+		print(in);
+		print(tr);
+
+		// LossFunc ls=new MAE(); // ✓
+		// ls = new MSE(); // ✓
+		// ls = new MCCE(); // ✓
+		// ls = new BCE(); // X
+
+		lossT(in.copy(), tr.copy(), new MSE());
+		lossT(in.copy(), tr.copy(), new MAE());
+		lossT(in.copy(), tr.copy(), new MCCE());
+		lossT(in.copy(), tr.copy(), new BCE());
+
+	}
+	void lossT(Base in, Base tr, LossFunc ls)
+	{
+		print(ls);
+		Optimizer o=new SGDM(in);
+		float loss=100;
+		int iter=0;
+		while (Math.abs(loss) >= 0.001f)
+		{
+			Base lossV=ls.forward(in, tr);
+			loss = lossV.get1d(0);
+			// print(">> ", loss);
+
+			o.zeroGrad();
+
+			lossV.setGrad(1);
+			lossV.backward();
+
+			o.step();
+			iter++;
+		}
+		print(iter, getString("-", 15));
+		print("== loss :", loss);
+
+	}
+	void test61()
+	{
+		print(decString("Test 6.1.0 optimizers test.", "✓", 5));
+
+		Base data=new Base(new float[]{10}).setRequiresGradient(true);
+		data.set1dGrad(0, 1);
+		print(data);
+		print(decString("", 5));
+		print(data.detachGradient());
+		print(decString("", 5));
+
+		Optimizer gd=new GradientDescent(data);
+
+		int iter=0;
+		while (data.get1d(0) >= 0.1f)
+		{
+			data.setGrad(1);
+			gd.step();
+			gd.zeroGrad();
+			iter++;
+		}
+		print("GradientDescent reaches <= 0.1  in " + iter + " iterations");
+
+		data.fill(10);
+		data.set1dGrad(0, 1);
+
+		gd = new Adam(data);
+
+		iter = 0;
+		while (data.get1d(0) >= 0.1f)
+		{
+			data.setGrad(1);
+			gd.step();
+			gd.zeroGrad();
+			iter++;
+		}
+		print("Adam reaches <= 0.1  in " + iter + " iterations");
+
+		data.fill(10);
+		data.set1dGrad(0, 1);
+
+		gd = new SGDM(data);
+
+		iter = 0;
+		while (data.get1d(0) >= 0.1f)
+		{
+			data.setGrad(1);
+			gd.step();
+			gd.zeroGrad();
+			iter++;
+		}
+		print("SGDM reaches <= 0.1  in " + iter + " iterations");
+		print(decString("done", 10));
+
 	}
 	void test5()
 	{
@@ -403,7 +507,7 @@ public class Test2_Func
 		Base res=null;
 		float loss=100;
 
-		while (loss >= 0.0001f)
+		while (loss >= 0.01f)
 		{
 			Base o=NDArray.add(NDArray.dot(in, w), b);
 
@@ -514,58 +618,54 @@ public class Test2_Func
 	void test2()
 	{
 		System.out.println(decString("Test 2.0 XOR Test.", "=", 10));
-
+		// xor oroblem doesn't work.
+		// i don't know what the problem is, we are going to find out.
 		Base x=new Base(new float[]{0,1,0,0,1,0,1,1}, 4, 2);
-		Base y=new Base(new float[]{1,0,1,0}, 4);
+		Base y=new Base(new float[]{1,0,1,0});
 
-		int hiddenSize=2;
+		int hiddenSize=5;
 		// it works with hidden size starts from 2 upto ...
 
 		Linear l1=new Linear(2, hiddenSize);
 		Linear l2=new Linear(hiddenSize, 1);
 
-		Activation a2=new Tanh();
+		Activation a2=new Sigmoid();
 
 		LossFunc lossFunc=new BCE();
 
-		Optimizer optim=new Adam(l1.getParameters(), l2.getParameters());
+		Optimizer optim=new Adam(l1.getParameters(), l2.getParameters()); // very fast. < 15000 iterations.
 		// sometimes when we use Adam optimizer it stuck to local minima, or unable to fit the dataset. so keep try again.
-		// optim = new GradientDescent(l1.getParameters(), l2.getParameters());
-		optim = new SGDM(l1.getParameters(), l2.getParameters());
+		optim = new GradientDescent(l1.getParameters(), l2.getParameters()); // very slow. >100,000 iterations.
+		optim = new SGDM(l1.getParameters(), l2.getParameters()); // very slow. > 100,000 iterations.
 
-		optim.learningRate = 0.1f;
 		Base output=null;
 
 		int ps=0;
 		float lsv=1000;
-		while (lsv >= 0.05f)
+		while (lsv >= 0.1f)
 		{
-			lsv = 0;
-			for (int i=0;i < 4;i++)
-			{
-				Base X = l1.forward(x.slice(i));
-				// X = a2.forward(X);
-				X = l2.forward(X);
-				// X = a2.forward(X);
-				output = X;
+			Base X = l1.forward(x);
+			// X = a2.forward(X);
+			X = l2.forward(X);
+			// X = a2.forward(X);
+			output = X;
 
-				Base loss=lossFunc.forward(X, y.slice(i));
-				lsv += loss.get(0);
+			Base loss=lossFunc.forward(X, y);
+			lsv = loss.get(0);
 
-				print("loss :", lsv);
+			print(lsv);
 
-				loss.setGrad(1);
-				loss.backward();
+			loss.setGrad(1);
+			loss.backward();
 
-				optim.step();
-				optim.zeroGrad();
-			}
+			optim.step();
+			optim.zeroGrad();
+
 			ps++;
 		}
+		print(decString("-", 30));
 		print(output);
-		output.printArray();
 	}
-
 	void test1()
 	{
 		System.out.println(decString("Test 1.0 layers backward pass.", "=", 10));

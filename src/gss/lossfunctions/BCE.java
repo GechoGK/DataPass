@@ -10,6 +10,13 @@ import static gss.Util.*;
 
 public class BCE extends LossFunc
 {
+	/*
+	 BCE us used for single output which will be 0 or 1.
+	 example.
+	 input  = [0];
+	 target = [1];
+	 use optimizer to update weights inorder to get result like target.
+	 */
 	@Override
 	public Base forward(Base predicted, Base target)
 	{
@@ -31,7 +38,7 @@ public class BCE extends LossFunc
 		}
 
 		// Average and negate (BCE formula)
-		loss = -loss / n;
+		loss = -(loss / n);
 		Base b = new Base(new float[]{loss});
 		b.setRequiresGradient(prd.hasGradient());
 		if (b.hasGradient())

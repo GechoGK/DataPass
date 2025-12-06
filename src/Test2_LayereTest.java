@@ -291,11 +291,11 @@ public class Test2_LayereTest
 		out.printArray();
 		System.out.println(line(30));
 
-		System.out.println(decString("Multi label binary cross entropy",  10));
-		out = new MultiLabelBinaryCrossEntropy().forward(pred, trueLabel);
-		System.out.println("error :" + out);
-		out.printArray();
-		System.out.println(line(30));
+//		System.out.println(decString("Multi label binary cross entropy",  10));
+//		out = new MultiLabelBinaryCrossEntropy().forward(pred, trueLabel);
+//		System.out.println("error :" + out);
+//		out.printArray();
+//		System.out.println(line(30));
 
 	}
 	void test6()

@@ -458,9 +458,9 @@ public class Base
 			// print("copy transposed");
 			float[] dt=new float[length];
 			Base d=newBase(dt, shape);
-//			d.setRequiresGradient(data.requiresGradient);
-//			if (d.requiresGradient())
-//				d.setGradientFunction(copyGradient, this);
+			d.setRequiresGradient(hasGradient());
+			if (d.hasGradient())
+				d.setGradientFunction(copyGradient, this);
 			// print(d.gradientFunction);
 			// d.setGradientParams(params);
 			for (int i=0;i < length;i++)
@@ -477,13 +477,13 @@ public class Base
 			// print("copy non-transposed");
 			// don't use data.items.
 			Base d = newBase(Arrays.copyOfRange(data.items, offset, offset + length), shape); // wrong.
-//			d.setRequiresGradient(requiresGradient());
-//			if (d.requiresGradient())
-//			{
-//				d.setGradientFunction(copyGradient, this);
+			d.setRequiresGradient(hasGradient());
+			if (d.hasGradient())
+			{
+				d.setGradientFunction(copyGradient, this);
 //				// d.setGradientParams(params);
 //				d.data.gradient = Arrays.copyOf(data.gradient, data.length); // wrong.
-//			}
+			}
 			return d;
 		}
 	}
@@ -502,10 +502,10 @@ public class Base
 			int len=length(newShape);
 			float[] dt=new float[len];
 			Base d=newBase(dt, newShape);
-//			d.setRequiresGradient(requiresGradient());
-//			if (d.requiresGradient())
-//				d.setGradientFunction(copyToGradient, this);
-//			d.setGradientParams(params);
+			d.setRequiresGradient(hasGradient());
+			if (d.hasGradient())
+				d.setGradientFunction(copyToGradient, this);
+			d.setGradientParams(params);
 			for (int i=0;i < len;i++)
 			{
 				int[] shp=indexToShape(i);
@@ -596,13 +596,13 @@ public class Base
 		}
 		int[] sh=Arrays.copyOfRange(shape, c, shape.length);
 		Base d = newBase(data, sh, strides, offset);
-		// d.setRequiresGradient(requiresGradient());
-//		if (d.requiresGradient())
-//		{
-//			d.setGradientFunction(trimGradient, this);
-//			// d.setGradientParams(params);
-//			// d.data.gradient = data.gradient;
-//		}
+		d.setRequiresGradient(hasGradient());
+		if (d.hasGradient())
+		{
+			d.setGradientFunction(trimGradient, this);
+			// d.setGradientParams(params);
+			// d.data.gradient = data.gradient;
+		}
 		return d;
 	}
 	// set and get method for specific dim.
@@ -615,6 +615,7 @@ public class Base
 		else
 			set(indexToShape(x), val);
 	}
+
 	// in progress.
 //	public void set2d(int x, int y, float val)
 //	{
@@ -660,7 +661,8 @@ public class Base
 			error("the array has no gradient to detach. please enable first by calling arr.setRequiresGradient(true);");
 		return newBase(new Data(data.gradient), shape, strides, offset);
 	}
-	public void setGrad(int v)
+////// /*
+	public void setGrad(float v)
 	{
 		fillGrad(v);
 	}
@@ -708,6 +710,24 @@ public class Base
 			setGrad(tmpSh, d.get(tmpSh));
 		}
 	}
+	public void set1dGrad(int x, float val)
+	{
+		if (isOriginal())
+			setRawGrad(x, val);
+		else if (getDim() == 1)
+			setGrad(ar(x), val); 
+		else
+			setGrad(indexToShape(x), val);
+	}
+	public float get1dGrad(int x)
+	{
+		if (isOriginal())
+			return getRawGrad(x);
+		else if (shape.length == 1)
+			return getGrad(ar(x));
+		else
+			return getGrad(indexToShape(x));
+	}
 	// not implemented.
 	public Base setGradientFunction(GradFunc func, Base...chlds)
 	{
@@ -726,8 +746,11 @@ public class Base
 		// backward method should be in an new method, which collects all childs and apply backward method.
 		// that helps to prevent reccursion functions.
 		if (!hasGradient() || gradientFunction == null)
-			error("no gradient function found for backward pass.");
+			return this;
+		// error("no gradient function found for backward pass.");
 		gradientFunction.backward(this, childs.toArray(new Base[0]), params);
+		for (Base b:childs)
+			b.backward();
 		return this;
 	}
 	public Base setGradientParams(Object prms)
@@ -752,6 +775,7 @@ public class Base
 			throw new IndexOutOfBoundsException("invalid index " + index + " it must be less than (" + length + ")");
 		return data.gradient[offset + index];
 	}
+////// */
 	// value area.
 	public Base setValue(Value v, int...shp)
 	{

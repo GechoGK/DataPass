@@ -9,6 +9,12 @@ public class MCCE extends LossFunc
 {
 	// MCCE = (multi label cross entropy).
 	// no softmax is used.
+	/*
+	 used for multi labe data which is either 0 or 1.
+	 example
+	 input  = [0, 1, 1, 0]; or any other
+	 target = [1, 0, 0, 1]; 
+	 */
 	@Override
 	public Base forward(Base predicted, Base target)
 	{

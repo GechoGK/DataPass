@@ -25,7 +25,7 @@ public class MAE extends LossFunc
 		{
 			loss += Math.abs(prd.get(i) - tr.get(i));
 		}
-
+		
 		// Average the sum
 		loss /= n;
 
@@ -37,7 +37,6 @@ public class MAE extends LossFunc
 		return b;
 	}
 	private static GradFunc maeGrad=new GradFunc("mean absolute error"){
-
 		@Override
 		public Base backward(Base host, Base[] childs, Object params)
 		{
