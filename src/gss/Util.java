@@ -261,7 +261,15 @@ public class Util
 	{
 		return new int[]{start,end,inc};
 	}
+	public static void println(Object...objs)
+	{
+		printO(true, objs);
+	}
 	public static void print(Object...objs)
+	{
+		printO(false, objs);
+	}
+	public static void printO(boolean newLn, Object...objs)
 	{
 		for (Object o:objs)
 		{
@@ -269,9 +277,21 @@ public class Util
 				System.out.print(Arrays.toString((int[])o));
 			else if (o instanceof float[])
 				System.out.print(Arrays.toString((float[])o));
+			else if (o instanceof char[])
+				System.out.print(Arrays.toString((char[])o));
+			else if (o instanceof long[])
+				System.out.print(Arrays.toString((long[])o));
+			else if (o instanceof short[])
+				System.out.print(Arrays.toString((short[])o));
+			else if (o instanceof byte[])
+				System.out.print(Arrays.toString((byte[])o));
+			else if (o instanceof boolean[])
+				System.out.print(Arrays.toString((boolean[])o));
+			else if (o instanceof Object[])
+				System.out.print(Arrays.toString((Object[])o));
 			else
 				System.out.print(o);
-			System.out.print(" ");
+			System.out.print(newLn ?"\n": " ");
 		}
 		System.out.println();
 	}

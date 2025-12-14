@@ -42,10 +42,11 @@ public abstract class GradFunc
 			for (int i=0;i < host.length;i++)
 			{
 				indexToShape(i, shape, tmpShape);
+				float f=host.getGrad(tmpShape);
 				if (a1.hasGradient())
-					a1.setGrad(tmpShape, host.getGrad(tmpShape));
+					a1.setGrad(tmpShape, f);
 				if (a2.hasGradient())
-					a2.setGrad(tmpShape, host.getGrad(tmpShape));
+					a2.setGrad(tmpShape, f);
 			}
 			return null;
 		}

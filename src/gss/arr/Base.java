@@ -14,6 +14,7 @@ public class Base
 	// fix. shape = shp;
 	// fix. strides = strds;
 	// fix. data.items = data.items;
+
 	public int[] shape;
 	public int[] strides;
 	public int length;
@@ -349,14 +350,14 @@ public class Base
 		if (length != length(newShape))
 			throw new RuntimeException("can't view this array into " + Arrays.toString(newShape) + " shape. Reason!! the length is not equal");
 		Base d=newBase(data, newShape, offset);
-		// d.setRequiresGradient(requiresGradient);
-//		if (d.requiresGradient())
-//		{
-//			d.setGradientFunction(reshapeGradient, this);
+		d.setRequiresGradient(hasGradient());
+		if (d.hasGradient())
+		{
+			d.setGradientFunction(reshapeGradient, this);
 //			// d.setGradientFunction(gradientFunction);
 //			// d.setGradientParams(params);
 //			// d.gradient = gradient;
-//		}
+		}
 		return d;
 	}
 	public Base reshapeLocal(int...newShape)
@@ -395,13 +396,13 @@ public class Base
 			p++;
 		}
 		Base d = newBase(data, sh, strd, offset);
-		// d.setRequiresGradient(requiresGradient());
-//		if (d.requiresGradient())
-//		{
-//			d.setGradientFunction(transposeGradient, this);
+		d.setRequiresGradient(hasGradient());
+		if (d.hasGradient())
+		{
+			d.setGradientFunction(transposeGradient, this);
 //			// d.setGradientParams(params);
 //			// d.gradient = gradient;
-//		}
+		}
 		return d;
 	}
 	public int[] fillShape(int...shp)
@@ -467,8 +468,8 @@ public class Base
 			{
 				int[] shp=indexToShape(i);
 				dt[i] = get(shp);
-//				if (d.requiresGradient())
-//					d.data.gradient[i] = getGrad(shp);
+				if (d.hasGradient())
+					d.setRawGrad(i,  getGrad(shp));
 			}
 			return d;
 		}
@@ -476,13 +477,13 @@ public class Base
 		{
 			// print("copy non-transposed");
 			// don't use data.items.
-			Base d = newBase(Arrays.copyOfRange(data.items, offset, offset + length), shape); // wrong.
+			Base d = newBase(Arrays.copyOfRange(data.items, offset, offset + length), shape);
 			d.setRequiresGradient(hasGradient());
 			if (d.hasGradient())
 			{
 				d.setGradientFunction(copyGradient, this);
 //				// d.setGradientParams(params);
-//				d.data.gradient = Arrays.copyOf(data.gradient, data.length); // wrong.
+				d.data.gradient = Arrays.copyOfRange(data.gradient, offset, offset + data.length); // wrong.
 			}
 			return d;
 		}
@@ -504,14 +505,14 @@ public class Base
 			Base d=newBase(dt, newShape);
 			d.setRequiresGradient(hasGradient());
 			if (d.hasGradient())
-				d.setGradientFunction(copyToGradient, this);
-			d.setGradientParams(params);
+				d.setGradientFunction(copyToGradient, params, this);
+			// d.setGradientParams(params);
 			for (int i=0;i < len;i++)
 			{
 				int[] shp=indexToShape(i);
 				dt[i] = get(shp);
-//				if (d.requiresGradient())
-//					d.data.gradient[i] = getGrad(shp);
+				if (d.hasGradient())
+					d.setRawGrad(i, getGrad(shp));
 			}
 			return d;
 		}
@@ -595,7 +596,8 @@ public class Base
 			c = shape.length == 1 ?1: shape.length - 1;
 		}
 		int[] sh=Arrays.copyOfRange(shape, c, shape.length);
-		Base d = newBase(data, sh, strides, offset);
+		int[] strd=Arrays.copyOfRange(strides, c, strides.length);
+		Base d = newBase(data, sh, strd, offset);
 		d.setRequiresGradient(hasGradient());
 		if (d.hasGradient())
 		{
@@ -615,17 +617,6 @@ public class Base
 		else
 			set(indexToShape(x), val);
 	}
-
-	// in progress.
-//	public void set2d(int x, int y, float val)
-//	{
-//
-//	}
-//	// in progress.
-//	public void set3d(int x, int y, int z, float val)
-//	{
-//
-//	}
 	public float get1d(int x)
 	{
 		if (isOriginal())
@@ -635,16 +626,6 @@ public class Base
 		else
 			return get(indexToShape(x));
 	}
-	// in progress.
-//	public float getFrom2d(int x, int y)
-//	{
-//		return 0;
-//	}
-//	// in progress.
-//	public float getFrom3d(int x, int y, int z)
-//	{
-//		return 0;
-//	}
 	// gradient area.
 	public boolean hasGradient()
 	{
@@ -680,7 +661,7 @@ public class Base
 	{
 		if (!hasGradient())
 			error("the array has no gradient to fill. please enable first by calling arr.setRequiresGradient(true);");
-		// don't fill all items.
+		// don't fill using Array.fill.
 		// instead loop over items and set their value.
 		if (!isOriginal())
 		{
@@ -731,6 +712,10 @@ public class Base
 	// not implemented.
 	public Base setGradientFunction(GradFunc func, Base...chlds)
 	{
+		return setGradientFunction(func, null, chlds);
+	}
+	public Base setGradientFunction(GradFunc func, Object prms, Base...chlds)
+	{
 		if (!hasGradient())
 			error("gradient not enabled. enable by calling base.setRequiresGradient();");
 		if (childs == null)
@@ -738,6 +723,7 @@ public class Base
 		for (Base b:chlds)
 			childs.add(b);
 		gradientFunction = func;
+		params = prms;
 		return this;
 	}
 	public Base backward()
@@ -753,11 +739,11 @@ public class Base
 			b.backward();
 		return this;
 	}
-	public Base setGradientParams(Object prms)
-	{
-		params = prms;
-		return this;
-	}
+//	public Base setGradientParams(Object prms)
+//	{
+//		params = prms;
+//		return this;
+//	}
 	public Base zeroGrad()
 	{
 		fillGrad(0);

@@ -8,7 +8,7 @@ import static gss.arr.NDArray.*;
 
 public class Main
 {
-	public static void main2(String[] args) throws Exception
+	public static void main(String[] args) throws Exception
 	{
 
 		new Main().a();
@@ -16,7 +16,31 @@ public class Main
 	}
 	void a() throws Exception
 	{
+//		test1();
+//		test2();
+//		test3();
+//		test4();
+//		test5();
+//		test6();
+//
+//		print(getString("=", 30));
+//
+//		Test1_NDArrayData.test();
+//
+//		print(getString("=", 30));
+//
+//		Test2_LayereTest.test();
+//
+//		print(getString("=", 30));
+//
+		Test2_Func.test();
 
+		print(decString("Test completed.", "=", 10));
+
+	}
+	void test6() throws Exception
+	{
+		print(decString("Test 6.0 Value class for BCE", 10));
 		Base b=new Base(new float[]{.2f,.5f,.9f}).setRequiresGradient(true);
 		Base bt=new Base(new float[]{0,0,1}).setRequiresGradient(true);
 		Base b2=b.copy();
@@ -38,7 +62,7 @@ public class Main
 		c2.setGrad(1);
 		c2.backward();
 		b2.detachGradient().printArray();
-		
+
 		// Test2_Func.tree(c2, "");
 
 	}
@@ -191,7 +215,7 @@ public class Main
 		print(b3);
 		b3.printArray();
 		print(line(20));
-		b3.setGrad(NDArray.arange(1, 41));
+		b3.setGrad(NDArray.arange(1, 41).reshapeLocal(b3.shape));
 		b3.backward();
 		b1.detachGradient().printArray();
 		print(line(5));
@@ -208,7 +232,7 @@ public class Main
 		print(d3);
 		d3.printArray();
 		print(line(20));
-		d3.setGrad(NDArray.arange(1, 41));
+		d3.setGrad(NDArray.arange(1, 41).reshapeLocal(d3.shape));
 		d3.backward();
 		d1.detachGradient().printArray();
 		print(line(5));
@@ -231,7 +255,7 @@ public class Main
 
 		Base o=new Tanh().forward(bg);
 		o.printArray();
-		o.setGrad(NDArray.arange(1, 21));
+		o.setGrad(NDArray.arange(1, 21).reshapeLocal(2, 10));
 		o.backward();
 		print(line(10));
 		bg.detachGradient().printArray();
@@ -243,7 +267,7 @@ public class Main
 		print(b2);
 		b2.printArray();
 		print(line(10));
-		b2.setGrad(NDArray.arange(1, 21));
+		b2.setGrad(NDArray.arange(1, 21).reshapeLocal(2, 10));
 		b2.backward();
 		b.detachGradient().printArray();
 
@@ -264,7 +288,7 @@ public class Main
 
 		Base o=new Sigmoid().forward(bg);
 		o.printArray();
-		o.setGrad(NDArray.arange(20));
+		o.setGrad(NDArray.arange(20).reshapeLocal(2, 10));
 		o.backward();
 		print(line(10));
 		bg.detachGradient().printArray();
@@ -276,7 +300,7 @@ public class Main
 		print(b2);
 		b2.printArray();
 		print(line(10));
-		b2.setGrad(NDArray.arange(20));
+		b2.setGrad(NDArray.arange(20).reshapeLocal(2, 10));
 		b2.backward();
 		b.detachGradient().printArray();
 
@@ -297,7 +321,7 @@ public class Main
 
 		Base o=new Relu().forward(bg);
 		o.printArray();
-		o.setGrad(NDArray.arange(1, 21));
+		o.setGrad(NDArray.arange(1, 21).reshape(2, 10));
 		o.backward();
 		print(line(10));
 		bg.detachGradient().printArray();
@@ -308,7 +332,7 @@ public class Main
 		Base b2=TestValue.relu(b);
 		print(b2);
 		print(line(10));
-		b2.setGrad(NDArray.arange(1, 21));
+		b2.setGrad(NDArray.arange(1, 21).reshape(2, 10));
 		b2.backward();
 		b.detachGradient().printArray();
 

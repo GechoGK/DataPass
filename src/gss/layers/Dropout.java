@@ -42,8 +42,9 @@ public class Dropout extends Module
         }
         Base b = new Base(output, input.shape);
 		b.setRequiresGradient(input.hasGradient());
-		b.setGradientFunction(dropoutGradient, in);
-		b.setGradientParams(mask);
+		if (b.hasGradient())
+			b.setGradientFunction(dropoutGradient, mask, in);
+		// b.setGradientParams(mask);
 		return b;
     }
 	public static GradFunc dropoutGradient = new GradFunc("dropout"){

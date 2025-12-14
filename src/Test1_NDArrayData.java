@@ -77,8 +77,9 @@ public class Test1_NDArrayData
 	public static void draw(Base bs, String s)
 	{
 		System.out.println(s + bs.gradientFunction);
-		for (Base b:bs.childs)
-			draw(b, "   " + s);
+		if (bs.childs != null)
+			for (Base b:bs.childs)
+				draw(b, "   " + s);
 	}
 	public static void  test9()
 	{
@@ -217,6 +218,7 @@ public class Test1_NDArrayData
 		System.out.println(d4);
 		System.out.println("trimmed to");
 		Base d6 = d4.trim();
+		println(d6.strides, d4.strides);
 		System.out.println(d6);
 		System.out.println("shape change happen due to trim = " + (d4 != d6));
 		System.out.println(getString("-", 20));

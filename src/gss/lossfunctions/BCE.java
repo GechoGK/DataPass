@@ -16,6 +16,7 @@ public class BCE extends LossFunc
 	 input  = [0];
 	 target = [1];
 	 use optimizer to update weights inorder to get result like target.
+	 the input to the BCE should be normalized(sigmoid,tanh)(-1,1), if not it may have unexpected results.
 	 */
 	@Override
 	public Base forward(Base predicted, Base target)
@@ -73,30 +74,12 @@ public class BCE extends LossFunc
 			return null;
 		}
 	};
-//	private static float[] backward(float[] grad, float[] x, float[] trueLabel)
-//	{
-//		int n = x.length;
-//		float[] gradient = new float[n];
-//		final float epsilon = 1e-7f; // Avoid division by 0
-//
-//		for (int i = 0; i < n; i++)
-//		{
-//			// Clip predictions to [epsilon, 1-epsilon]
-//			float p = Math.max(epsilon, Math.min(x[i], 1 - epsilon));
-//
-//			// Gradient formula: (p - y) / (p * (1 - p)) * (1/n) * grad[0]
-//			float grad_i = (p - trueLabel[i]) / (p * (1 - p));
-//			gradient[i] = (grad_i / n) * grad[0];
-//		}
-//		return gradient;
-//	}
-
 	// example
 //	public static void main(String[]args) throws Exception
 //	{
 //		BCE b=new BCE();
 //		// Forward pass
-//		float[][] pred = {{0.2f, 0.8f},{0.79f,0.3f}};
+//		float[][] pred = {{5.2f, 10.8f},{0.79f,0.3f}};
 //		float[][]trueLabel = {{1.0f, 0.0f},{1,0}};
 ////		float[] loss = b.forward(pred, trueLabel); // Returns [~1.609]
 ////
@@ -118,7 +101,6 @@ public class BCE extends LossFunc
 //		{
 //			Base rs=b.forward(pr, tr);
 //			// print("loss " + rs);
-//			rs.printArray();
 //			loss = rs.get(0);
 //			// print("---- grad ----");
 //			rs.fillGrad(1);
@@ -127,14 +109,13 @@ public class BCE extends LossFunc
 //
 //			gd.step();
 //			gd.zeroGrad();
-//
+//			print(loss);
 //			// Thread.sleep(50);
 //			if (loss <= 0.0001f)
 //				break;
 //		}
 //		print(line(20));
 //		print("loss :" + loss);
-//		pr.printArray();
 //		// Test1.test(Arrays.equals(rs.base.data.getData(), loss), "loss equals with Data");
 //		// Test1.test(Arrays.equals(pr.base.data.getGrads(), gradient), "gradient equals with Data");
 //	}

@@ -9,7 +9,7 @@ import static java.util.Arrays.*;
 
 public class Test2_LayereTest
 {
-	public static void test(String[] args)
+	public static void test()
 	{
 
 		new Test2_LayereTest().a();
@@ -35,7 +35,7 @@ public class Test2_LayereTest
 		test14();
 		test15();
 		test16();
-		
+
 	}
 	void test16()
 	{

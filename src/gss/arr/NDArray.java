@@ -332,8 +332,9 @@ public class NDArray
 				bs.set(new int[]{ar,br}, sm);
 			}
 		bs.setRequiresGradient(a.hasGradient() | b.hasGradient());
-		bs = bs.setGradientFunction(GradFunc.dotGradient, a, b).reshape(out);
-		return bs;
+		if (bs.hasGradient())
+			bs.setGradientFunction(GradFunc.dotGradient, a, b);
+		return bs.reshape(out);
 	}
 	public static int[] dotAxis(int len)
 	{
@@ -555,5 +556,10 @@ public class NDArray
 			outData.set(ar(i) , sm);
 		}
 		return outData;
+	}
+	public static Base sum(Base b, int axis)
+	{
+		error("the sum function is not available at the moment, please review the code.");
+		return null;
 	}
 }
