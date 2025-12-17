@@ -129,8 +129,6 @@ public class Base
 	{
 		return shape.length;
 	}
-	// gradient area.
-	// end gradient area.
 	public Base slice(int...ind)
 	{
 		if (ind.length > shape.length)
@@ -278,24 +276,24 @@ public class Base
 
 	 */
 	// !! does it work on transposed array ?????
-	public void set(int[]startIndex, float...values)
-	{
-		int ind=shapeToIndex(startIndex);
-		int pos=0;
-		for (int i=ind;i < ind + Math.min(values.length, data.length - ind);i++)
-			data.items[i] = values[pos++];
-	}
-	// this method is the same as set Array but it repeates the same value upto the count range.
-	public void set(int[]index, float val, int count)
-	{
-		int ind=shapeToIndex(index);
-		if (count == -1)
-			count = data.length - ind;
-		for (int i=ind;i < ind + Math.min(count, data.length - ind);i++)
-		{
-			data.items[i] = val;
-		}
-	}
+//	public void set(int[]startIndex, float...values)
+//	{
+//		int ind=shapeToIndex(startIndex);
+//		int pos=0;
+//		for (int i=ind;i < ind + Math.min(values.length, data.length - ind);i++)
+//			data.items[i] = values[pos++];
+//	}
+//	// this method is the same as set Array but it repeates the same value upto the count range.
+//	public void set(int[]index, float val, int count)
+//	{
+//		int ind=shapeToIndex(index);
+//		if (count == -1)
+//			count = data.length - ind;
+//		for (int i=ind;i < ind + Math.min(count, data.length - ind);i++)
+//		{
+//			data.items[i] = val;
+//		}
+//	}
 	// not tested.
 	public float getRaw(int index)
 	{
@@ -405,7 +403,7 @@ public class Base
 		}
 		return d;
 	}
-	public int[] fillShape(int...shp)
+	private int[] fillShape(int...shp)
 	{
 		int nIndex=-1;
 		for (int i=0;i < shp.length;i++)
@@ -491,7 +489,6 @@ public class Base
 	// not tested
 	// needs some improvements.
 	// it must support broadcasting.
-
 	public Base copyTo(int...newShape)
 	{
 		if (Arrays.equals(newShape, shape))
@@ -710,6 +707,12 @@ public class Base
 			return getGrad(indexToShape(x));
 	}
 	// not implemented.
+	public Base setGradientFunctionS(GradFunc func, Base...childs)
+	{
+		if (!hasGradient())
+			return this;
+		return setGradientFunction(func, null, childs);
+	}
 	public Base setGradientFunction(GradFunc func, Base...chlds)
 	{
 		return setGradientFunction(func, null, chlds);
@@ -739,11 +742,6 @@ public class Base
 			b.backward();
 		return this;
 	}
-//	public Base setGradientParams(Object prms)
-//	{
-//		params = prms;
-//		return this;
-//	}
 	public Base zeroGrad()
 	{
 		fillGrad(0);

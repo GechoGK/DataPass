@@ -2,6 +2,7 @@ package gss;
 
 import gss.arr.*;
 import java.util.*;
+import static gss.Functions.*;
 
 public class Util
 {
@@ -364,5 +365,49 @@ public class Util
 	public static int[] copy(int[]src)
 	{
 		return Arrays.copyOf(src, src.length);
+	}
+	// new functions
+	public static int[] removeAtIndex(int[]arr, int ind)
+	{
+		if (ind >= arr.length)
+			error("invalid index range(" + ind + ")");
+		int[] newArr=new int[arr.length - 1];
+		int index=0;
+		for (int i=0;i < arr.length;i++)
+		{
+			if (i == ind)
+				continue;
+			newArr[index++] = arr[i];
+		}
+		return newArr;
+	}
+	public static int[] putAtIndex(int[]arr, int val, int ind)
+	{
+		if (ind < 0 || ind >= arr.length + 1)
+			error("invalid index range(" + ind + ")");
+		int[] newArr=new int[arr.length + 1];
+		int index=0;
+		for (int i=0;i < newArr.length;i++)
+		{
+			if (i == ind)
+				continue;
+			newArr[i] =  arr[index++];
+		}
+		newArr[ind] = val;
+		return newArr;
+	}
+	public static int[][] loop(int[]shape)
+	{
+		int len=length(shape);
+		int[][]out=new int[len][];
+		for (int i=0;i < len;i++)
+			out[i] = indexToShape(i, shape);
+		return out;
+	}
+	public static void loop(int[]shape, ArrayToFloatFunction func)
+	{
+		int len=length(shape);
+		for (int i=0;i < len;i++)
+			func.consume(indexToShape(i, shape));
 	}
 }

@@ -282,11 +282,11 @@ public class Test1_NDArrayData
 		d2.set(ar(10, 1), 73); // add 73 into data.
 		System.out.println(Arrays.toString(d2.get(new int[]{0}, 30)));
 
-		d2.set(ar(0, 0), 88, 100); // add 88 100 times into data.
-		System.out.println(Arrays.toString(d2.get(new int[]{0}, 30)));
-
-		d2.set(ar(0, 0), 77, -1); // add 88 (-1) the remaining length times into data.
-		System.out.println(Arrays.toString(d2.get(new int[]{0}, -1)));
+//		d2.set(ar(0, 0), 88, 100); // add 88 100 times into data.
+//		System.out.println(Arrays.toString(d2.get(new int[]{0}, 30)));
+//
+//		d2.set(ar(0, 0), 77, -1); // add 88 (-1) the remaining length times into data.
+//		System.out.println(Arrays.toString(d2.get(new int[]{0}, -1)));
 	}
 	public static void  test3()
 	{
@@ -295,7 +295,7 @@ public class Test1_NDArrayData
 		System.out.println(d2);
 		System.out.println(getString("-", 20));
 
-		d2.set(ar(0), 73, 43, 57, 43, 78, 58, 22); // add [73, 43, ..., 22] array into the data.
+		// d2.set(ar(0), 73, 43, 57, 43, 78, 58, 22); // add [73, 43, ..., 22] array into the data.
 
 		System.out.println(Arrays.toString(d2.get(new int[]{0}, 30)));
 

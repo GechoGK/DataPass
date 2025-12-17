@@ -4,9 +4,11 @@ import gss.arr.*;
 import gss.layers.*;
 import gss.lossfunctions.*;
 import gss.optimizers.*;
+import java.util.function.*;
 
 import static gss.Util.*;
 import static gss.arr.GradFunc.*;
+import static gss.Functions.*;
 
 public class Test2_Func
 {
@@ -32,29 +34,47 @@ public class Test2_Func
 //		test8();
 //		test9();
 //		test10();
-		test11();
+//		test11();
+		test12();
+
+	}
+	void test12()
+	{
+
+		Base a=NDArray.wrap(5, 5, 2);
+		Base b=NDArray.wrap(10, 5, 2);
+
+		Base c=NDArray.add(a, b);
+
+		println(a, b, c);
 
 	}
 	void test11()
 	{
 
-		Base ws1=NDArray.mul(NDArray.rand(4, 2, 5), 0.5f).setRequiresGradient(true);
-		Base ws2=NDArray.mul(NDArray.rand(5, 1), 0.5f).setRequiresGradient(true);
-		Base ts=NDArray.wrap(new float[]{0f, 1f, 1f, 0f}, 4, 1);
+		final Base b1=NDArray.arange(60).reshapeLocal(3, 4, 5);
 
-		Base in=NDArray.wrap(new float[]{0,0,1,0,0,1,1,1}, 4, 2);
+		println(b1.shape, b1);
 
-		Base rs=NDArray.dot(NDArray.dot(in, ws1), ws2);
+		final int axis=0;
+		ArrayToFloatFunction cons=new ArrayToFloatFunction(){
+			@Override
+			public float consume(int[] p1)
+			{
+				float out=0;
+				for (int i=0;i < b1.shape[axis];i++)
+				{
+					int[]ar=putAtIndex(p1, i, axis);
+					out += b1.get(ar);
+				}
+				return out;
+			}
+		};
+		loop(removeAtIndex(b1.shape, axis), cons);
 
-		println("weight 1", ws1, "weight 2", ws2, "input", in, "result === ", rs, "target", ts);
-
-		println("difference", NDArray.sub(rs,ts));
-
-		Base ls=new MSE().forward(rs,ts);
-
-		print("loss", ls);
 
 	}
+
 	void test10()
 	{
 		print(decString("Test 10.0 : array value test.", 9));

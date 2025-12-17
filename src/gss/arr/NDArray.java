@@ -1,16 +1,17 @@
 package gss.arr;
 
-import gss.*;
 import java.util.*;
 
 import static gss.Util.*;
 import static gss.arr.GradFunc.*;
+import static gss.Functions.*;
 
 public class NDArray
 {
 	/*
 	 -- remove all setRaw functions.
 	 */
+	// array generators.
 	public static Base arange(float end)
 	{
 		return arange(0, end, 1);
@@ -30,6 +31,10 @@ public class NDArray
 		return wrap(1, shape);
 	}
 	public static Base zeros(int...shape)
+	{
+		return wrap(0, shape);
+	}
+	public static Base empty(int...shape)
 	{
 		return wrap(0, shape);
 	}
@@ -75,227 +80,236 @@ public class NDArray
 		return d;
 	}
 	// mathematical operations.
-	// addition
-	public static Base add(Base d1, Base d2)
+	public static Base zip(Base p1, Base p2, ZipFunction zipFunc)
 	{
-		int[] sh=getCommonShape(d1.shape, d2.shape);
-		Base res=new Base(sh).setRequiresGradient(d1.hasGradient() | d2.hasGradient());
-		if (res.hasGradient())
-			res.setGradientFunction(additionGradient, d1, d2);
+		int[] sh=getCommonShape(p1.shape, p2.shape);
+		Base res=new Base(sh).setRequiresGradient(p1.hasGradient() || p2.hasGradient());
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
 		{
 			indexToShape(i, sh, tmpSh);
-			float op1=d1.get(tmpSh);
-			float op2=d2.get(tmpSh);
-			res.set(tmpSh, op1 + op2);
+			float op1=p1.get(tmpSh);
+			float op2=p2.get(tmpSh);
+			res.set(tmpSh, zipFunc.apply(op1, op2));
 		}
 		return res;
 	}
-	public static Base add(Base d1, float d2)
+	// addition
+	public static Base add(Base d1, Base d2)
 	{
-		int[] sh=d1.shape;
-		Base res=new Base(sh).setRequiresGradient(d1.hasGradient());
-		Base data2=new Base(new float[]{d2}); // don't use for computation, it is just for gradient.
+		Base out=zip(d1, d2, new ZipFunction(){
+				@Override
+				public float apply(float p1, float p2)
+				{
+					return p1 + p2;
+				}
+			});
+		return out.setGradientFunctionS(additionGradient, d1, d2);
+	}
+	public static Base add(Base p1, float p2)
+	{
+		int[] sh=p1.shape;
+		Base res=new Base(sh).setRequiresGradient(p1.hasGradient());
+		Base data2=new Base(new float[]{p2}); // don't use for computation, it is just for gradient.
 		if (res.hasGradient())
-			res.setGradientFunction(additionGradient, d1, data2);
+			res.setGradientFunction(additionGradient, p1, data2);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
 		{
 			indexToShape(i, sh, tmpSh);
-			float op1=d1.get(tmpSh);
-			res.set(tmpSh, op1 + d2);
+			float op1=p1.get(tmpSh);
+			res.set(tmpSh, op1 + p2);
 		}
 		return res;
 	}
 	// subtraction
-	public static Base sub(Base d1, Base d2)
+	public static Base sub(Base p1, Base p2)
 	{
-		int[] sh=getCommonShape(d1.shape, d2.shape);
-		Base res=new Base(sh).setRequiresGradient(d1.hasGradient() | d2.hasGradient());
+		int[] sh=getCommonShape(p1.shape, p2.shape);
+		Base res=new Base(sh).setRequiresGradient(p1.hasGradient() | p2.hasGradient());
 		if (res.hasGradient())
-			res.setGradientFunction(subtractionGradient, d1, d2);
+			res.setGradientFunction(subtractionGradient, p1, p2);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
 		{
 			indexToShape(i, sh, tmpSh);
-			float op1=d1.get(tmpSh);
-			float op2=d2.get(tmpSh);
+			float op1=p1.get(tmpSh);
+			float op2=p2.get(tmpSh);
 			res.setRaw(i, op1 - op2);
 		}
 		return res;
 	}
-	public static Base sub(Base d1, float d2)
+	public static Base sub(Base p1, float p2)
 	{
-		int[] sh=d1.shape;
-		Base res=new Base(sh).setRequiresGradient(d1.hasGradient());
-		Base data2=new Base(new float[]{d2}); // don't use for computation, it is just for gradient.
+		int[] sh=p1.shape;
+		Base res=new Base(sh).setRequiresGradient(p1.hasGradient());
+		Base data2=new Base(new float[]{p2}); // don't use for computation, it is just for gradient.
 		if (res.hasGradient())
-			res.setGradientFunction(subtractionGradient, d1, data2);
+			res.setGradientFunction(subtractionGradient, p1, data2);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
 		{
 			indexToShape(i, sh, tmpSh);
-			float op1=d1.get(tmpSh);
-			res.setRaw(i, op1 - d2);
+			float op1=p1.get(tmpSh);
+			res.setRaw(i, op1 - p2);
 		}
 		return res;
 	}
 	// thus functions is optional.
-	public static Base sub(float d1, Base d2)
+	public static Base sub(float p1, Base p2)
 	{
-		int[] sh=d2.shape;
-		Base res=new Base(sh).setRequiresGradient(d2.hasGradient());
-		Base data1=new Base(new float[]{d1}); // don't use for computation, it is just for gradient.
+		int[] sh=p2.shape;
+		Base res=new Base(sh).setRequiresGradient(p2.hasGradient());
+		Base data1=new Base(new float[]{p1}); // don't use for computation, it is just for gradient.
 		if (res.hasGradient())
-			res.setGradientFunction(subtractionGradient, data1, d2);
+			res.setGradientFunction(subtractionGradient, data1, p2);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
 		{
 			indexToShape(i, sh, tmpSh);
-			float op2=d2.get(tmpSh);
-			res.setRaw(i, d1 - op2);
+			float op2=p2.get(tmpSh);
+			res.setRaw(i, p1 - op2);
 		}
 		return res;
 	}
 	// multiplication
-	public static Base mul(Base d1, Base d2)
+	public static Base mul(Base p1, Base p2)
 	{
-		int[] sh=getCommonShape(d1.shape, d2.shape);
-		Base res=new Base(sh).setRequiresGradient(d1.hasGradient() | d2.hasGradient());
+		int[] sh=getCommonShape(p1.shape, p2.shape);
+		Base res=new Base(sh).setRequiresGradient(p1.hasGradient() | p2.hasGradient());
 		if (res.hasGradient())
-			res.setGradientFunction(multiplicationGradient, d1, d2);
+			res.setGradientFunction(multiplicationGradient, p1, p2);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
 		{
 			indexToShape(i, sh, tmpSh);
-			float op1=d1.get(tmpSh);
-			float op2=d2.get(tmpSh);
+			float op1=p1.get(tmpSh);
+			float op2=p2.get(tmpSh);
 			res.setRaw(i, op1 * op2);
 		}
 		return res;
 	}
-	public static Base mul(Base d1, float d2)
+	public static Base mul(Base p1, float p2)
 	{
-		int[] sh=d1.shape;
-		Base res=new Base(sh).setRequiresGradient(d1.hasGradient());
-		Base data2=new Base(new float[]{d2}); // don't use for computation, it is just for gradient.
+		int[] sh=p1.shape;
+		Base res=new Base(sh).setRequiresGradient(p1.hasGradient());
+		Base data2=new Base(new float[]{p2}); // don't use for computation, it is just for gradient.
 		if (res.hasGradient())
-			res.setGradientFunction(multiplicationGradient, d1, data2);
+			res.setGradientFunction(multiplicationGradient, p1, data2);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
 		{
 			indexToShape(i, sh, tmpSh);
-			float op1=d1.get(tmpSh);
-			res.setRaw(i, op1 * d2);
+			float op1=p1.get(tmpSh);
+			res.setRaw(i, op1 * p2);
 		}
 		return res;
 	}
 	// division
-	public static Base div(Base d1, Base d2)
+	public static Base div(Base p1, Base p2)
 	{
-		int[] sh=getCommonShape(d1.shape, d2.shape);
+		int[] sh=getCommonShape(p1.shape, p2.shape);
 		Base res=new Base(sh);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
 		{
 			indexToShape(i, sh, tmpSh);
-			float op1=d1.get(tmpSh);
-			float op2=d2.get(tmpSh);
+			float op1=p1.get(tmpSh);
+			float op2=p2.get(tmpSh);
 			res.setRaw(i, op2 == 0 ?0: op1 / op2);
 		}
 		return res;
 	}
-	public static Base div(Base d1, float d2)
+	public static Base div(Base p1, float p2)
 	{
-		int[] sh=d1.shape;
+		int[] sh=p1.shape;
 		Base res=new Base(sh);
-		if (d2 == 0)
+		if (p2 == 0)
 			return res;
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
 		{
 			indexToShape(i, sh, tmpSh);
-			float op1=d1.get(tmpSh);
-			res.setRaw(i, op1 / d2);
+			float op1=p1.get(tmpSh);
+			res.setRaw(i, op1 / p2);
 		}
 		return res;
 	}
 
 	// this functions is optional.
-	public static Base div(float d1, Base d2)
+	public static Base div(float p1, Base p2)
 	{
-		int[] sh=d2.shape;
+		int[] sh=p2.shape;
 		Base res=new Base(sh);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
 		{
 			indexToShape(i, sh, tmpSh);
-			float op2=d2.get(tmpSh);
-			res.setRaw(i, op2 == 0 ?0: d1 / op2);
+			float op2=p2.get(tmpSh);
+			res.setRaw(i, op2 == 0 ?0: p1 / op2);
 		}
 		return res;
 	}
 	// power function.
-	public static Base pow(Base d1, Base d2)
+	public static Base pow(Base p1, Base p2)
 	{
-		int[] sh=getCommonShape(d1.shape, d2.shape);
-		Base res=new Base(sh).setRequiresGradient(d1.hasGradient() | d2.hasGradient());
+		int[] sh=getCommonShape(p1.shape, p2.shape);
+		Base res=new Base(sh).setRequiresGradient(p1.hasGradient() | p2.hasGradient());
 		if (res.hasGradient())
-			res.setGradientFunction(powGradient, d1, d2);
+			res.setGradientFunction(powGradient, p1, p2);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
 		{
 			indexToShape(i, sh, tmpSh);
-			float op1=d1.get(tmpSh);
-			float op2=d2.get(tmpSh);
+			float op1=p1.get(tmpSh);
+			float op2=p2.get(tmpSh);
 			res.setRaw(i, (float)Math.pow(op1 , op2));
 		}
 		return res;
 	}
-	public static Base pow(Base d1, float d2)
+	public static Base pow(Base p1, float p2)
 	{
-		int[] sh=d1.shape;
-		Base res=new Base(sh).setRequiresGradient(d1.hasGradient());
-		Base data2=new Base(new float[]{d2}); // don't use for computation, it is just for gradient.
+		int[] sh=p1.shape;
+		Base res=new Base(sh).setRequiresGradient(p1.hasGradient());
+		Base data2=new Base(new float[]{p2}); // don't use for computation, it is just for gradient.
 		if (res.hasGradient())
-			res.setGradientFunction(powGradient, d1, data2);
+			res.setGradientFunction(powGradient, p1, data2);
 
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
 		{
 			indexToShape(i, sh, tmpSh);
-			float op1=d1.get(tmpSh);
-			res.setRaw(i, (float)Math.pow(op1 , d2));
+			float op1=p1.get(tmpSh);
+			res.setRaw(i, (float)Math.pow(op1 , p2));
 		}
 		return res;
 	}
-	public static Base pow(float d1, Base d2)
+	public static Base pow(float p1, Base p2)
 	{
-		int[] sh=d2.shape;
-		Base res=new Base(sh).setRequiresGradient(d2.hasGradient());
-		Base data1=new Base(new float[]{d1}); // don't use for computation, it is just for gradient.
+		int[] sh=p2.shape;
+		Base res=new Base(sh).setRequiresGradient(p2.hasGradient());
+		Base data1=new Base(new float[]{p1}); // don't use for computation, it is just for gradient.
 		if (res.hasGradient())
-			res.setGradientFunction(powGradient, data1, d2);
+			res.setGradientFunction(powGradient, data1, p2);
 		int len=res.length; // length of the array.
 		int[] tmpSh=new int[sh.length]; // temporary shape holder.
 		for (int i=0;i < len;i++)
 		{
 			indexToShape(i, sh, tmpSh);
-			float op2=d2.get(tmpSh);
-			res.setRaw(i, (float)Math.pow(d1, op2));
+			float op2=p2.get(tmpSh);
+			res.setRaw(i, (float)Math.pow(p1, op2));
 		}
 		return res;
 	}
@@ -367,22 +381,22 @@ public class NDArray
 		return ns;
 	}
 	// dot product end.
-	public static Base convolve1d(Base d1, Base kr)
+	public static Base convolve1d(Base p1, Base kr)
 	{
-		return convolve1d(d1, kr, 0); // by default mode = normal.
+		return convolve1d(p1, kr, 0); // by default mode = normal.
 	}
-	public static Base convolve1d(Base d1, Base kr, int mode)
+	public static Base convolve1d(Base p1, Base kr, int mode)
 	{
 		Base out=null;
 		if (mode == 0) // mode valid
-			out = convolve1dValid(d1, kr, null);
+			out = convolve1dValid(p1, kr, null);
 		else if (mode == 1) // mode full.
-			out = convolve1dFull(d1, kr, null);
+			out = convolve1dFull(p1, kr, null);
 		if (out == null)
 			return null;
-		out.setRequiresGradient(d1.hasGradient() | kr.hasGradient());
+		out.setRequiresGradient(p1.hasGradient() | kr.hasGradient());
 		if (out.hasGradient())
-			out.setGradientFunction(GradFunc.convolveGradient, d1, kr);
+			out.setGradientFunction(GradFunc.convolveGradient, p1, kr);
 		return out;
 	}
 	public static Base convolve1dValid(Base a, Base b, Base out)
@@ -490,17 +504,17 @@ public class NDArray
 		}
 		return outData;
 	}
-	public static Base correlate1d(Base d1, Base kr)
+	public static Base correlate1d(Base p1, Base kr)
 	{
-		return correlate1d(d1, kr, 0);
+		return correlate1d(p1, kr, 0);
 	}
-	public static Base correlate1d(Base d1, Base kr, int mode)
+	public static Base correlate1d(Base p1, Base kr, int mode)
 	{
 		Base out=null;
 		if (mode == 0) // mode valid.
-			out = correlate1dValid(d1, kr, null);
+			out = correlate1dValid(p1, kr, null);
 		else if (mode == 1) // modr full.
-			out = correlate1dFull(d1, kr, null);
+			out = correlate1dFull(p1, kr, null);
 		return out;
 	}
 	public static Base correlate1dValid(Base a, Base b, Base f)
@@ -562,4 +576,6 @@ public class NDArray
 		error("the sum function is not available at the moment, please review the code.");
 		return null;
 	}
+	// new functions.
+
 }
