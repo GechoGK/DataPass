@@ -109,6 +109,36 @@ public abstract class GradFunc
 			return null;
 		}
 	};
+	public static GradFunc divisionGradient = new GradFunc("division"){
+		@Override
+		public Base backward(Base host, Base[] childs, Object params)
+		{
+			Base a1=childs[0]; // == a  first operand.
+			Base a2=childs[1]; // == b  second operand.
+			// host  ==  c
+			/*
+			 gradient calculation for division.
+			 c.grad = 5;
+			 a.grad = c.grad * 1 / b.data
+			 a.grad = 5 * 1 / 3 = 1.6666...
+			 b.grad = -c.grad * a.value / (b.value^2);
+			 b.grad = -5 * 6 / (3 * 3 ) = -3.3333...
+			 */
+			int[] shape=host.shape;
+			int[] tmpShape=new int[shape.length];
+			for (int i=0;i < host.length;i++)
+			{
+				indexToShape(i, shape, tmpShape);
+				float grad = host.getGrad(tmpShape);
+				float bVal = a2.get(tmpShape);
+				if (a1.hasGradient())
+					a1.setGrad(tmpShape, grad * 1 / bVal);
+				if (a2.hasGradient())
+					a2.setGrad(tmpShape, -grad * a1.get(tmpShape) / (bVal * bVal));
+			}
+			return null;
+		}
+	};
 	public static GradFunc powGradient = new GradFunc("power"){
 		@Override
 		public Base backward(Base host, Base[] childs, Object params)
@@ -218,11 +248,10 @@ public abstract class GradFunc
 			// System.out.println("copy gradient");
 			// System.out.println(a.length + " ====== " + host.length);
 			Base a=childs[0];
-			Base grd=host.detachGradient();
 			int[] shp=new int[a.shape.length];
 			for (int i=0;i < a.length;i++)
 			{
-				a.setGrad(indexToShape(i, a.shape, shp), grd.getRaw(i)); // avoid getRaw.
+				a.setGrad(indexToShape(i, a.shape, shp), host.get1dGrad(i)); // avoid getRaw.
 			}
 			return null;
 		}
@@ -240,6 +269,24 @@ public abstract class GradFunc
 		public Base backward(Base host, Base[] childs, Object params)
 		{
 			// System.out.println("copy to gradient");
+			return null;
+		}
+	};
+	public static GradFunc sumGradient=new GradFunc("sum"){
+		@Override
+		public Base backward(Base host, Base[] childs, Object params)
+		{
+			// do something.
+			if (params == null)
+			{
+				// have axis.
+				print("sumGradient without axis");
+			}
+			else
+			{
+				// doesn't have axis.
+				print("sumGradient with axis");
+			}
 			return null;
 		}
 	};

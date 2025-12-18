@@ -12,7 +12,7 @@ public class Functions
 	}
 	public abstract static class ArrayToFloatFunction
 	{
-		public abstract float consume(int[] p1);
+		public abstract float apply(int[] p1);
 	}
 	public abstract static class MapConsumer
 	{

@@ -35,18 +35,95 @@ public class Test2_Func
 //		test9();
 //		test10();
 //		test11();
-		test12();
+//		test12();
+		test13();
 
+	}
+	void test13()
+	{
+		print(decString("Test 13. sum operations.", "-", 7));
+		Base a=NDArray.arange(30).reshape(3, 5, 2).setRequiresGradient(true);
+
+		Base b=NDArray.sum(a);
+
+		println(a, b.gradientFunction, b);
+		b = NDArray.sum(a, 0);
+		println(b.gradientFunction, b);
+
+		b.setGrad(3);
+		b.backward();
 	}
 	void test12()
 	{
-
+		print(decString("Test 12. Basic math operations.", "-", 7));
 		Base a=NDArray.wrap(5, 5, 2);
-		Base b=NDArray.wrap(10, 5, 2);
+		Base b=NDArray.wrap(10, 5, 2).setRequiresGradient(true);
+
+		println(a, b);
 
 		Base c=NDArray.add(a, b);
+		println("gradient :" + c.gradientFunction, c);
 
-		println(a, b, c);
+		print(getString("-", 20));
+
+		c = NDArray.add(b, 20);
+		println(c.gradientFunction, " +++ " + 20, c);
+
+		print(getString("-", 20));
+
+		c = NDArray.sub(a, b);
+		println(c.gradientFunction, c);
+
+		print(getString("-", 20));
+
+		c = NDArray.sub(b, 3);
+		println(c.gradientFunction, "--- " + 3, c);
+
+		print(getString("-", 20));
+
+		c = NDArray.sub(3, b);
+		println(c.gradientFunction, "--- " + 3, c);
+
+		print(getString("-", 20));
+
+		c = NDArray.mul(a, b);
+		println("gradient :" + c.gradientFunction, c);
+
+		print(getString("-", 20));
+
+		c = NDArray.mul(b, 20);
+		println(c.gradientFunction, " +++ " + 20, c);
+
+		print(getString("-", 20));
+
+		c = NDArray.div(a, b);
+		println(c.gradientFunction, c);
+
+		print(getString("-", 20));
+
+		c = NDArray.div(b, 3);
+		println(c.gradientFunction, "--- " + 3, c);
+
+		print(getString("-", 20));
+
+		c = NDArray.div(3, b);
+		println(c.gradientFunction, "--- " + 3, c);
+
+		print(getString("-", 20));
+
+		c = NDArray.pow(a, b);
+		println(c.gradientFunction, c);
+
+		print(getString("-", 20));
+
+		c = NDArray.pow(b, 3);
+		println(c.gradientFunction, "--- " + 3, c);
+
+		print(getString("-", 20));
+
+		c = NDArray.pow(3, b);
+		println(c.gradientFunction, "--- " + 3, c);
+
 
 	}
 	void test11()
@@ -59,7 +136,7 @@ public class Test2_Func
 		final int axis=0;
 		ArrayToFloatFunction cons=new ArrayToFloatFunction(){
 			@Override
-			public float consume(int[] p1)
+			public float apply(int[] p1)
 			{
 				float out=0;
 				for (int i=0;i < b1.shape[axis];i++)

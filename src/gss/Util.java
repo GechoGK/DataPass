@@ -408,6 +408,6 @@ public class Util
 	{
 		int len=length(shape);
 		for (int i=0;i < len;i++)
-			func.consume(indexToShape(i, shape));
+			func.apply(indexToShape(i, shape));
 	}
 }
