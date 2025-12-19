@@ -233,19 +233,42 @@ public class Util
 		{
 			if (i < rng.length)
 			{
-				r[i][2] = rng[i][2];
-				r[i][0] = rng[i][0];
-				if (r[i][0] == -1)
-					r[i][0] = 0;
-				r[i][1] = rng[i][1];
-				if (r[i][1] == -1)
-					r[i][1] = shp[i];
+				if (rng[i].length == 0)
+				{
+					// range not supplied fill by default.
+					r[i][0] = 0; // start. default 0.
+					r[i][1] = shp[i]; // end. default value in shape at current index.
+					r[i][2] = 1; // increment. default 1.
+				}
+				else if (rng[i].length == 1)
+				{
+					// only end value is found. fill the rest.
+					r[i][0] = 0; // start. fill 0 for default value.
+					r[i][1] = rng[i][0] == -1 ?shp[i]: rng[i][0]; // end
+					r[i][2] = 1; // increment. default 1.
+				}
+				else if (rng[i].length == 2)
+				{
+					// only 2 values are found(start and end)
+					r[i][0] = rng[i][0] == -1 ?0: rng[i][0]; // start
+					r[i][1] = rng[i][1] == -1 ?shp[i]: rng[i][1]; // end
+					r[i][2] = 1; // increment. for default 1.
+				}
+				else if (rng[i].length == 3)
+				{
+					// all 3(start, end, increment) values are found
+					r[i][0] = rng[i][0] == -1 ?0: rng[i][0]; // start
+					r[i][1] = rng[i][1] == -1 ?shp[i]: rng[i][1]; // end
+					r[i][2] = rng[i][2]; // increment. (-)values are not allowed.
+				}
+				else error("unknown index range (" + rng[i].length + ")");
 			}
 			else
 			{
-				r[i][0] = 0;
-				r[i][1] = shp[i];
-				r[i][2] = 1;
+				// range not supplied fill by default.
+				r[i][0] = 0; // start. default 0.
+				r[i][1] = shp[i]; // end. default value in shape at current index.
+				r[i][2] = 1; // increment. default 1.
 			}
 		}
 		return r;

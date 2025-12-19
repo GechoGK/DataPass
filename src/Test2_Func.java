@@ -4,7 +4,6 @@ import gss.arr.*;
 import gss.layers.*;
 import gss.lossfunctions.*;
 import gss.optimizers.*;
-import java.util.function.*;
 
 import static gss.Util.*;
 import static gss.arr.GradFunc.*;
@@ -36,7 +35,25 @@ public class Test2_Func
 //		test10();
 //		test11();
 //		test12();
-		test13();
+//		test13();
+//		test14();
+
+	}
+	void test15()
+	{
+
+	}
+	void test14()
+	{
+		print(decString("Test 14. slice test 2", "-", 7));
+
+		Base a=NDArray.arange(30).reshape(3, 5, 2);
+
+		Base b=a.slice(new int[][]{ar(1, -1),ar(0, -1, 2)});
+
+		Base c=b.slice(ar(2));
+
+		println(a, b, c);
 
 	}
 	void test13()

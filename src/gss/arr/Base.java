@@ -713,7 +713,7 @@ public class Base
 			return this;
 		return setGradientFunction(func, null, childs);
 	}
-	public Base setGradientFunctionS(GradFunc func, Object prm,Base...childs)
+	public Base setGradientFunctionS(GradFunc func, Object prm, Base...childs)
 	{
 		if (!hasGradient())
 			return this;

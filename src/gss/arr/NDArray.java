@@ -10,6 +10,16 @@ public class NDArray
 {
 	/*
 	 -- remove all setRaw functions.
+
+	 additional functions.
+	 -- log
+	 -- exp
+	 -- ln
+	 -- mean
+	 -- neg
+	 -- sqrt
+	 -- inv
+	 -- lt,eq
 	 */
 	// array generators.
 	public static Base arange(float end)
