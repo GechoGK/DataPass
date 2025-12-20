@@ -12,14 +12,14 @@ public class NDArray
 	 -- remove all setRaw functions.
 
 	 additional functions.
-	 -- log
-	 -- exp
-	 -- ln
-	 -- mean
-	 -- neg
-	 -- sqrt
-	 -- inv
-	 -- lt,eq
+	 ---name------gradient---
+	 -- log ✓ 		-
+	 -- exp ✓ 		-
+	 -- mean ✓ 	✓
+	 -- neg ✓ 		✓
+	 -- sqrt ✓ 	-
+	 -- inv ✓ 		-
+	 -- lt,eq ✓ 	-
 	 */
 	// array generators.
 	public static Base arange(float end)
@@ -204,7 +204,8 @@ public class NDArray
 				@Override
 				public float apply(float p1, float p2)
 				{
-					return p1 / p2;
+					float epsilon = 1e-7f;
+					return p1 / Math.max(epsilon, p2);
 				}
 			});
 		return out.setGradientFunctionS(divisionGradient, d1, d2);
@@ -215,7 +216,8 @@ public class NDArray
 				@Override
 				public float apply(float p1)
 				{
-					return p1 / sd2;
+					float epsilon = 1e-7f;
+					return p1 / Math.max(epsilon, sd2);
 				}
 			});
 		return out.setGradientFunctionS(divisionGradient, d1, wrap(new float[]{sd2}));
@@ -226,7 +228,8 @@ public class NDArray
 				@Override
 				public float apply(float p1)
 				{
-					return sd1 / p1;
+					float epsilon = 1e-7f;
+					return sd1 / Math.max(epsilon, p1);
 				}
 			});
 		return out.setGradientFunctionS(divisionGradient, d2, wrap(new float[]{sd1}));
@@ -545,7 +548,6 @@ public class NDArray
 		out.setGradientFunctionS(sumGradient, axis, b);
 		return out;
 	}
-	// new functions.
 	public static Base sum(Base b)
 	{
 		float sum=0;
@@ -556,5 +558,135 @@ public class NDArray
 		Base out=wrap(sum, 1).setRequiresGradient(b.hasGradient());
 		out.setGradientFunctionS(sumGradient, b);
 		return out;
+	}
+	public static Base log(Base d)
+	{
+		// log(0) = Infinity. avoid it. add 0.000001...
+		Base out=map(d, new MapFunction(){
+				@Override
+				public float apply(float p1)
+				{
+					float epsilon = 1e-7f;
+					return (float)Math.log(Math.max(epsilon, p1));
+				}
+			});
+		return out.setGradientFunctionS(logGradient, d);
+	}
+	public static Base exp(Base d)
+	{
+		Base out=map(d, new MapFunction(){
+				@Override
+				public float apply(float p1)
+				{
+					return (float)Math.exp(p1);
+				}
+			});
+		return out.setGradientFunctionS(expGradient, d);
+	}
+	public static Base sqrt(Base d)
+	{
+		Base out=map(d, new MapFunction(){
+				@Override
+				public float apply(float p1)
+				{
+					return (float)Math.sqrt(p1);
+				}
+			});
+		return out.setGradientFunctionS(sqrtGradient, d);
+	}
+	public static Base neg(Base d)
+	{
+		Base out=map(d, new MapFunction(){
+				@Override
+				public float apply(float p1)
+				{
+					return -1 * p1;
+				}
+			});
+		return out.setGradientFunctionS(negGradient, d);
+	}
+	public static Base inv(Base d)
+	{
+		Base out=map(d, new MapFunction(){
+				@Override
+				public float apply(float p1)
+				{
+					float epsilon = 1e-7f;
+					return 1 / Math.max(epsilon, p1);
+				}
+			});
+		return out.setGradientFunctionS(invGradient, d);
+	}
+	public static Base mean(Base d)
+	{
+		return NDArray.div(sum(d), d.length);
+	}
+	// less than
+	public static Base lt(Base d1, Base d2)
+	{
+		Base out=zip(d1, d2, new ZipFunction(){
+				@Override
+				public float apply(float p1, float p2)
+				{
+					return p1 < p2 ?1: 0;
+				}
+			});
+		return out.setGradientFunctionS(ltGradient, d1, d2);
+	}
+	public static Base lt(Base d1, final float sd2)
+	{
+		Base out=map(d1, new MapFunction(){
+				@Override
+				public float apply(float p1)
+				{
+					return p1 < sd2 ?1: 0;
+				}
+			});
+		return out.setGradientFunctionS(ltGradient, d1, wrap(new float[]{sd2}));
+	}
+	public static Base lt(final float sd1, Base d2)
+	{
+		Base out=map(d2, new MapFunction(){
+				@Override
+				public float apply(float p1)
+				{
+					return sd1 < p1 ?1: 0;
+				}
+			});
+		return out.setGradientFunctionS(ltGradient, d2, wrap(new float[]{sd1}));
+	}
+	// equals
+	public static Base eq(Base d1, Base d2)
+	{
+		Base out=zip(d1, d2, new ZipFunction(){
+				@Override
+				public float apply(float p1, float p2)
+				{
+					return p1 == p2 ?1: 0;
+				}
+			});
+		return out.setGradientFunctionS(eqGradient, d1, d2);
+	}
+	public static Base eq(Base d1, final float sd2)
+	{
+		Base out=map(d1, new MapFunction(){
+				@Override
+				public float apply(float p1)
+				{
+					return p1 == sd2 ?1: 0;
+				}
+			});
+		return out.setGradientFunctionS(eqGradient, d1, wrap(new float[]{sd2}));
+	}
+	public static Base eq(final float sd1, Base d2)
+	{
+		Base out=map(d2, new MapFunction(){
+				@Override
+				public float apply(float p1)
+				{
+					return sd1 == p1 ?1: 0;
+				}
+			});
+		return out.setGradientFunctionS(eqGradient, d2, wrap(new float[]{sd1}));
 	}
 }

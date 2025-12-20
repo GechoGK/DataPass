@@ -7,7 +7,7 @@ import static gss.Util.*;
 public abstract class GradFunc
 {
 	// name for debugging purpose.
-	private String name;
+	public String name;
 
 	public GradFunc()
 	{
@@ -276,6 +276,7 @@ public abstract class GradFunc
 		@Override
 		public Base backward(Base host, Base[] childs, Object params)
 		{
+			error(name + " not implemented.");
 			// do something.
 			if (params == null)
 			{
@@ -287,6 +288,64 @@ public abstract class GradFunc
 				// doesn't have axis.
 				print("sumGradient with axis");
 			}
+			return null;
+		}
+	};
+	public static GradFunc logGradient=new GradFunc("log"){
+		@Override
+		public Base backward(Base host, Base[] childs, Object params)
+		{
+			error(name + " not implemented.");
+			return null;
+		}
+	};
+	public static GradFunc expGradient=new GradFunc("exp"){
+		@Override
+		public Base backward(Base host, Base[] childs, Object params)
+		{
+			error(name + " not implemented.");
+			return null;
+		}
+	};
+	public static GradFunc sqrtGradient=new GradFunc("sqrt"){
+		@Override
+		public Base backward(Base host, Base[] childs, Object params)
+		{
+			error(name + " not implemented.");
+			return null;
+		}
+	};
+	// unwanted gradient funcion( we can use div gradient)
+	public static GradFunc invGradient=new GradFunc("inv"){
+		@Override
+		public Base backward(Base host, Base[] childs, Object params)
+		{
+			error(name + " not implemented.");
+			return null;
+		}
+	};
+	// unwanted gradient funcion( we can use mul gradient)
+	public static GradFunc negGradient=new GradFunc("neg"){
+		@Override
+		public Base backward(Base host, Base[] childs, Object params)
+		{
+			error(name + " not implemented.");
+			return null;
+		}
+	};
+	public static GradFunc ltGradient=new GradFunc("lessthan"){
+		@Override
+		public Base backward(Base host, Base[] childs, Object params)
+		{
+			error(name + " not implemented.");
+			return null;
+		}
+	};
+	public static GradFunc eqGradient=new GradFunc("equals"){
+		@Override
+		public Base backward(Base host, Base[] childs, Object params)
+		{
+			error(name + " not implemented.");
 			return null;
 		}
 	};

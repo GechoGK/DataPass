@@ -37,10 +37,35 @@ public class Test2_Func
 //		test12();
 //		test13();
 //		test14();
+		test15();
+
 
 	}
 	void test15()
 	{
+		print(decString("Test 15. more functions", "-", 7));
+
+		Base b=NDArray.arange(20).reshape(2, 10);
+
+		Base l=NDArray.log(b);
+
+		Base s=NDArray.sqrt(b);
+
+		Base e=NDArray.exp(b);
+
+		Base m=NDArray.mean(b);
+
+		Base n=NDArray.neg(b);
+
+		Base i=NDArray.inv(b);
+
+		Base b2=NDArray.mul(NDArray.rand(2, 10), 20);
+
+		Base lt=NDArray.lt(b, b2);
+
+		Base eq=NDArray.eq(b, b2);
+
+		println("input 1", b, "log", l, "sqrt", s, "exp", e, "mean", m, "negate", n, "inv", i, "input 2", b2, "less than", lt, "equals", eq);
 
 	}
 	void test14()
