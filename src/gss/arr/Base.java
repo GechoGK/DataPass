@@ -133,7 +133,7 @@ public class Base
 	{
 		if (ind.length > shape.length)
 			throw new RuntimeException("index.length must not be greater than shape.length:(" + Arrays.toString(ind) + ", " + Arrays.toString(shape) + ")");
-		int off=shapeToIndex(Util.fill(ind, shape.length));
+		int off=shapeToIndex(Arrays.copyOf(ind, shape.length));
 		int shl=shape.length - ind.length;
 		int[] sh=null;
 		int[] str=null;

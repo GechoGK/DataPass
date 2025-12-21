@@ -13,7 +13,7 @@ public class NDArray
 
 	 additional functions.
 	 ---name------gradient---
-	 -- sum ✓ 		-
+	 -- sum ✓ 		✓
 	 -- log ✓ 		✓
 	 -- exp ✓ 		✓
 	 -- mean ✓ 	✓

@@ -8,6 +8,7 @@ import gss.optimizers.*;
 import static gss.Util.*;
 import static gss.arr.GradFunc.*;
 import static gss.Functions.*;
+import java.util.*;
 
 public class Test2_Func
 {
@@ -44,7 +45,22 @@ public class Test2_Func
 	}
 	void test16()
 	{
-		
+		Base b=NDArray.arange(30).reshape(2, 3, 5).setRequiresGradient(true);
+
+		Base s1=NDArray.sum(b, 2);
+
+		s1.setGrad(-5);
+
+		Base sgd=s1.detachGradient();
+
+		sgd.set(NDArray.arange(sgd.length).reshape(sgd.shape));
+
+		Base igd=b.detachGradient();
+
+		s1.backward();
+
+		println(b, "sum===", s1, "grad", sgd, igd);
+
 	}
 	void test15()
 	{
@@ -196,9 +212,7 @@ public class Test2_Func
 		};
 		loop(removeAtIndex(b1.shape, axis), cons);
 
-
 	}
-
 	void test10()
 	{
 		print(decString("Test 10.0 : array value test.", 9));
@@ -337,17 +351,8 @@ public class Test2_Func
 	}
 	void test8() throws InterruptedException
 	{
-		// doesn't work.
 		print(decString("Test 8.0 approximation test with different loss functions.", 7));
-		/*
-		 BCE doesn*t work as expected.
-		 MCCE doesn't works as expected.
-		 all these works without activation functions.
-		 //
-		 fixed. all works
-		 */
-		// if (new Boolean(true) == true)
-		// 	throw new RuntimeException("review the code first");
+
 		int input=2;
 		int output=6;
 		Base w1=NDArray.rand(input, 5).setRequiresGradient(true);
@@ -358,12 +363,17 @@ public class Test2_Func
 		Base in=NDArray.wrap(new float[]{0.5f,0.2f}, input);
 		Base tr=NDArray.wrap(new float[]{1,0,1,0,1,0}, 2, 3);
 
-		Optimizer opt=new Adam(w1, w2, b1, b2);
+		Optimizer opt=new SGDM(w1, w2, b1, b2);
+		// SGDM better with MSE, BCE
+		// Adam MAE, MCCE
+		// GradientDescent slow.
 
-		trainMSE(opt, w1, w2, b1, b2, in, tr); // ✓ ≈ 19755, 24330, 10205, 15488, 7940, 6515, 6515, 6817 millis
-		// trainMAE(opt, w1, w2, b1, b2, in, tr); // ✓ ≈ 80709, 33369, 27102, 19464, 15508, 22978  millis
-		// trainBCE(opt, w1, w2, b1, b2, in, tr); // ✓ ≈ 79235, 74982, 32427, 15759, 16387, 13459, 16758 millis
-		// trainMCCE(opt, w1, w2, b1, b2, in, tr); // ✓ slow and inaccurate // ≈ 79272, 20064, 22044, 30453, 7360, 7421, 5817, 7141, 4452, 5733   millis
+		float loss=0.01f;
+		// iteration_time in millis.
+		trainMSE(opt, w1, w2, b1, b2, in, tr); // ✓ ≈ 1275_980, 1225_952
+		// trainMAE(opt, w1, w2, b1, b2, in, tr);  // ✓ ≈ 1939_1132, 1888_1016
+		// trainBCE(opt, w1, w2, b1, b2, in, tr); // ✓ ≈ 3529_1746, 3335_1678, 3649_1689
+		// trainMCCE(opt, w1, w2, b1, b2, in, tr); // ✓ ≈ 8804_3576, 8925_3913;
 
 		System.out.println("completed!");
 
@@ -371,8 +381,6 @@ public class Test2_Func
 	void trainMSE(Optimizer opt, Base w1, Base w2, Base b1, Base b2, Base in, Base tr)
 	{
 		Base output=null;
-
-		print("!!!! Sigmoid function either broke or not compatable");
 
 		float loss=Float.MAX_VALUE;
 		long time=System.currentTimeMillis();
@@ -411,7 +419,6 @@ public class Test2_Func
 	{
 		Base output=null;
 
-		print("!!!! Sigmoid function either broke or not compatable");
 		print("iterating...");
 		float loss=Float.MAX_VALUE;
 		long time=System.currentTimeMillis();
@@ -449,8 +456,6 @@ public class Test2_Func
 	{
 		Base output=null;
 
-		print("!!!! Sigmoid function either broke or not compatable");
-		print("BCE broke");
 		print("iterating...");
 		float loss=Float.MAX_VALUE;
 		long time=System.currentTimeMillis();
@@ -490,13 +495,11 @@ public class Test2_Func
 		Base output=null;
 		// use Adam optimizer for fast iteration.
 
-		print("!!!! Sigmoid function either broke or not compatable");
-		print("MCCE works but use absolute(Math.abs(x)) value");
 		print("iterating...");
 		float loss=Float.MAX_VALUE;
 		long time=System.currentTimeMillis();
 		int iter=0;
-		while (loss >= 0.01f)
+		while (loss >= 0.1f)
 		{
 			Base out =NDArray.dot(in, w1);
 			out = NDArray.add(out, b1);

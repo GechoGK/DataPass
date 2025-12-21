@@ -6,6 +6,15 @@ import static gss.Functions.*;
 
 public class Util
 {
+	/*
+	 shapeToIndex(...);
+	 which converts the shape of an array into flat index.
+	 strides used for arrays like transposed and sliced types.
+	 @int[] indShape 	whape we want to indexed.
+	 @int[] shape 		the actual array shape to loop from.
+	 @int[] strides 	used to calculate the length.
+
+	 */
 	public static int shapeToIndex(int[]indSh, int[]shape, int[]strides)
 	{
 		// lazy indexing...
@@ -20,6 +29,15 @@ public class Util
 		}
 		return newPos;
 	}
+	/*
+	 shapeToIndex(...);
+	 which converts the shape of an array into flat index.
+	 strides calculated om the way.
+
+	 @int[] indShape 	whape we want to indexed.
+	 @int[] shape 		the actual array shape to loop from.
+
+	 */
 	public static int shapeToIndex(int[]index, int[]shape)
 	{
 		int flatIndex=0;
@@ -32,10 +50,20 @@ public class Util
 		}
 		return flatIndex;
 	}
+	/*
+	 convert a flat index into a desired shape based on the gives array shape.
+
+	 @int index. the index want to convert into shape.
+	 @int[] shape. the actual maximum shape.
+	 */
 	public static int[] indexToShape(int index, int[]shape)
 	{
 		return indexToShape(index, shape, new int[shape.length]);
 	}
+	/*
+	 the same as the above, except it expects @int[] out,
+	 which returns the calculated shape from flat index.
+	 */
 	public static int[] indexToShape(int index, int[]shape, int[]out)
 	{
 		for (int i=shape.length - 1;i >= 0;i--) // count down starts from shape.length -1 down to 0.
@@ -45,6 +73,11 @@ public class Util
 		}
 		return out;
 	}
+	/*
+	 calculate the length of an array from the given shape.
+	 @usage
+	 length(2,3,4) = 24
+	 */
 	public static int length(int...sh)
 	{
 		int size=1;
@@ -56,6 +89,13 @@ public class Util
 		}
 		return size;
 	}
+	/*
+	 generate strides from the given shape.
+	 @int[] shape
+
+	 -- usage
+	 genStrides(2,3,4) = [12,4,1]
+	 */
 	public static int[] genStrides(int[] shape)
 	{
 		int[]str = new int[shape.length];
@@ -68,6 +108,17 @@ public class Util
 		}
 		return str;
 	}
+	/*
+	 this function returns the shape from two shapes.
+	 both shapes must be broadcastable each other.
+	 mostly it takes the large shape, because the smaller one can be broadcasted into the larger shape.
+	 @int[] shape1, shape1
+	 @int[] shape2, shape
+
+	 -- usage
+	 getCommonShape(new int[]{2,1,3},new int[]{5,2,8,3});
+	 == [5,2,8,3]
+	 */
 	public static int[] getCommonShape(int[] shape1, int[] shape2)
 	{
 		int[] newShape1=Arrays.copyOf(shape1.length > shape2.length ?shape1: shape2, Math.max(shape1.length, shape2.length));
@@ -82,10 +133,27 @@ public class Util
 		}
 		return newShape1;
 	}
+	/*
+	 generate an array from input.
+	 it helps to reduce the java "new int[]{}",
+	 we can just use ar(1,2,3)
+	 == [1,2,3]
+	 @int...a input array
+
+	 -- usage ar(2,3,4)
+	 */
 	public static int[] ar(int...a)
 	{
 		return a;
 	}
+	/*
+	 flatten the input 2d array into 1d array.
+	 @float[][] data
+
+	 -- usage
+	 flatten(new int[][]{new int[]{2,3},new int[]{4,5}});
+	 ==[2,3,3,4]
+	 */
 	public static float[] flatten(float[][] data)
 	{
 		int rw=data.length;
@@ -97,6 +165,7 @@ public class Util
 				dt[pos++] = data[r][c];
 		return dt;
 	}
+	// convert 3d array into 1d array.
 	public static float[] flatten(float[][][] data)
 	{
 		int dp=data.length;
@@ -110,6 +179,7 @@ public class Util
 					dt[pos++] = data[d][r][c];
 		return dt;
 	}
+	// convert 4d array into 1d array.
 	public static float[] flatten(float[][][][] data)
 	{
 		int dp=data.length;
@@ -125,10 +195,30 @@ public class Util
 						dt[pos++] = data[d][r][c][i];
 		return dt;
 	}
+	/*
+	 returns the value from the end to the start.
+	 @int[] sh, input shape or other int arrays.
+	 @int n, value from the end.
+
+	 --usage
+	 int[] a=new int[]{2,3,4};
+	 n(a,0); == 4
+	 n(a,1); == 3
+	 n(a,2); == 2
+	 n(a,3)) == out of range error.
+	 */
 	public static int n(int[]sh, int n)
 	{
 		return sh[sh.length - n - 1];
 	}
+	/*
+	 generate a string repratedly
+	 @string a intput string
+	 @int cout the number which we want to repeat.
+
+	 -- usage
+	 getString("a",5) = "aaaaa"
+	 */
 	public static String getString(String s, int count)
 	{
 		StringBuilder o=new StringBuilder();
@@ -136,6 +226,17 @@ public class Util
 			o.append(s);
 		return o.toString();
 	}
+	/*
+	 decorate a string, debug purpose.
+	 it addes a decorating pattern at the beginning and end of a string.
+	 @string text the text which will be decorated.
+	 @string decore decoring text.
+	 @int length the length of the devore to be repeated.
+
+	 -- usage
+	 decString("hello","-",5);
+	 == "----- hello -----"
+	 */
 	public static String decString(String text, String decore, int length)
 	{
 		String pl=getString(decore, length);
@@ -146,10 +247,26 @@ public class Util
 		s.append(pl);
 		return s.toString();
 	}
+	/*
+	 it decores a string the same as above.
+	 eccept it uses default ("+") decoring value.
+
+	 --usage
+	 decString("hello",5);
+	 == "+++++ hello +++++"
+	 */
 	public static String decString(String text, int length)
 	{
 		return decString(text, "+", length);
 	}
+	/*
+	 generate a repeating "-" pattern @cnt times
+	 @int cnt number of "-" to be repeated.
+
+	 -- usage
+	 line(7);
+	 == "-------";
+	 */
 	public static String line(int cnt)
 	{
 		StringBuilder sb=new StringBuilder();
@@ -157,14 +274,50 @@ public class Util
 			sb.append("-");
 		return sb.toString();
 	}
-	public static float[] range(float len)
+	/*
+	 generate a float array within range(end) but not included end
+	 from 0 to end with increment 1.
+
+	 @float end. the range wich array ends but not included.
+
+	 --usage
+	 range(5);
+	 == [0,1,2,3,4];
+
+	 */
+	public static float[] range(float end)
 	{
-		return range(0, len, 1);
+		return range(0, end, 1);
 	}
+	/*
+	 generate a float array within range(start to end) but not included end
+	 from start(str) to end(end) with increment 1.
+
+	 @float str. the range wich array starts
+	 @float end. the range chich the array ends but not included.
+	 --usage
+	 range(3,8);
+	 == [3,4,5,6,7];
+
+	 */
 	public static float[] range(float str, float end)
 	{
 		return range(str, end, 1);
 	}
+	/*
+	 generate a float array within range(start to end) but not included end with increment (inc).
+	 from start(str) to end(end) with increment inc.
+
+	 @float str. the range wich array starts
+	 @float end. the range chich the array ends but not included.
+	 @float inc. increment value.
+	 --usage
+	 range(5,15,2);
+	 == [5,7,9,11,13];
+
+	 range(5,8,0.5f)
+	 == [5.0, 5.5, 6.0, 6.5, 7.0, 7.5); 
+	 */
 	public static float[] range(float str, float end, float inc)
 	{
 		float cnt=(end - str);
@@ -177,14 +330,48 @@ public class Util
 		}
 		return f;
 	}
+	/*
+	 generate a int array within range(end) but not included end
+	 from 0 to end with increment 1.
+
+	 @int end. the range wich array ends but not included.
+
+	 --usage
+	 range(5);
+	 == [0,1,2,3,4];
+
+	 */
 	public static int[] range(int len)
 	{
 		return range(0, len, 1);
 	}
+	/*
+	 generate a int array within range(start to end) but not included end
+	 from start(str) to end(end) with increment 1.
+
+	 @int str. the range wich array starts
+	 @int end. the range chich the array ends but not included.
+	 --usage
+	 range(3,8);
+	 == [3,4,5,6,7];
+
+	 */
 	public static int[] range(int str, int end)
 	{
 		return range(str, end, 1);
 	}
+	/*
+	 generate a float array within range(start to end) but not included end with increment (inc).
+	 from start(str) to end(end) with increment inc.
+
+	 @int str. the range wich array starts
+	 @int end. the range chich the array ends but not included.
+	 @imt inc. increment value.
+	 --usage
+	 range(5,15,2);
+	 == [5,7,9,11,13];
+
+	 */
 	public static int[] range(int str, int end, int inc)
 	{
 		int cnt=Math.abs(end - str);
@@ -210,6 +397,7 @@ public class Util
 		}
 		return arr;
 	}
+	// convert int array into float array.
 	public static float[] asFloat(int...data)
 	{
 		float[] f=new float[data.length];
@@ -217,15 +405,34 @@ public class Util
 			f[i] = data[i];
 		return f;
 	}
-	public static int[] fill(int[]sh, int len)
-	{
-		if (sh.length >= len)
-			return sh;
-		int[] s=new int[len];
-		for (int i=0;i < s.length;i++)
-			s[i] = i >= sh.length ?0: sh[i];
-		return s;
-	}
+	/*
+	 this function serves as a python range [::]
+	 @int[][] rng. range
+	 @int[] shp. shape of an array.
+
+	 --usage
+	 int[] r1={5}; // end =5
+	 int[] r2={3};
+	 range(new int[]{r1, r2},new int[]{5,10});
+	 == [[0,5,1], [0,3,1]] = [start, end, increment];
+
+	 int[] r1={2,5}; // start =2, end = 5
+	 int[] r2={0,3};
+	 range(new int[]{r1, r2},new int[]{5,10});
+	 == [[2,5,1], [0,3,1]] = [start, end, increment];
+
+	 int[] r1={0,5,2}; // start = 0, end = 5, inc = 2;
+	 int[] r2={1,10,3};
+	 range(new int[]{r1, r2},new int[]{5,10});
+	 == [[0,5,2], [1,10,3]] = [start, end, increment];
+
+	 int[] r1={2,-1}; // start = 2, end = end of array(5)
+	 int[] r2={-1,7}; // start = start of array 0, end = 7;
+	 range(new int[]{r1, r2},new int[]{5,10});
+	 == [[2,5,1], [0,7,1]] = [start, end, increment];
+
+
+	 */
 	public static int[][] fill(int[][] rng, int[] shp)
 	{
 		int[][] r=new int[shp.length][3];
@@ -273,26 +480,64 @@ public class Util
 		}
 		return r;
 	}
+	/*
+	 generate range array used for slicing NDArray.
+	 @int end, end of array
+
+	 -- usage
+	 r(5); = [0,5,1];
+	 */
 	public static int[] r(int end)
 	{
 		return new int[]{0,end,1};
 	}
+	/*
+	 generate range array used for slicing NDArray.
+	 @int start, start of an array.
+	 @int end, end of array
+
+	 -- usage
+	 r(2, 5); = [2,5,1];
+	 */
 	public static int[] r(int start, int end)
 	{
 		return new int[]{start,end,1};
 	}
+	/*
+	 generate range array used for slicing NDArray.
+	 @int start, start of an array.
+	 @int end, end of array
+	 @int inc, increment valu fo array.
+
+	 -- usage
+	 r(3, 7, 2); = [3, 7, 2];
+
+	 Base b=NDArray.range(50).reshape(10, 5);
+
+	 Base sliced= b.slice(new int[][]{r(2)});
+
+	 = [10, 11, 12, 13, 14]
+
+	 */
 	public static int[] r(int start, int end, int inc)
 	{
 		return new int[]{start,end,inc};
 	}
+	/*
+	 print objects and arrays in an new line.
+	 */
 	public static void println(Object...objs)
 	{
 		printO(true, objs);
 	}
+	/*
+	 print objects and arrays.
+	 */
 	public static void print(Object...objs)
 	{
 		printO(false, objs);
 	}
+	// internal method of print.
 	public static void printO(boolean newLn, Object...objs)
 	{
 		for (Object o:objs)
@@ -319,6 +564,7 @@ public class Util
 		}
 		System.out.println();
 	}
+	// reshape the shape an array into a new shape.
 	public static int[] reshape(int[]newShape, int[]oldShape)
 	{
 		int nIndex=-1;
@@ -341,6 +587,7 @@ public class Util
 		}
 		return newShape;
 	}
+	// transpose the shape in different axis.
 	public static int[] transpose(int[]shape, int...axes)
 	{
 		if (axes.length != shape.length)
@@ -377,6 +624,7 @@ public class Util
 		}
 		return true;
 	}
+	// throw an error.
 	public static void error(Object o)
 	{
 		throw new RuntimeException(o + "");
@@ -390,6 +638,16 @@ public class Util
 		return Arrays.copyOf(src, src.length);
 	}
 	// new functions
+	/*
+	 remove item from primitive array.
+	 @int[] arr. input array.
+	 @int ind. index which will be removed.
+
+	 -- usage.
+	 int[] a={1,2,3};
+	 removeAtIndex(a,1);
+	 == [1,3];
+	 */
 	public static int[] removeAtIndex(int[]arr, int ind)
 	{
 		if (ind >= arr.length)
@@ -404,6 +662,17 @@ public class Util
 		}
 		return newArr;
 	}
+	/*
+	 put new element into an array.
+	 @int[] arr. target array.
+	 @int val. value to be inserted.
+	 @int ind. an index whih the value will be placed.
+
+	 -- usage
+	 int[] a={1,2};
+	 putAtIndex(a,1,5);
+	 == [1,5,2]
+	 */
 	public static int[] putAtIndex(int[]arr, int val, int ind)
 	{
 		if (ind < 0 || ind >= arr.length + 1)
@@ -419,6 +688,20 @@ public class Util
 		newArr[ind] = val;
 		return newArr;
 	}
+	/*
+	 loop through all posible values fro the given shape(array)
+	 @int[] shape. the array to be iterated.
+
+	 -- usage
+	 int[] a={2,3}
+	 loop(a);
+	 == [0,0];
+	 == [0,1]
+	 == [0,2]
+	 == [1,0]
+	 == [1,1]
+	 == [1,2]
+	 */
 	public static int[][] loop(int[]shape)
 	{
 		int len=length(shape);
@@ -427,10 +710,19 @@ public class Util
 			out[i] = indexToShape(i, shape);
 		return out;
 	}
+	/*
+	 the same as the above value.
+	 except it doesn't return an array of posible values.
+	 it call the func.apply(...);
+	 */
 	public static void loop(int[]shape, ArrayToFloatFunction func)
 	{
 		int len=length(shape);
 		for (int i=0;i < len;i++)
 			func.apply(indexToShape(i, shape));
+	}
+	public static int[]expandFrom(int[]shape, int[]to)
+	{
+		return null;
 	}
 }

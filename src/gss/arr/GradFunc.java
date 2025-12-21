@@ -9,17 +9,6 @@ public abstract class GradFunc
 	// name for debugging purpose.
 	public String name;
 
-	/*
-	 -- sum
-	 -- log 	✓
-	 -- exp
-	 -- sqrt 	✓
-	 -- inv 	✓
-	 -- neg 	✓
-	 -- lt 		✓
-	 -- eq 		✓
-	 */
-
 	public GradFunc()
 	{
 		this.name = "unknown";
@@ -287,17 +276,32 @@ public abstract class GradFunc
 		@Override
 		public Base backward(Base host, Base[] childs, Object params)
 		{
-			error(name + " not implemented.");
 			// do something.
 			if (params == null)
 			{
-				// have axis.
-				print("sumGradient without axis");
+				// no dim found pass all host gradients to child.
+				Base a=childs[0];
+				if (!a.hasGradient())
+					return null;
+				float g=host.get1dGrad(0); // gradient
+				for (int i=0;i < a.length;i++)
+				{
+					a.set1dGrad(i, g);
+				}
 			}
 			else
 			{
-				// doesn't have axis.
-				print("sumGradient with axis");
+				Base a=childs[0];
+				if (!a.hasGradient())
+					return null;
+				int dim=params;
+				int[] newShape=copy(a.shape);
+				newShape[dim] = 1;
+				Base g=host.reshape(newShape);
+				for (int i=0;i < a.length;i++)
+				{
+					a.set1dGrad(i, g.getGrad(indexToShape(i, a.shape))); // avoid getRaw.
+				}
 			}
 			return null;
 		}
