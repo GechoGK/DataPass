@@ -623,7 +623,7 @@ public class Base
 		else
 			return get(indexToShape(x));
 	}
-	// gradient area.
+	// gradient section.
 	public boolean hasGradient()
 	{
 		return data.hasGradient;
@@ -644,7 +644,14 @@ public class Base
 	{
 		fillGrad(v);
 	}
+	// --v  this function appends the gradient value.
 	public void setGrad(int[]index, float val)
+	{
+		int ind=shapeToIndex(index);
+		data.gradient[ind] += val;
+	}
+	// --v this function overwrite the value of gradient into a new one, used for zero gradient.
+	public void setGrad2(int[]index, float val)
 	{
 		int ind=shapeToIndex(index);
 		data.gradient[ind] = val;
@@ -671,7 +678,11 @@ public class Base
 			}
 		}
 		else
-			Arrays.fill(data.gradient, offset, offset + length, v);
+		{
+			for (int i=0;i < length;i++)
+				setRawGrad(i, v);
+			// Arrays.fill(data.gradient, offset, offset + length, v);
+		}
 	}
 	public void setGrad(Base d)
 	{
@@ -706,7 +717,6 @@ public class Base
 		else
 			return getGrad(indexToShape(x));
 	}
-	// not implemented.
 	public Base setGradientFunctionS(GradFunc func, Base...childs)
 	{
 		if (!hasGradient())
@@ -750,14 +760,19 @@ public class Base
 	}
 	public Base zeroGrad()
 	{
-		fillGrad(0);
+		// fillGrad(0);
+		for (int i=0;i < length;i++)
+		{
+			int[] sh=indexToShape(i);
+			setGrad2(sh, 0); // we use setGrad2 to prevent appending value.
+		}
 		return this;
 	}
 	public void setRawGrad(int index, float val)
 	{
 		if (index >= length && index < offset)
 			throw new IndexOutOfBoundsException("invalid index " + index + " it must be less than (" + length + ")");
-		data.gradient[offset + index] = val;
+		data.gradient[offset + index] += val;
 	}
 	public float getRawGrad(int index)
 	{

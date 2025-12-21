@@ -13,13 +13,14 @@ public class NDArray
 
 	 additional functions.
 	 ---name------gradient---
-	 -- log ✓ 		-
-	 -- exp ✓ 		-
+	 -- sum ✓ 		-
+	 -- log ✓ 		✓
+	 -- exp ✓ 		✓
 	 -- mean ✓ 	✓
 	 -- neg ✓ 		✓
-	 -- sqrt ✓ 	-
-	 -- inv ✓ 		-
-	 -- lt,eq ✓ 	-
+	 -- sqrt ✓ 	✓
+	 -- inv ✓ 		✓
+	 -- lt,eq ✓ 	✓
 	 */
 	// array generators.
 	public static Base arange(float end)

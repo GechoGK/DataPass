@@ -37,9 +37,14 @@ public class Test2_Func
 //		test12();
 //		test13();
 //		test14();
-		test15();
+//		test15();
+		test16();
 
 
+	}
+	void test16()
+	{
+		
 	}
 	void test15()
 	{

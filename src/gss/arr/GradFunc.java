@@ -9,6 +9,17 @@ public abstract class GradFunc
 	// name for debugging purpose.
 	public String name;
 
+	/*
+	 -- sum
+	 -- log 	✓
+	 -- exp
+	 -- sqrt 	✓
+	 -- inv 	✓
+	 -- neg 	✓
+	 -- lt 		✓
+	 -- eq 		✓
+	 */
+
 	public GradFunc()
 	{
 		this.name = "unknown";
@@ -295,7 +306,16 @@ public abstract class GradFunc
 		@Override
 		public Base backward(Base host, Base[] childs, Object params)
 		{
-			error(name + " not implemented.");
+			Base a1=childs[0]; // a
+			if (!a1.hasGradient())
+				return null;
+			int[] shape=host.shape;
+			int[] tmpShape=new int[shape.length];
+			for (int i=0;i < host.length;i++)
+			{
+				indexToShape(i, shape, tmpShape);
+				a1.setGrad(tmpShape, host.getGrad(tmpShape) / a1.get(tmpShape));
+			}
 			return null;
 		}
 	};
@@ -303,7 +323,16 @@ public abstract class GradFunc
 		@Override
 		public Base backward(Base host, Base[] childs, Object params)
 		{
-			error(name + " not implemented.");
+			Base a1=childs[0]; // a
+			if (!a1.hasGradient())
+				return null;
+			int[] shape=host.shape;
+			int[] tmpShape=new int[shape.length];
+			for (int i=0;i < host.length;i++)
+			{
+				indexToShape(i, shape, tmpShape);
+				a1.setGrad(tmpShape, host.getGrad(tmpShape) * host.get(tmpShape));
+			}
 			return null;
 		}
 	};
@@ -311,7 +340,17 @@ public abstract class GradFunc
 		@Override
 		public Base backward(Base host, Base[] childs, Object params)
 		{
-			error(name + " not implemented.");
+			// d/(2*sqrt(x))
+			Base a1=childs[0]; // a
+			if (!a1.hasGradient())
+				return null;
+			int[] shape=host.shape;
+			int[] tmpShape=new int[shape.length];
+			for (int i=0;i < host.length;i++)
+			{
+				indexToShape(i, shape, tmpShape);
+				a1.setGrad(tmpShape, (float)(host.getGrad(tmpShape) / (2 * Math.sqrt(a1.get(tmpShape)))));
+			}
 			return null;
 		}
 	};
@@ -320,16 +359,35 @@ public abstract class GradFunc
 		@Override
 		public Base backward(Base host, Base[] childs, Object params)
 		{
-			error(name + " not implemented.");
+			// (-1/x**2)*d
+			Base a1=childs[0]; // a
+			if (!a1.hasGradient())
+				return null;
+			int[] shape=host.shape;
+			int[] tmpShape=new int[shape.length];
+			for (int i=0;i < host.length;i++)
+			{
+				indexToShape(i, shape, tmpShape);
+				a1.setGrad(tmpShape, (float)((-1 / Math.pow(a1.get(tmpShape), 2)) * host.getGrad(tmpShape)));
+			}
 			return null;
 		}
 	};
-	// unwanted gradient funcion( we can use mul gradient)
+	// unwanted gradient funcion( we can use mult gradient)
 	public static GradFunc negGradient=new GradFunc("neg"){
 		@Override
 		public Base backward(Base host, Base[] childs, Object params)
 		{
-			error(name + " not implemented.");
+			Base a1=childs[0]; // a
+			if (!a1.hasGradient())
+				return null;
+			int[] shape=host.shape;
+			int[] tmpShape=new int[shape.length];
+			for (int i=0;i < host.length;i++)
+			{
+				indexToShape(i, shape, tmpShape);
+				a1.setGrad(tmpShape, -host.getGrad(tmpShape));
+			}
 			return null;
 		}
 	};
@@ -338,6 +396,7 @@ public abstract class GradFunc
 		public Base backward(Base host, Base[] childs, Object params)
 		{
 			error(name + " not implemented.");
+			// fill zeros.
 			return null;
 		}
 	};
@@ -346,6 +405,7 @@ public abstract class GradFunc
 		public Base backward(Base host, Base[] childs, Object params)
 		{
 			error(name + " not implemented.");
+			// fill zeros.
 			return null;
 		}
 	};
