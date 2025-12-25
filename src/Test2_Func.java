@@ -57,8 +57,8 @@ public class Test2_Func
 		Optimizer opt=new Adam(xor.getParameters());
 
 		LossFunc lossF=new MSE();
-
-		println(opt.params);
+		
+		println(line(30));
 
 		float loss=100;
 		while (loss >= 0.1f)
@@ -68,9 +68,13 @@ public class Test2_Func
 			X = lossF.forward(X, target);
 			loss = X.get(0);
 
-			println("loss", loss);
+			print("loss", loss);
 
-			Thread.sleep(1000);
+			opt.zeroGrad();
+			X.setGrad(1);
+			X.backward();
+			opt.step();
+
 		}
 
 	}

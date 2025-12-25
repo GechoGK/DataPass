@@ -6,8 +6,6 @@ import java.util.*;
 
 public class Sequential extends Module
 {
-	private List<Module> modules=new ArrayList<>();
-
 	public Sequential(Module...mds)
 	{
 		add(mds);
@@ -21,10 +19,10 @@ public class Sequential extends Module
 	@Override
 	public Base forward(Base input)
 	{
-		if (modules.size() == 0)
+		if (subModules.size() == 0)
 			return null;
 		Base out=input;
-		for (Module m:modules)
+		for (Module m:subModules)
 		{
 			// System.out.print(".");
 			out = m.forward(out);
