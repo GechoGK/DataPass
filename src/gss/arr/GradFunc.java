@@ -358,12 +358,12 @@ public abstract class GradFunc
 			return null;
 		}
 	};
-	// unwanted gradient funcion( we can use div gradient)
-	public static GradFunc invGradient=new GradFunc("inv"){
+	public static GradFunc pass1Gradient=new GradFunc("pass"){
 		@Override
 		public Base backward(Base host, Base[] childs, Object params)
 		{
-			// (-1/x**2)*d
+			if (childs.length != 1)
+				error("expected 1 child, found " + childs.length);
 			Base a1=childs[0]; // a
 			if (!a1.hasGradient())
 				return null;
@@ -372,46 +372,33 @@ public abstract class GradFunc
 			for (int i=0;i < host.length;i++)
 			{
 				indexToShape(i, shape, tmpShape);
-				a1.setGrad(tmpShape, (float)((-1 / Math.pow(a1.get(tmpShape), 2)) * host.getGrad(tmpShape)));
+				float f=host.getGrad(tmpShape);
+				a1.setGrad(tmpShape, f);
 			}
 			return null;
-		}
+		}	
 	};
-	// unwanted gradient funcion( we can use mult gradient)
-	public static GradFunc negGradient=new GradFunc("neg"){
+	public static GradFunc pass2Gradient=new GradFunc("pass"){
 		@Override
 		public Base backward(Base host, Base[] childs, Object params)
 		{
+			if (childs.length != 1)
+				error("expected 2 childs, found " + childs.length);
 			Base a1=childs[0]; // a
-			if (!a1.hasGradient())
-				return null;
+			Base a2=childs[1]; // b
 			int[] shape=host.shape;
 			int[] tmpShape=new int[shape.length];
 			for (int i=0;i < host.length;i++)
 			{
 				indexToShape(i, shape, tmpShape);
-				a1.setGrad(tmpShape, -host.getGrad(tmpShape));
+				float f=host.getGrad(tmpShape);
+				if (a1.hasGradient())
+					a1.setGrad(tmpShape, f);
+				if (a2.hasGradient())
+					a2.setGrad(tmpShape, f);
 			}
 			return null;
-		}
-	};
-	public static GradFunc ltGradient=new GradFunc("lessthan"){
-		@Override
-		public Base backward(Base host, Base[] childs, Object params)
-		{
-			error(name + " not implemented.");
-			// fill zeros.
-			return null;
-		}
-	};
-	public static GradFunc eqGradient=new GradFunc("equals"){
-		@Override
-		public Base backward(Base host, Base[] childs, Object params)
-		{
-			error(name + " not implemented.");
-			// fill zeros.
-			return null;
-		}
+		}	
 	};
 	public static GradFunc itemGradient = new GradFunc("item"){
 		@Override

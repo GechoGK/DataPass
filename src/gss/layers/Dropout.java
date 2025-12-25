@@ -57,7 +57,6 @@ public class Dropout extends Module
 			if (host.length != c1.length)
 				throw new RuntimeException("unable to compute dropout backpropagation.: invalid array length between the host and the child.");
 			Base rs=NDArray.mul(grd, new Base(Util.asFloat(mask)));
-
 			c1.setGrad(rs);
 			return null;
 		}

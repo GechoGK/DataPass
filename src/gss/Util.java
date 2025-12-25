@@ -2,6 +2,7 @@ package gss;
 
 import gss.arr.*;
 import java.util.*;
+
 import static gss.Functions.*;
 
 public class Util
@@ -558,6 +559,11 @@ public class Util
 				System.out.print(Arrays.toString((boolean[])o));
 			else if (o instanceof Object[])
 				System.out.print(Arrays.toString((Object[])o));
+			else if (o instanceof ArrayList)
+			{
+				for (int i=0;i < ((ArrayList)o).size();i++)
+					printO(newLn, ((ArrayList)o).get(i));
+			}
 			else
 				System.out.print(o);
 			System.out.print(newLn ?"\n": " ");
@@ -621,6 +627,30 @@ public class Util
 				if (b1.getGrad(ind) != b2.getGrad(ind))
 					return false;
 			}
+		}
+		return true;
+	}
+	/*
+	 this function checks whether two array classes are the same or not.
+	 it have a gap for floating point precision.
+	 @Base b1. first array class
+	 @Base b2. second array class.
+	 returns b1±thresh==b2
+
+	 */
+	public static boolean isClose(Base b1, Base b2, boolean checkGrad)
+	{
+		if (!Arrays.equals(b1.shape, b2.shape))
+			return false;
+		float thresh=0.0001f;
+		for (int i=0;i < b1.length;i++)
+		{
+			int ind[]=indexToShape(i, b1.shape);
+			float v1=b1.get(ind);
+			float v2=b2.get(ind);
+			boolean close=(v1 + thresh >= v2 && v1 - thresh <= v2);
+			if (!close)
+				return false;
 		}
 		return true;
 	}
@@ -720,9 +750,5 @@ public class Util
 		int len=length(shape);
 		for (int i=0;i < len;i++)
 			func.apply(indexToShape(i, shape));
-	}
-	public static int[]expandFrom(int[]shape, int[]to)
-	{
-		return null;
 	}
 }

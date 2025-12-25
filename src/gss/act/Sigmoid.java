@@ -26,7 +26,6 @@ public class Sigmoid extends Activation
 		return arrOut;
 	}
 	public static GradFunc sigmoidGradient=new GradFunc("sigmoid"){
-
 		/*
 		 float sigmoidBackward(float grad, float x) {
 		 float sigmoid_x = 1.0f / (1.0f + (float) Math.exp(-x)); // Recompute σ(x)
@@ -43,7 +42,7 @@ public class Sigmoid extends Activation
 			for (int i=0;i < host.length;i++)
 			{
 				int sh[]=a1.indexToShape(i);
-				float sig = 1f / (1f + (float)Math.exp(-a1.get(sh)));
+				float sig = 1f / (1f + (float)Math.exp(-a1.get(sh))); // or a1.get(sh);
 				a1.setGrad(sh, host.getGrad(host.indexToShape(i)) * sig * (1 - sig));
 			}
 			// childs[0].base.data.setGrad(dt);

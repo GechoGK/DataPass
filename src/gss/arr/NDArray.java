@@ -173,7 +173,7 @@ public class NDArray
 					return sd1 - p1;
 				}
 			});
-		return out.setGradientFunctionS(subtractionGradient, d2, wrap(new float[]{sd1}));
+		return out.setGradientFunctionS(subtractionGradient, wrap(new float[]{sd1}), d2);
 	}
 	// multiplication
 	public static Base mul(Base d1, Base d2)
@@ -233,7 +233,7 @@ public class NDArray
 					return sd1 / Math.max(epsilon, p1);
 				}
 			});
-		return out.setGradientFunctionS(divisionGradient, d2, wrap(new float[]{sd1}));
+		return out.setGradientFunctionS(divisionGradient, wrap(new float[]{sd1}), d2);
 	}
 	// power function.
 	public static Base pow(Base d1, Base d2)
@@ -267,7 +267,7 @@ public class NDArray
 					return (float)Math.pow(sd1, p1);
 				}
 			});
-		return out.setGradientFunctionS(powGradient, d2, wrap(new float[]{sd1}));
+		return out.setGradientFunctionS(powGradient, wrap(new float[]{sd1}), d2);
 	}
 	// dot product start.
 
@@ -597,26 +597,11 @@ public class NDArray
 	}
 	public static Base neg(Base d)
 	{
-		Base out=map(d, new MapFunction(){
-				@Override
-				public float apply(float p1)
-				{
-					return -1 * p1;
-				}
-			});
-		return out.setGradientFunctionS(negGradient, d);
+		return mul(d, -1);
 	}
 	public static Base inv(Base d)
 	{
-		Base out=map(d, new MapFunction(){
-				@Override
-				public float apply(float p1)
-				{
-					float epsilon = 1e-7f;
-					return 1 / Math.max(epsilon, p1);
-				}
-			});
-		return out.setGradientFunctionS(invGradient, d);
+		return div(1, d);
 	}
 	public static Base mean(Base d)
 	{
@@ -632,7 +617,7 @@ public class NDArray
 					return p1 < p2 ?1: 0;
 				}
 			});
-		return out.setGradientFunctionS(ltGradient, d1, d2);
+		return out.setGradientFunctionS(pass2Gradient, d1, d2);
 	}
 	public static Base lt(Base d1, final float sd2)
 	{
@@ -643,7 +628,7 @@ public class NDArray
 					return p1 < sd2 ?1: 0;
 				}
 			});
-		return out.setGradientFunctionS(ltGradient, d1, wrap(new float[]{sd2}));
+		return out.setGradientFunctionS(pass2Gradient, d1, wrap(new float[]{sd2}));
 	}
 	public static Base lt(final float sd1, Base d2)
 	{
@@ -654,7 +639,7 @@ public class NDArray
 					return sd1 < p1 ?1: 0;
 				}
 			});
-		return out.setGradientFunctionS(ltGradient, d2, wrap(new float[]{sd1}));
+		return out.setGradientFunctionS(pass2Gradient, wrap(new float[]{sd1}), d2);
 	}
 	// equals
 	public static Base eq(Base d1, Base d2)
@@ -666,7 +651,7 @@ public class NDArray
 					return p1 == p2 ?1: 0;
 				}
 			});
-		return out.setGradientFunctionS(eqGradient, d1, d2);
+		return out.setGradientFunctionS(pass2Gradient, d1, d2);
 	}
 	public static Base eq(Base d1, final float sd2)
 	{
@@ -677,7 +662,7 @@ public class NDArray
 					return p1 == sd2 ?1: 0;
 				}
 			});
-		return out.setGradientFunctionS(eqGradient, d1, wrap(new float[]{sd2}));
+		return out.setGradientFunctionS(pass2Gradient, d1, wrap(new float[]{sd2}));
 	}
 	public static Base eq(final float sd1, Base d2)
 	{
@@ -688,6 +673,6 @@ public class NDArray
 					return sd1 == p1 ?1: 0;
 				}
 			});
-		return out.setGradientFunctionS(eqGradient, d2, wrap(new float[]{sd1}));
+		return out.setGradientFunctionS(pass2Gradient, wrap(new float[]{sd1}), d2);
 	}
 }

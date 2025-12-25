@@ -9,6 +9,7 @@ import static gss.Util.*;
 import static gss.arr.GradFunc.*;
 import static gss.Functions.*;
 import java.util.*;
+import modules.*;
 
 public class Test2_Func
 {
@@ -23,7 +24,7 @@ public class Test2_Func
 	{
 
 //		test1();
-//		test2(); // xor test have problems.
+//		test2();
 //		test3();
 //		test4();
 //		test5();
@@ -39,12 +40,44 @@ public class Test2_Func
 //		test13();
 //		test14();
 //		test15();
-		test16();
+//		test16();
+		test17();
 
+
+	}
+	void test17() throws InterruptedException
+	{
+		print(decString("Test 16. XOR module", "-", 7));
+
+		Base in=new Base(new float[]{0,0,1,1,0,1,1,0}, 4, 2);
+		Base target=new Base(new float[]{0,0,1,1});
+
+		Module xor=new XOR();
+
+		Optimizer opt=new Adam(xor.getParameters());
+
+		LossFunc lossF=new MSE();
+
+		println(opt.params);
+
+		float loss=100;
+		while (loss >= 0.1f)
+		{
+			Base X=xor.forward(in);
+
+			X = lossF.forward(X, target);
+			loss = X.get(0);
+
+			println("loss", loss);
+
+			Thread.sleep(1000);
+		}
 
 	}
 	void test16()
 	{
+		print(decString("Test 16. sum gradient", "-", 7));
+
 		Base b=NDArray.arange(30).reshape(2, 3, 5).setRequiresGradient(true);
 
 		Base s1=NDArray.sum(b, 2);
@@ -238,10 +271,10 @@ public class Test2_Func
 		b2.detachGradient().printArray();
 	}
 	public static void tree(Base arr, String t)
-    {
+	{
 		System.out.println(t + arr);
 		if (arr.gradientFunction == GradFunc.itemGradient)
-        {
+		{
 			System.out.println(t + "listing child gradient");
 			for (int i=0;i < arr.length;i++)
 				treeV(arr.getValue(i), t);
@@ -251,7 +284,7 @@ public class Test2_Func
 				tree(ar, t.replace("_", " ").replace("|", " ") + "|_____ ");
 	}
 	public static void treeV(Value vl, String t)
-    {
+	{
 		System.out.println(t + vl);
 		if (vl.args != null && vl.args.size() != 0)
 			for (Value  vv:vl.args)
@@ -804,32 +837,48 @@ public class Test2_Func
 	void test2() throws InterruptedException
 	{
 		System.out.println(decString("Test 2.0 XOR Test.", "=", 10));
-		// xor oroblem doesn't work.
-		// i don't know what the problem is, we are going to find out.
-		Base x=new Base(new float[]{0,1,0,0,1,0,1,1}, 4, 2);
-		Base y=new Base(new float[]{1,0,1,0});
+		Base x=new Base(new float[]{0,0,1,1,0,1,1,0}, 4, 2);
+		Base y=new Base(new float[]{0,0,1,1});
 
-		int hiddenSize=3;
+		int hiddenSize=5;
 		// it works with hidden size starts from 2 upto ...
 
 		Linear l1=new Linear(2, hiddenSize);
 		Linear l2=new Linear(hiddenSize, 1);
 
-		Activation a2=new Sigmoid();
-		LossFunc lossFunc=new MAE();
-		Optimizer optim=new Adam(l1.getParameters(), l2.getParameters()); // very fast. < 15000 iterations.
+		Activation a2=new Tanh();
+		LossFunc lossFunc=new MSE();
+		/*
+		 --- MSE
+		 Adam >6000 iterations. Tanh(1200, )
+		 GradientDescent >100_000 iterations. Tanh(27_700,25_800)
+		 SGDM >50_000 iterations. Tanh(4600,3400)
+		 --- BCE more accurate loss functiom
+		 Adam >7000 iterations, Tanh(2100)
+		 GradientDescent >100_000 iterations. Tanh(11300)
+		 SGDM >30_000 iterations, Tanh(1400,2100)
+		 --- MAE
+		 Adam stuck. Tanh(3000,1800) sometimes.
+		 GradientDescent stuck
+		 SGDM stuck
+		 --- MCCE accurate loss function.
+		 Adam 10_000, Tanh(3800)
+		 GradientDescent >100_000 stuck.Tanh(28000) iterations.
+		 SGDM > 60_000. Tanh(3700)
+		 */
+		Optimizer optim=new Adam(l1.getParameters(), l2.getParameters()); // very fast. < 7000 iterations.
 		// sometimes when we use Adam optimizer it stuck to local minima, or unable to fit the dataset. so keep try again.
 		// optim = new GradientDescent(l1.getParameters(), l2.getParameters()); // very slow. >100,000 iterations.
-		// optim = new SGDM(l1.getParameters(), l2.getParameters()); // very slow. > 100,000 iterations.
+		// optim = new SGDM(l1.getParameters(), l2.getParameters()); // very slow. > 49,000 iterations.
 
 		Base output=null;
 
 		int ps=0;
 		float lsv=1000;
-		while (lsv >= 0.1f)
+		while (lsv >= 0.05f)
 		{
 			Base X = l1.forward(x);
-			// X = a2.forward(X);
+			X = a2.forward(X);
 			X = l2.forward(X);
 			X = a2.forward(X);
 			output = X;
@@ -849,6 +898,7 @@ public class Test2_Func
 			// Thread.sleep(100);
 		}
 		print(decString("-", 30));
+		print("total iterations ", ps);
 		print(output);
 	}
 	void test1()

@@ -20,9 +20,9 @@ public class Linear extends Module
 	}
 	private void init(int in, int out)
 	{
-		weight = newParam(NDArray.mul(NDArray.rand(in, out), 0.1f).setRequiresGradient(true));
+		weight = newParam(NDArray.mul(NDArray.rand(in, out), 1f));
 		if (hasBiase)
-			biase = newParam(NDArray.ones(out) .setRequiresGradient(true));
+			biase = newParam(NDArray.ones(out));
 	}
 	@Override
 	public Base forward(Base input)
