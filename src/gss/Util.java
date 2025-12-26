@@ -1,6 +1,7 @@
 package gss;
 
 import gss.arr.*;
+import java.io.*;
 import java.util.*;
 
 import static gss.Functions.*;
@@ -750,5 +751,24 @@ public class Util
 		int len=length(shape);
 		for (int i=0;i < len;i++)
 			func.apply(indexToShape(i, shape));
+	}
+	/*
+	 read text from file.
+	 readString(@String path)
+	 @String path. location of the file.
+	 location can be vary in different oprating systems. so consider that.
+
+	 -- usage
+	 !! let's say i have a file in internal storage called "a.txt" and it's content is "hello world".
+	 readString("/sdcard/a.txt");
+	 == "hello world"
+	 */
+	public static String readString(String path) throws IOException
+	{
+		FileInputStream fis=new FileInputStream(path);
+		byte[] b=new byte[fis.available()];
+		fis.read(b);
+		fis.close();
+		return new String(b);
 	}
 }

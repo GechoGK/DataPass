@@ -4,12 +4,11 @@ import gss.arr.*;
 import gss.layers.*;
 import gss.lossfunctions.*;
 import gss.optimizers.*;
+import modules.*;
 
 import static gss.Util.*;
 import static gss.arr.GradFunc.*;
 import static gss.Functions.*;
-import java.util.*;
-import modules.*;
 
 public class Test2_Func
 {
@@ -41,11 +40,25 @@ public class Test2_Func
 //		test14();
 //		test15();
 //		test16();
-		test17();
+//		test17();
+		test18();
 
+		/*
+		 TO-DO
+		 -- Random generators.
+		 -- Trainer
+		 -- export and import Arrays.
+		 -- import and export modules.
+		 -- Data supplier. maybe.
+		 -- more modules.
+		 */
 
 	}
-	void test17() throws InterruptedException
+	void test18()
+	{
+
+	}
+	void test17()
 	{
 		print(decString("Test 16. XOR module", "-", 7));
 
@@ -57,7 +70,7 @@ public class Test2_Func
 		Optimizer opt=new Adam(xor.getParameters());
 
 		LossFunc lossF=new MSE();
-		
+
 		println(line(30));
 
 		float loss=100;
