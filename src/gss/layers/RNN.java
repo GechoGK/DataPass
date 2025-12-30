@@ -1,10 +1,8 @@
 package gss.layers;
 
 import gss.*;
-import gss.arr.*;
-
-import static gss.Util.*;
 import gss.act.*;
+import gss.arr.*;
 
 public class RNN extends Module
 {
@@ -53,7 +51,10 @@ public class RNN extends Module
 			// (hidden_to_hidden . hidden_to_hidden);
 			Base hh_rs= NDArray.dot(hidden_state, hh_weight);
 			// tanh( input_to_hidden_result + hidden_to_hidden_result + biase);
-			hidden_state = new Tanh().forward(NDArray.add(NDArray.add(ih_rs, hh_rs), biase));
+			Base hidden=NDArray.add(ih_rs, hh_rs);
+			if (hasBiase)
+				hidden = NDArray.add(hidden, biase);
+			hidden_state = new Tanh().forward(hidden);
 		}
 		// output shape (batch_size, hidden_size)
 		return hidden_state;

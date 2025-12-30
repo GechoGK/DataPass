@@ -69,6 +69,18 @@ public class NDArray
 		Arrays.fill(f, v);
 		return new Base(f, shape);
 	}
+	public static Base wrap(float[][]data)
+	{
+		int[] shp={data.length,data[0].length};
+		float[] dt=Util.flatten(data);
+		return new Base(dt, shp);
+	}
+	public static Base wrap(float[][][]data)
+	{
+		int[] shp={data.length,data[0].length,data[0][0].length};
+		float[] dt=Util.flatten(data);
+		return new Base(dt, shp);
+	}
 	public static Base rand(int...shape)
 	{
 		return rand(shape, -1); // change -1 into another to use seed value.

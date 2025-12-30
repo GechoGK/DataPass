@@ -1,7 +1,10 @@
 import gss.*;
 import gss.act.*;
 import gss.arr.*;
+import gss.layers.*;
 import gss.lossfunctions.*;
+import gss.optimizers.*;
+import java.util.*;
 
 import static gss.Util.*;
 import static gss.arr.NDArray.*;
@@ -14,6 +17,7 @@ public class Main
 		new Main().a();
 
 	}
+	
 	void a() throws Exception
 	{
 //		test1();
@@ -32,7 +36,7 @@ public class Main
 //		Test2_LayereTest.test();
 //
 //		print(getString("=", 30));
-		
+
 		Test2_Func.test();
 
 		print(decString("Test completed.", "=", 10));

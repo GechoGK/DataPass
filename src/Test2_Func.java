@@ -4,6 +4,7 @@ import gss.arr.*;
 import gss.layers.*;
 import gss.lossfunctions.*;
 import gss.optimizers.*;
+import java.util.*;
 import modules.*;
 
 import static gss.Util.*;
@@ -44,7 +45,9 @@ public class Test2_Func
 //		test17();
 //		test18();
 //		test19();
-		test20();
+//		test20();
+//		test21();
+		test22();
 
 		/*
 		 TO-DO
@@ -56,6 +59,62 @@ public class Test2_Func
 		 -- more modules.
 		 */
 
+	}
+	void test22()
+	{
+
+	}
+	void test21()
+	{
+		print(decString("Test 21. simple RNN module next number prediction test.", "-", 7));
+		Object[] dt=prepareData();
+		Base trainX=NDArray.wrap((float[][])dt[0]);
+		Base trainY=NDArray.wrap(asFloat((Float[])dt[1]));
+
+		println(trainX, trainY);
+		print(line(20));
+
+		RNN rnn=new RNN(2, 1);
+		LossFunc loss=new MSE();
+		Adam opt=new Adam(rnn.getParameters());
+		opt.learningRate = 0.0001f;
+
+		print("learning rate", opt.learningRate);
+		float lsv=100;
+		int iter=0;
+		while (lsv >= 0.0015f)
+		{
+			Base out=rnn.forward(trainX);
+			Base ls=loss.forward(out, trainY);
+			lsv = ls.get(0);
+
+			if (iter++ % 1000 == 0)
+				print("loss = " + lsv);
+
+			opt.zeroGrad();
+			ls.setGrad(1);
+			ls.backward();
+			opt.step();
+
+		}
+		Base test=rnn.forward(trainX);
+		print(test.as1DArray(), trainY);
+		print("matches =", isClose(trainY, test, 0.05f));
+	}
+	Object[]prepareData()
+	{
+		// some random seed.
+		float[] data=rand(ar(6), -690715410).data.items;
+		int seq_len=2;
+
+		ArrayList<float[]>X=new ArrayList<>();
+		ArrayList<Float>Y=new ArrayList<>();
+		for (int i=0;i < data.length - seq_len;i++)
+		{
+			X.add(Arrays.copyOfRange(data, i, i + seq_len));
+			Y.add(data[i + seq_len]);
+		}
+		return new Object[]{X.toArray(new float[0][]),Y.toArray(new Float[0])};
 	}
 	void test20()
 	{

@@ -407,6 +407,13 @@ public class Util
 			f[i] = data[i];
 		return f;
 	}
+	public static float[]asFloat(Float...d)
+	{
+		float[] f=new float[d.length];
+		for (int i=0;i < f.length;i++)
+			f[i] = d[i];
+		return f;
+	}
 	/*
 	 this function serves as a python range [::]
 	 @int[][] rng. range
@@ -639,11 +646,14 @@ public class Util
 	 returns b1±thresh==b2
 
 	 */
-	public static boolean isClose(Base b1, Base b2, boolean checkGrad)
+	public static boolean isClose(Base b1, Base b2)
+	{
+		return isClose(b1, b2, 0.0001f);
+	}
+	public static boolean isClose(Base b1, Base b2, float thresh)
 	{
 		if (!Arrays.equals(b1.shape, b2.shape))
 			return false;
-		float thresh=0.0001f;
 		for (int i=0;i < b1.length;i++)
 		{
 			int ind[]=indexToShape(i, b1.shape);
