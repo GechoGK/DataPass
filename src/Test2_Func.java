@@ -9,6 +9,7 @@ import modules.*;
 import static gss.Util.*;
 import static gss.arr.GradFunc.*;
 import static gss.Functions.*;
+import static gss.arr.NDArray.*;
 
 public class Test2_Func
 {
@@ -41,26 +42,82 @@ public class Test2_Func
 //		test15();
 //		test16();
 //		test17();
-		test18();
+//		test18();
+//		test19();
+		test20();
 
 		/*
 		 TO-DO
 		 -- Random generators.
 		 -- Trainer
-		 -- export and import Arrays.
-		 -- import and export modules.
+		 -- export and import Arrays. ✓
+		 -- import and export modules. ✓
 		 -- Data supplier. maybe.
 		 -- more modules.
 		 */
 
 	}
-	void test18()
+	void test20()
 	{
+		print(decString("Test 20. simple RNN module test", "-", 7));
+		// input_size, hidden_size(output);
+		Module m=new RNN(1, 1);
+		// sequence, batch, input_size.
+		Base in=NDArray.wrap(new float[]{0.5f,0.1f,0.7f,0.2f,0.9f}, 5, 1, 1);
+
+		Base out=m.forward(in);
+
+		println(out);
 
 	}
-	void test17()
+	void test19() throws Exception
 	{
-		print(decString("Test 16. XOR module", "-", 7));
+		print(decString("Test 19. Import and Export Modules", "-", 7));
+		Module m=new XOR();
+
+		Base in=NDArray.wrap(asFloat(0, 1, 1, 0, 0, 0, 1, 1), 4, 2);
+
+		Base out=m.forward(in);
+
+		String path="/sdcard/xor_module.mdl";
+		Util.saveObject(path, m);
+
+		Module m2=NDArray.loadModule(path);
+
+		Base out2=m2.forward(in);
+
+		println(out, out2);
+
+	}
+	void test18() throws Exception
+	{
+		print(decString("Test 18. Import and Export Arrays", "-", 7));
+		// test export and import array.
+
+		Base b1=NDArray.rand(2, 4, 10).setRequiresGradient(true);
+
+		String path="/sdcard/testArray.ndbin";
+		NDArray.save(b1, path, NDArray.FileType.BINARY);
+		Base b2=NDArray.load(path, NDArray.FileType.BINARY);
+		boolean result=Util.equals(b1, b2, true);
+		print("array from binary load and save result ", result);
+
+		path = "/sdcard/testArray.json";
+		NDArray.save(b1, path, NDArray.FileType.JSON);
+		b2 = NDArray.load(path, NDArray.FileType.JSON);
+		result = Util.equals(b1, b2, true);
+		print("array from json load and save result ", result);
+
+		path = "/sdcard/testArray.txt";
+		NDArray.save(b1, path, NDArray.FileType.TEXT);
+		b2 = NDArray.load(path, NDArray.FileType.TEXT);
+		result = Util.equals(b1, b2, true);
+		print("array from text load and save result ", result);
+
+	}
+	Module test17()
+	{
+		print(decString("Test 17. XOR module Test", "-", 7));
 
 		Base in=new Base(new float[]{0,0,1,1,0,1,1,0}, 4, 2);
 		Base target=new Base(new float[]{0,0,1,1});
@@ -69,11 +126,12 @@ public class Test2_Func
 
 		Optimizer opt=new Adam(xor.getParameters());
 
-		LossFunc lossF=new MSE();
+		LossFunc lossF=new BCE();
 
 		println(line(30));
 
 		float loss=100;
+		int iter=0;
 		while (loss >= 0.1f)
 		{
 			Base X=xor.forward(in);
@@ -81,7 +139,8 @@ public class Test2_Func
 			X = lossF.forward(X, target);
 			loss = X.get(0);
 
-			print("loss", loss);
+			if (iter++ % 1000 == 0)
+				print("loss", loss);
 
 			opt.zeroGrad();
 			X.setGrad(1);
@@ -89,7 +148,8 @@ public class Test2_Func
 			opt.step();
 
 		}
-
+		print("final prediction", xor.forward(in));
+		return xor;
 	}
 	void test16()
 	{
@@ -391,6 +451,10 @@ public class Test2_Func
 		if (sh2.length >= 2)
 			ns[ns.length - 1] = sh2[sh2.length - 1];
 		return ns;
+	}
+	void draw(Base b)
+	{
+		draw(b, "");
 	}
 	void draw(Base bs, String s)
 	{

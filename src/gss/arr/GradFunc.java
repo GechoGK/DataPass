@@ -1,11 +1,13 @@
 package gss.arr;
 
+import java.io.*;
 import java.util.*;
 
 import static gss.Util.*;
 
-public abstract class GradFunc
+public abstract class GradFunc implements Serializable
 {
+	public static final long serialVersionUID=7265282763l;
 	// name for debugging purpose.
 	public String name;
 

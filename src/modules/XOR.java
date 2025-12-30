@@ -9,17 +9,24 @@ import static gss.Util.*;
 
 public class XOR extends Sequential
 {
+	// it works with hidden size starts from 2 upto ...
+	public int hiddenSize=5;
+
 	public XOR()
 	{
 		init();
 	}
+	public XOR(int hiddenSize)
+	{
+		this.hiddenSize = hiddenSize;
+	}
 	public void init()
 	{
-		int hiddenSize=5;
-		// it works with hidden size starts from 2 upto ...
-
-		Tanh tan=new Tanh();
-		add(new Linear(2, hiddenSize), tan, new Linear(hiddenSize, 1), tan);
+		Activation sig=new Sigmoid();
+		add(new Linear(2, hiddenSize),
+			sig,
+			new Linear(hiddenSize, 1),
+			sig);
 
 	}
 }

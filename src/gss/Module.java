@@ -1,10 +1,13 @@
 package gss;
 
 import gss.arr.*;
+import java.io.*;
 import java.util.*;
 
-public abstract class Module
+public abstract class Module implements Serializable
 {
+	public static final long serialVersionUID=17442738l;
+	
 	public ArrayList<Base> params=new ArrayList<>();
 	public ArrayList<Module> subModules=new ArrayList<>();
 

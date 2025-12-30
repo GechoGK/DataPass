@@ -32,7 +32,7 @@ public class Main
 //		Test2_LayereTest.test();
 //
 //		print(getString("=", 30));
-//
+		
 		Test2_Func.test();
 
 		print(decString("Test completed.", "=", 10));

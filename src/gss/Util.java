@@ -771,4 +771,49 @@ public class Util
 		fis.close();
 		return new String(b);
 	}
+	/*
+	 save String content to file.
+	 @String path. drstination file.
+	 @String cont. the content to be written.
+
+	 -- usage
+	 String path="/sdcard/a.txt";
+	 String content="Hello world!";
+	 saveString(path,content);
+	 */
+	public static void saveString(String path, String cont) throws Exception
+	{
+		FileOutputStream fos=new FileOutputStream(path);
+		fos.write(cont.getBytes());
+		fos.flush();
+		fos.close();
+	}
+	/*
+	 save Serializable Object to file.
+	 @String path. drstination file.
+	 @Object obj. the sedualizable object to be written.
+
+	 -- usage
+	 String path="/sdcard/a.txt";
+
+	 Object content="Hello world!";
+	 // or
+	 content=24;
+	 // or
+	 content=468.7;
+	 saveObject(path,content);
+	 */
+	public static void saveObject(String path, Object obj) throws Exception
+	{
+		FileOutputStream fos= new FileOutputStream(path);
+		new ObjectOutputStream(fos).writeObject(obj);
+		fos.close();
+	}
+	public static Object loadObject(String path) throws Exception
+	{
+		FileInputStream fis=new FileInputStream(path);
+		Object obj= new ObjectInputStream(fis).readObject();
+		fis.close();
+		return obj;
+	}
 }

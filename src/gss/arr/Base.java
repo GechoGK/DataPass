@@ -1,13 +1,15 @@
 package gss.arr;
 
 import gss.*;
+import java.io.*;
 import java.util.*;
 
 import static gss.Util.*;
 import static gss.arr.GradFunc.*;
 
-public class Base
+public class Base implements Serializable
 {
+	public static final long serialVersionUID=297474738l;
 	// warning !!!
 	// reshapeLocal review.
 	// don't assign arrays directly, because it entirely used on both sides of the array.
@@ -519,7 +521,7 @@ public class Base
 	@Override
 	public String toString()
 	{
-		String inf="shape : " + Arrays.toString(shape) + " len :" + length + (isTransposed() ?" : transposed.": ".");
+		String inf="shape : " + Arrays.toString(shape) + " len :" + length + (isTransposed() ?" : transposed.": ".") + (hasGradient() ?"haveGradient? : true": "");
 		return inf + "\n" + getArrayAsString();
 	}
 	public void printArray()
@@ -561,14 +563,20 @@ public class Base
 	}
 	public Base as1DArray()
 	{
+		if (getDim() == 1)
+			return this;
 		return reshape(-1);
 	}
 	public Base as2DArray()
 	{
+		if (getDim() == 2)
+			return this;
 		return reshape(-1, shape[shape.length - 1]);
 	}
 	public Base as3DArray()
 	{
+		if (getDim() == 3)
+			return this;
 		if (shape.length == 1)
 		{
 			return reshape(-1, 1, shape[shape.length - 1]);
@@ -623,7 +631,7 @@ public class Base
 		else
 			return get(indexToShape(x));
 	}
-	// gradient section.
+////// gradient section.
 	public boolean hasGradient()
 	{
 		return data.hasGradient;

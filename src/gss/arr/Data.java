@@ -1,11 +1,13 @@
 package gss.arr;
 
-import java.util.*;
+import java.io.*;
 
 import static gss.Util.*;
 
-public class Data
+public class Data implements Serializable
 {
+	public static final long serialVersionUID=12589738l;
+
 	public float[] items;
 	public float[] gradient;
 	public Value[] gradValues;

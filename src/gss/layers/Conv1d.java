@@ -203,4 +203,5 @@ public class Conv1d extends Module
 			return null;
 		}
 	};
+	
 }

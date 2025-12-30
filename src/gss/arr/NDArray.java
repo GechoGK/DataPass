@@ -672,11 +672,11 @@ public class NDArray
 		return out.setGradientFunctionS(pass2Gradient, wrap(new float[]{sd1}), d2);
 	}
 	// import and export arrays
-	public static void toFile(Base ar, String path)
+	public static void save(Base ar, String path)
 	{
 		saveJSON(ar, path);
 	}
-	public static void toFile(Base ar, String path, FileType type)
+	public static void save(Base ar, String path, FileType type)
 	{
 		if (type == FileType.JSON)
 			saveJSON(ar, path);
@@ -703,24 +703,9 @@ public class NDArray
 			 array = [1,2,3,...] -> array
 
 			 */
-			JSONObject obj=new JSONObject("{}");
-			obj.put("type", "float");
-			obj.put("requiresGradient", ar.hasGradient());
-			JSONArray arr=new JSONArray();
-			int[]sh=ar.shape;
-			for (int s:sh)
-				arr.put(s);
-			obj.put("shape", arr);
-			float[]dt=ar.data.items;
-			arr = new JSONArray();
-			for (float f:dt)
-				arr.put(f);
-			obj.put("array", arr);
-			String jsonString=obj.toString(0);
-			FileOutputStream fos=new FileOutputStream(path);
-			fos.write(jsonString.getBytes());
-			fos.flush();
-			fos.close();
+			JSONObject obj=toJson(ar);
+			String jsonString=obj.toString(3);
+			Util.saveString(path, jsonString);
 			// Util.print("array saved as json file");
 		}
 		catch (Exception e)
@@ -728,6 +713,23 @@ public class NDArray
 			Util.print("error :" + e);
 			e.printStackTrace();
 		}
+	}
+	public static JSONObject toJson(Base ar) throws Exception
+	{
+		JSONObject obj=new JSONObject("{}");
+		obj.put("type", "float");
+		obj.put("requiresGradient", ar.hasGradient());
+		JSONArray arr=new JSONArray();
+		int[]sh=ar.shape;
+		for (int s:sh)
+			arr.put(s);
+		obj.put("shape", arr);
+		float[]dt=ar.data.items;
+		arr = new JSONArray();
+		for (float f:dt)
+			arr.put(f);
+		obj.put("array", arr);
+		return obj;
 	}
 	public static void saveTEXT(Base ar, String path)
 	{
@@ -757,10 +759,7 @@ public class NDArray
 			sb.append(Arrays.toString(ar.data.items).replace(" ", ""));
 			sb.append("\n");
 			String textData=sb.toString();
-			FileOutputStream fos=new FileOutputStream(path);
-			fos.write(textData.getBytes());
-			fos.flush();
-			fos.close();
+			Util.saveString(path, textData);
 			// Util.print("array saved as text file");
 		}
 		catch (Exception e)
@@ -791,9 +790,6 @@ public class NDArray
 			 -- 1.0, 1.3, 4.8... --
 			 .. ^--- float
 			 */
-			String ext=".ndbin";
-			if (!path.endsWith(ext))
-				path += ext;
 			DataOutputStream dos=new DataOutputStream(new FileOutputStream(path));
 			int tpgrd=0b10000000;
 			if (ar.hasGradient())
@@ -964,7 +960,7 @@ public class NDArray
 		float[] arrData=null;
 		// read type but ignored.
 		int flag=dis.readInt();
-		int type=flag & 0b10000000; // type 0b10000000 = float 0b00000000 = int. atleast for now.
+		int type=flag & 0b10000000; // type 0b10000000 = float 0b00000000 = int. atleast for now. @not used.
 		//   ^--- type no use here.
 		int gradFlag=flag & 0b01000000; // grad 0b01000000 = true 0b00000000 = false;
 		grad = gradFlag == 0b01000000 ?true: false;
@@ -982,7 +978,8 @@ public class NDArray
 			throw new RuntimeException("unabke to read shape");
 		Base arrOut=null;
 		if (arrData == null) // if arrayData is null we can construct the array with "0"s inside, bu5 inform the user that arrayData can't be read.
-		{Util.print("unable to read array data returning with array filled with \"0\"s");
+		{
+			Util.print("unable to read array data returning with array filled with \"0\"s");
 			arrOut = NDArray.zeros(shape).setRequiresGradient(grad);
 		}
 		else
@@ -994,5 +991,13 @@ public class NDArray
 		JSON,
 		TEXT,
 		BINARY;
+	}
+	public static void saveModule(Module m, String path) throws Exception
+	{
+		Util.saveObject(path, m);
+	}
+	public static Module loadModule(String path) throws Exception
+	{
+		return (Module)Util.loadObject(path);
 	}
 }
