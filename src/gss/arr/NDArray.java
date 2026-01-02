@@ -125,7 +125,12 @@ public class NDArray
 		}
 		return res;
 	}
-
+	public static Base map(int[]shape, ArrayToFloatFunction func)
+	{
+		float[]data=loop(shape, func);
+		Base b=NDArray.wrap(data, shape);
+		return b;
+	}
 	// addition
 	public static Base add(Base d1, Base d2)
 	{
@@ -682,6 +687,53 @@ public class NDArray
 				}
 			});
 		return out.setGradientFunctionS(pass2Gradient, wrap(new float[]{sd1}), d2);
+	}
+	public static Base max(Base b)
+	{
+		float val=Float.MIN_VALUE;
+		int index=0;
+		for (int i=0;i < b.length;i++)
+		{
+			float v=b.get1d(i);
+			if (v > val)
+			{
+				val = v;
+				index = i;
+			}
+		}
+		Base res=empty(1).setRequiresGradient(b.hasGradient());
+		res.set(ar(0), val);
+		res.setGradientFunctionS(maxGradient, index, b);
+		return res;
+	}
+	// axis is determined by the shorter shape.length.
+	public static Base concat(final Base b1, final Base b2, final int ax)
+	{
+		int diff1=Math.abs(b1.shape.length - b2.shape.length);
+		final int axis=ax + diff1;
+		int[]outShape1=getCommonShapeExcept(b1.shape, b2.shape, axis);
+
+		final int[] i1_shape=copy(outShape1);
+		final int[] i2_shape=copy(outShape1);
+		copyB(b1.shape, i1_shape);
+		copyB(b2.shape, i2_shape);
+
+		final int diff2=i1_shape[axis];
+
+		int[] outShape=concatShape(i1_shape, i2_shape, axis);
+		Base b=map(outShape, new ArrayToFloatFunction(){
+				@Override
+				public float apply(int[] p1)
+				{
+					if (p1[axis] >= i1_shape[axis])
+					{
+						p1[axis] = p1[axis] - diff2;
+						return b2.get(p1);
+					}
+					return b1.get(p1);
+				}
+			});
+		return b;
 	}
 	// import and export arrays
 	public static void save(Base ar, String path)

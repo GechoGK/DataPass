@@ -9,7 +9,8 @@ public class RNN extends Module
 	private int input;
 	private int hidden;
 	private boolean hasBiase;
-	// batch first = false;
+	// remember batch first is false;
+	// the data type should be (sequence_length, batch_size, input_length);
 
 	public Base ih_weight,hh_weight,biase;
 

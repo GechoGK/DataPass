@@ -47,8 +47,8 @@ public class Test2_Func
 //		test19();
 //		test20();
 //		test21();
-		test22();
-
+//		test22();
+		test23();
 		/*
 		 TO-DO
 		 -- Random generators.
@@ -60,8 +60,65 @@ public class Test2_Func
 		 */
 
 	}
+	void test23()
+	{
+
+		LSTM lstm=new LSTM(4, 3);
+
+		Base in=NDArray.wrap(.1f, .2f, .3f);
+		Base p_hidd=NDArray.wrap(.4f, .5f, .6f, .7f).setRequiresGradient(true);
+		Base p_cell=NDArray.wrap(.8f, .9f, 1.0f, 1.1f).setRequiresGradient(true);
+
+		lstm.cellState = p_cell;
+		lstm.hiddenState = p_hidd;
+
+		Base out=lstm.forward(in);
+		println(line(20), out);
+
+	}
 	void test22()
 	{
+		print(decString("Test 22. concatinate test", "-", 7));
+
+		Base b=NDArray.arange(10).reshape(2, 5);
+		print(">>", b.get(20, 3));
+
+		int[] tsh=copyB(ar(1, 2, 3), 5);
+		print(tsh, check(Arrays.equals(tsh, ar(0, 0, 1, 2, 3))));
+
+		tsh = copyB(ar(9, 4, 1, 2, 7), 3);
+		print(tsh, check(Arrays.equals(tsh, ar(1, 2, 7))));
+
+		print("concateates shape", check(Arrays.equals(concatShape(ar(1, 2, 3), ar(1, 5, 3), 1), ar(1, 7, 3))));
+
+		print("equals except", equalsExcept(ar(1, 2, 3), ar(1, 5, 3), 1));
+
+		print("map test");
+		Base mapped=NDArray.map(ar(2, 3), new ArrayToFloatFunction(){
+				@Override
+				public float apply(int[] p1)
+				{
+					return 5;
+				}
+			});
+		print("mapped test", check(Util.equals(mapped, NDArray.wrap(asFloat(5, 5, 5, 5, 5, 5), 2, 3))));
+
+		println(line(20), "concat test");
+		Base b1=NDArray.arange(9).reshapeLocal(3, 3);
+		Base b2=NDArray.arange(10, 25).reshapeLocal(3, 5);
+
+		Base combined=NDArray.concat(b1, b2, 1);
+		println(b1, b2, combined);
+		print("concatenation test 1 ", check(Util.equals(combined, NDArray.wrap(asFloat(0, 1, 2, 10, 11, 12, 13, 14,
+																						3, 4, 5, 15, 16, 17, 18, 19,
+																						6, 7, 8, 20, 21, 22, 23, 24), 3, 8))));
+
+		b1 = NDArray.wrap(asFloat(1, 6, 4));
+		b2 = NDArray.wrap(asFloat(3, 8, 6, 0, 9));
+		Base comb2=NDArray.concat(b1, b2, 0);
+
+		println(b1, b2, comb2);
+		print("concatenation test 2", check(Util.equals(comb2, NDArray.wrap(asFloat(1, 6, 4, 3, 8, 6, 0, 9)))));
 
 	}
 	void test21()

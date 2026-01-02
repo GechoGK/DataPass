@@ -263,7 +263,7 @@ public class Base implements Serializable
 		if (d.shape.length != this.shape.length) // dimension is not equal
 			throw new RuntimeException("invalid dimension to set.");
 		int[] tmpSh=new int[shape.length];
-		for (int i=0;i < length;i++)
+		for (int i=0;i < Math.min(length, d.length);i++)
 		{
 			Util.indexToShape(i, shape, tmpSh);
 			set(tmpSh, d.get(tmpSh));

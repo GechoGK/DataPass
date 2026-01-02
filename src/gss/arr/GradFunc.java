@@ -1,5 +1,6 @@
 package gss.arr;
 
+import gss.*;
 import java.io.*;
 import java.util.*;
 
@@ -401,6 +402,18 @@ public abstract class GradFunc implements Serializable
 			}
 			return null;
 		}	
+	};
+	public static GradFunc maxGradient = new GradFunc("dropout"){
+		@Override
+		public Base backward(Base host, Base[] childs, Object params)
+		{
+			int index=params;
+			Base c1=childs[0];
+			if (host.length != 1)
+				error("invalid gradient value for max");
+			c1.set1dGrad(index, host.getGrad(0));
+			return null;
+		}
 	};
 	public static GradFunc itemGradient = new GradFunc("item"){
 		@Override

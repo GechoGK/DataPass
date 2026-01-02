@@ -135,6 +135,25 @@ public class Util
 		}
 		return newShape1;
 	}
+	public static int[] getCommonShapeExcept(int[] shape1, int[] shape2, int axis)
+	{
+		int[] newShape1=Arrays.copyOf(shape1.length > shape2.length ?shape1: shape2, Math.max(shape1.length, shape2.length));
+		int[] newShape2=shape1.length > shape2.length ?shape2: shape1;
+		int len=Math.min(shape1.length, shape2.length);
+		int maxLen=Math.max(shape1.length, shape2.length) - 1;
+		for (int i=0;i < len;i++)
+		{
+			int idx=maxLen - i;
+			if (axis == idx)
+				continue;
+			int sh1=newShape1[newShape1.length - i - 1];
+			int sh2=newShape2[newShape2.length - i - 1];
+			if (sh1 != sh2 && (sh1 != 1 && sh2 != 1))
+				throw new RuntimeException("not broadcastable shape at. ( " + sh1 + " != " + sh2 + " )");
+			newShape1[newShape1.length - 1 - i] = sh1 == 1 ?sh2: sh1;
+		}
+		return newShape1;
+	}
 	/*
 	 generate an array from input.
 	 it helps to reduce the java "new int[]{}",
@@ -670,6 +689,31 @@ public class Util
 	{
 		throw new RuntimeException(o + "");
 	}
+	public static int[] copyB(int[] src, int len)
+	{
+		int[] out=new int[len];
+		return copyB(src, len, out);
+	}
+	public static int[] copyB(int[] src, int[]out)
+	{
+		if (out == null)
+			error("destination array can't be null");
+		return copyB(src, out.length, out);
+	}
+	public static int[] copyB(int[] src, int len, int[] out)
+	{
+		if (out == null)
+			out = new int[len];
+		int l=src.length - 1;
+		for (int i=len - 1;i >= 0;i--)
+		{
+			out[i] = src[l];
+			l--;
+			if (l < 0)
+				break;
+		}
+		return out;
+	}
 	public static float[] copy(float[]src)
 	{
 		return Arrays.copyOf(src, src.length);
@@ -756,11 +800,13 @@ public class Util
 	 except it doesn't return an array of posible values.
 	 it call the func.apply(...);
 	 */
-	public static void loop(int[]shape, ArrayToFloatFunction func)
+	public static float[] loop(int[]shape, ArrayToFloatFunction func)
 	{
 		int len=length(shape);
+		float[]out=new float[len];
 		for (int i=0;i < len;i++)
-			func.apply(indexToShape(i, shape));
+			out[i] = func.apply(indexToShape(i, shape));
+		return out;
 	}
 	/*
 	 read text from file.
@@ -825,5 +871,56 @@ public class Util
 		Object obj= new ObjectInputStream(fis).readObject();
 		fis.close();
 		return obj;
+	}
+	public static String check(boolean b)
+	{
+		if (!b)
+			error("assertion error");
+		return "passed ✓";
+	}
+	public static boolean equalsExcept(int[] sh1, int[] sh2, int index)
+	{
+		if (sh1.length != sh2.length)
+			return false;
+		for (int i=0;i < sh1.length;i++)
+		{
+			if (i == index)
+				continue;
+			if (sh1[i] != sh2[i])
+				return false;
+		}
+		return true;
+	}
+	public static int[] concatShape(int[] sh1, int[]sh2, int axis)
+	{
+		if (!equalsExcept(sh1, sh2, axis))
+			error("can't concatinate the two shapes togather, they are not equal in shape other than concatenation axis");
+		int[] sh=new int[sh1.length];
+		for (int i=0;i < sh.length;i++)
+		{
+			sh[i] = sh1[i];
+			if (i == axis)
+				sh[i] = sh1[i] + sh2[i];
+		}
+		return sh;
+	}
+	// same as getCommonShape(int[] a, int[] b))
+	public static int[]broadcast(int[]sh1, int[]sh2)
+	{
+		return getCommonShape(sh1, sh2);
+	}
+	public static int[]replaceValue(int[]src, int tarV, int repV)
+	{
+		for (int i=0;i < src.length;i++)
+			if (src[i] == tarV)
+				src[i] = repV;
+		return src;
+	}
+	public static int[]replace(int[]src, int index, int repV)
+	{
+		if (index >= src.length)
+			error("the index should be less than the source array length. index(" + index + ") >= src.length(" + src.length + ")");
+		src[index] = repV;
+		return src;
 	}
 }
