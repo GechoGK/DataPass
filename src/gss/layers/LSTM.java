@@ -1,6 +1,7 @@
 package gss.layers;
 
 import gss.*;
+import gss.act.*;
 import gss.arr.*;
 
 import static gss.Util.*;
@@ -10,13 +11,9 @@ public class LSTM extends Module
 	private int inputSize,hiddenSize;
 	private boolean hasBiase;
 
-	public Base forget_ih_weight,input_ih_wight,cand_ih_wight,output_ih_wight;
-	public Base forget_hh_weight,input_hh_wight,cand_hh_wight,output_hh_wight;
-	public Base forget_biase,input_biase,cand_biase,output_biase;
-
 	public Base hiddenState,cellState;
 
-	public Base W;
+	public Base W,B;
 
 	public LSTM(int input_size, int hiddenSize)
 	{
@@ -31,33 +28,34 @@ public class LSTM extends Module
 	}
 	private  void init()
 	{
-		forget_ih_weight = newParam(NDArray.rand(inputSize, hiddenSize));
-		input_ih_wight = newParam(NDArray.rand(inputSize, hiddenSize));
-		cand_ih_wight = newParam(NDArray.rand(inputSize, hiddenSize));
-		output_ih_wight = newParam(NDArray.rand(inputSize, hiddenSize));
-
-		forget_hh_weight = newParam(NDArray.rand(hiddenSize, hiddenSize));
-		input_hh_wight = newParam(NDArray.rand(hiddenSize, hiddenSize));
-		cand_hh_wight = newParam(NDArray.rand(hiddenSize, hiddenSize));
-		output_hh_wight = newParam(NDArray.rand(hiddenSize, hiddenSize));
-
-		forget_biase = newParam(NDArray.ones(hiddenSize));
-		input_biase = newParam(NDArray.ones(hiddenSize));
-		cand_biase = newParam(NDArray.ones(hiddenSize));
-		output_biase = newParam(NDArray.ones(hiddenSize));
-
-		hiddenState = NDArray.empty(hiddenSize);
-		cellState = NDArray.empty(hiddenSize);
-
-
-		W = newParam(NDArray.rand(4 * hiddenSize, hiddenSize + inputSize));
-
+		// example hidden = 4, input = 3;
+		W = newParam(NDArray.rand(4 * hiddenSize, hiddenSize + inputSize)); // 16,4+3 = (16,7)
+		B = newParam(NDArray.ones(4 * hiddenSize)); // 16
 	}
 	@Override
 	public Base forward(Base dataIn)
 	{
-		Base comb=NDArray.concat(dataIn, hiddenState, 0);
-		println(dataIn, hiddenState, comb);
-		return null;
+		// dataIn shape = (sequence_length, batch_size, input_length);
+		// example hidden = 4, input = 3;
+		dataIn = dataIn.as3DArray(); // convert into (sequence_length, batch_size, input_length)
+		int sequence=dataIn.shape[0];
+		int batch=dataIn.shape[1];
+		hiddenState = newParam(NDArray.empty(batch, hiddenSize)); // (batch, hidden)
+		cellState = NDArray.empty(batch, hiddenSize); // (batch, hidden)
+		for (int i=0;i < sequence;i++)
+		{
+			// concat doesn't have gradientFunction.
+			Base comb=NDArray.concat(hiddenState, dataIn.slice(i), 1); // 7 
+			Base gate = NDArray.add(NDArray.dot(comb, W.transpose()), B);  // 16
+			Base fg=new Sigmoid().forward(gate.slice(new int[][]{r(-1),r(4)})); // 4
+			Base ig=new Sigmoid().forward(gate.slice(new int[][]{r(-1),r(4, 8)})); // 4
+			Base gg=new Tanh().forward(gate.slice(new int[][]{r(-1),r(8, 12)})); // 4
+			Base og=new Sigmoid().forward(gate.slice(new int[][]{r(-1),r(12, 16)})); // 4
+
+			cellState = NDArray.add(NDArray.mul(cellState, fg), NDArray.mul(ig, gg)); // 4
+
+			hiddenState = NDArray.mul(og, new Tanh().forward(cellState)); // 4
+		}
+		return hiddenState;
 	}
 }

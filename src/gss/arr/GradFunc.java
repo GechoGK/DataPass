@@ -228,22 +228,6 @@ public abstract class GradFunc implements Serializable
 			return null;
 		}
 	};
-	public static GradFunc reshapeGradient=new GradFunc("reshape"){
-		@Override
-		public Base backward(Base host, Base[] childs, Object params)
-		{
-			// System.out.println("reshape gradient");
-			return null;
-		}
-	};
-	public static GradFunc transposeGradient=new GradFunc("transpose"){
-		@Override
-		public Base backward(Base host, Base[] childs, Object params)
-		{
-			// System.out.println("transpose gradient");
-			return null;
-		}
-	};
 	public static GradFunc copyGradient=new GradFunc("copy"){
 		@Override
 		public Base backward(Base host, Base[] childs, Object params)
@@ -259,19 +243,11 @@ public abstract class GradFunc implements Serializable
 			return null;
 		}
 	};
-	public static GradFunc trimGradient=new GradFunc("trim"){
+	public static GradFunc stepGradient=new GradFunc("step"){
 		@Override
 		public Base backward(Base host, Base[] childs, Object params)
 		{
 			// System.out.println("trim gradient");
-			return null;
-		}
-	};
-	public static GradFunc copyToGradient=new GradFunc("copy to"){
-		@Override
-		public Base backward(Base host, Base[] childs, Object params)
-		{
-			// System.out.println("copy to gradient");
 			return null;
 		}
 	};
@@ -412,6 +388,47 @@ public abstract class GradFunc implements Serializable
 			if (host.length != 1)
 				error("invalid gradient value for max");
 			c1.set1dGrad(index, host.getGrad(0));
+			return null;
+		}
+	};
+	public static GradFunc concatGradient=new GradFunc("concat"){
+		@Override
+		public Base backward(final Base host, Base[] childs, Object params)
+		{
+			// error("concatination doesn't have backward method. please review the code..");
+			final Base b1=childs[0];
+			final Base b2=childs[1];
+			int ax=params;
+			{
+				int diff1=Math.abs(b1.shape.length - b2.shape.length);
+				final int axis=ax + diff1;
+				int[]outShape1=getCommonShapeExcept(b1.shape, b2.shape, axis);
+
+				final int[] i1_shape=copy(outShape1);
+				final int[] i2_shape=copy(outShape1);
+				copyB(b1.shape, i1_shape);
+				copyB(b2.shape, i2_shape);
+
+				final int diff2=i1_shape[axis];
+
+				Util.loop(host, new Functions.ArrayToFloatFunction(){
+						@Override
+						public float apply(int[] p1)
+						{
+							float v=host.getGrad(p1);
+							if (p1[axis] >= i1_shape[axis])
+							{
+								p1[axis] = p1[axis] - diff2;
+								// set to b2
+								b2.setGrad(p1, v);
+							}
+							else
+							// set to b1
+								b1.setGrad(p1, v);
+							return 0;
+						}
+					});
+			}
 			return null;
 		}
 	};

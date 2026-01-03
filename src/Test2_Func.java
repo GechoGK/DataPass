@@ -24,6 +24,9 @@ public class Test2_Func
 	void a() throws Exception
 	{
 
+		// slice problem.
+		// slicing more than shape length can happen.
+
 //		test1();
 //		test2();
 //		test3();
@@ -48,7 +51,12 @@ public class Test2_Func
 //		test20();
 //		test21();
 //		test22();
-		test23();
+// 		test23();
+		bug10();
+//		bug11();
+//		bug13();
+
+
 		/*
 		 TO-DO
 		 -- Random generators.
@@ -56,24 +64,83 @@ public class Test2_Func
 		 -- export and import Arrays. ✓
 		 -- import and export modules. ✓
 		 -- Data supplier. maybe.
-		 -- more modules.
+		 -- more modules. ...
 		 */
+
+	}
+	void bug10()
+	{
+		Base bo=NDArray.arange(24, ar(2, 3, 4));
+
+		Base b=bo.slice(5); // should throw error.
+		// -------------^ equivalent to bo.slice(1);
+		// this mistake is occured because of "shapeToIndex" lazy broadcasting....
+		Base b2=bo.slice(new int[][]{r(1, 4)}); // should throw range error.
+		// b2.shape must not equal to [3,3,4]
+		println(bo, b, b2.shape);
+
+	}
+	void bug13()
+	{
+		Base bo1=NDArray.arange(20, ar(2, 4, 5)).setRequiresGradient(true);
+		Base bo2=NDArray.wrap(3, bo1.shape).setRequiresGradient(true);
+
+		Base bo=NDArray.add(bo1, bo2);
+		print(bo);
+
+		Base b=bo.slice(new int[][]{r(0, 1)});
+		print("==original has grad:", bo.hasGradient(), "sliced has grad:", b.hasGradient());
+		print("==original has grad func:", bo.gradientFunction, "\nsliced has grad func:", b.gradientFunction);
+		Base b2=NDArray.wrap(5, b.shape).setRequiresGradient(true);
+
+		Base o=NDArray.add(b, b2);
+		print(o);
+		print(line(20));
+
+		draw(o);
+
+		o.setGrad(7);
+		o.backward();
+
+		println(b2.detachGradient(), bo1.detachGradient(), bo2.detachGradient());
+
+
+	}
+	void bug11()
+	{
+		print(decString("Test 24. concat backward gradient test", "-", 7));
+		Base b1=NDArray.arange(20).reshapeLocal(2, 2, 5).setRequiresGradient(true);
+		Base b2=NDArray.arange(12).reshapeLocal(2, 6).setRequiresGradient(true);
+
+		Base comb=NDArray.concat(b1, b2, 1);
+
+		println("concatenation reult", comb);
+		print(line(20));
+
+		comb.setGrad(NDArray.wrap(2, comb.shape));
+		print(comb.detachGradient());
+		comb.backward();
+
+		println("child grads", b1.detachGradient(), b2.detachGradient());
 
 	}
 	void test23()
 	{
-
-		LSTM lstm=new LSTM(4, 3);
-
-		Base in=NDArray.wrap(.1f, .2f, .3f);
+		print(decString("Test 23. simple LSTM module test", "-", 7));
+		LSTM lstm=new LSTM(3, 4);
+		// sequence length > 1 in progress.(doesn't support for now).
+		Base in = NDArray.arange(12).reshapeLocal(2, 2, 3); // NDArray.wrap(.1f, .2f, .3f, .5f, .9f, .7f).reshapeLocal(2, 3);
 		Base p_hidd=NDArray.wrap(.4f, .5f, .6f, .7f).setRequiresGradient(true);
 		Base p_cell=NDArray.wrap(.8f, .9f, 1.0f, 1.1f).setRequiresGradient(true);
 
 		lstm.cellState = p_cell;
-		lstm.hiddenState = p_hidd;
+		lstm.hiddenState = p_hidd; 
 
 		Base out=lstm.forward(in);
 		println(line(20), out);
+		print(line(20));
+
+		draw(out);
 
 	}
 	void test22()
@@ -578,6 +645,27 @@ public class Test2_Func
 		if (bs.childs != null && bs.childs.size() != 0)
 			for (Base b:bs.childs)
 				draw(b, "   " + s);
+	}
+	void draw2(Base bs)
+	{
+		print(bs.gradientFunction);
+		if (bs.childs != null && bs.childs.size() != 0)
+		{
+			int pos=0;
+			for (Base b:bs.childs)
+				print("  " + pos++   + ". " + b.gradientFunction);
+			print("      type number to explore, -1 to exit.");
+			int ps=input("#").nextInt();
+			if (ps < 0)
+				return;
+			if (ps >= bs.childs.size())
+			{
+				print("      gradient not found at: " + ps + ".");
+				draw2(bs);
+			}
+			else
+				draw2(bs.childs.get(ps));
+		}
 	}
 	void test8() throws InterruptedException
 	{

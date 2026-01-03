@@ -10,12 +10,6 @@ import static gss.arr.GradFunc.*;
 public class Base implements Serializable
 {
 	public static final long serialVersionUID=297474738l;
-	// warning !!!
-	// reshapeLocal review.
-	// don't assign arrays directly, because it entirely used on both sides of the array.
-	// fix. shape = shp;
-	// fix. strides = strds;
-	// fix. data.items = data.items;
 
 	public int[] shape;
 	public int[] strides;
@@ -133,6 +127,8 @@ public class Base implements Serializable
 	}
 	public Base slice(int...ind)
 	{
+		// lazy slicing
+		// doesn't check index length.
 		if (ind.length > shape.length)
 			throw new RuntimeException("index.length must not be greater than shape.length:(" + Arrays.toString(ind) + ", " + Arrays.toString(shape) + ")");
 		int off=shapeToIndex(Arrays.copyOf(ind, shape.length));
@@ -155,10 +151,14 @@ public class Base implements Serializable
 			}
 			// System.out.println("offset = " + off + ", new shape :" + Arrays.toString(sh) + ", new stride :" + Arrays.toString(str));
 		}
-		return newBase(data, sh, str, off);
+		Base b = newBase(data, sh, str, off);
+		b.setGradientFunctionS(stepGradient, this);
+		return b;
 	}
 	public Base slice(int[]...ind)
 	{
+		// lazy slicing
+		// doesn't check the length of array.
 		// need some improvement.
 		// if ind length not equal to shape length.
 		// it must fill the rest by default.  fix it.
@@ -186,7 +186,9 @@ public class Base implements Serializable
 			i++;
 		}
 		// System.out.println("offset = " + off + ", new shape :" + Arrays.toString(sh) + ", new stride :" + Arrays.toString(str));
-		return newBase(data, sh, str, off);
+		Base b = newBase(data, sh, str, off);
+		b.setGradientFunctionS(stepGradient, this);
+		return b;
 	}
 	public void fill(float v)
 	{
@@ -353,7 +355,7 @@ public class Base implements Serializable
 		d.setRequiresGradient(hasGradient());
 		if (d.hasGradient())
 		{
-			d.setGradientFunction(reshapeGradient, this);
+			d.setGradientFunction(stepGradient, this);
 //			// d.setGradientFunction(gradientFunction);
 //			// d.setGradientParams(params);
 //			// d.gradient = gradient;
@@ -363,6 +365,8 @@ public class Base implements Serializable
 	public Base reshapeLocal(int...newShape)
 	{
 		fillShape(newShape);
+		if (length != length(newShape))
+			error("unable to reshape the array to " + Arrays.toString(newShape) + ", array length of array doesn't match to shape length. array length(" + length + ") != shape length(" + length(newShape) + ")");
 		if (isTransposed())
 			error("unable to modify the shape of transposed array.");
 		this.shape = Util.copy(newShape);
@@ -399,7 +403,7 @@ public class Base implements Serializable
 		d.setRequiresGradient(hasGradient());
 		if (d.hasGradient())
 		{
-			d.setGradientFunction(transposeGradient, this);
+			d.setGradientFunction(stepGradient, this);
 //			// d.setGradientParams(params);
 //			// d.gradient = gradient;
 		}
@@ -487,36 +491,6 @@ public class Base implements Serializable
 			}
 			return d;
 		}
-	}
-	// not tested
-	// needs some improvements.
-	// it must support broadcasting.
-	public Base copyTo(int...newShape)
-	{
-		if (Arrays.equals(newShape, shape))
-		{
-			return copy();
-		}
-		if (isBrodcastable(newShape))
-		{
-			int len=length(newShape);
-			float[] dt=new float[len];
-			Base d=newBase(dt, newShape);
-			d.setRequiresGradient(hasGradient());
-			if (d.hasGradient())
-				d.setGradientFunction(copyToGradient, params, this);
-			// d.setGradientParams(params);
-			for (int i=0;i < len;i++)
-			{
-				int[] shp=indexToShape(i);
-				dt[i] = get(shp);
-				if (d.hasGradient())
-					d.setRawGrad(i, getGrad(shp));
-			}
-			return d;
-		}
-		Base b = copy();
-		return b.reshapeLocal(newShape);
 	}
 	@Override
 	public String toString()
@@ -606,7 +580,7 @@ public class Base implements Serializable
 		d.setRequiresGradient(hasGradient());
 		if (d.hasGradient())
 		{
-			d.setGradientFunction(trimGradient, this);
+			d.setGradientFunction(stepGradient, this);
 			// d.setGradientParams(params);
 			// d.data.gradient = data.gradient;
 		}

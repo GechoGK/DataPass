@@ -33,6 +33,12 @@ public class NDArray
 		Base ar=new Base(f);
 		return ar;
 	}
+	public static Base arange(float lim, int[]shape)
+	{
+		float len=length(shape);
+		float inc= lim / len;
+		return arange(0, lim, inc).reshapeLocal(shape);
+	}
 	public static Base ones(int...shape)
 	{
 		return wrap(1, shape);
@@ -124,6 +130,16 @@ public class NDArray
 			res.set1d(i, mapFunc.apply(v));
 		}
 		return res;
+	}
+	public static Base assign(Base b, MapFunction mapFunc)
+	{
+		int len=b.length;
+		for (int i=0;i < len;i++)
+		{
+			float v=b.get1d(i);
+			b.set1d(i, mapFunc.apply(v));
+		}
+		return b;
 	}
 	public static Base map(int[]shape, ArrayToFloatFunction func)
 	{
@@ -733,6 +749,8 @@ public class NDArray
 					return b1.get(p1);
 				}
 			});
+		b.setRequiresGradient(b1.hasGradient() || b2.hasGradient());
+		b.setGradientFunctionS(concatGradient, ax, b1, b2);
 		return b;
 	}
 	// import and export arrays

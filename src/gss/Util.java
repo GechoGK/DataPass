@@ -808,6 +808,12 @@ public class Util
 			out[i] = func.apply(indexToShape(i, shape));
 		return out;
 	}
+	public static void loop(Base b, ArrayToFloatFunction func)
+	{
+		int len=length(b.shape);
+		for (int i=0;i < len;i++)
+			func.apply(b.indexToShape(i));
+	}
 	/*
 	 read text from file.
 	 readString(@String path)
@@ -922,5 +928,12 @@ public class Util
 			error("the index should be less than the source array length. index(" + index + ") >= src.length(" + src.length + ")");
 		src[index] = repV;
 		return src;
+	}
+	public static Scanner input(String...msg)
+	{
+		if (msg.length != 0)
+			System.out.print(msg[0] + " >> ");
+		else System.out.print(">> ");
+		return new Scanner(System.in);
 	}
 }
