@@ -2,6 +2,7 @@ import gss.arr.*;
 import java.util.*;
 
 import static gss.Util.*;
+import gss.*;
 
 public class Test1_NDArrayData
 {
@@ -321,37 +322,40 @@ public class Test1_NDArrayData
 		System.out.println(getString("-", 20));
 
 		for (int i=0;i < 3;i++)
-			System.out.println(d1.get(i));
+			print(d1.get(i));
 		System.out.println(getString("-", 20));
 
 		for (int i=0;i < 3;i++)
-			System.out.println(d1.get(0, i));
+			print(d1.get(0, i));
 		System.out.println(getString("-", 20));
 
 		for (int i=0;i < 3;i++)
-			System.out.println(d1.get(5, i));
+			print(d1.get(5, i));
 		System.out.println(getString("-", 20));
 
 		for (int i=0;i < 3;i++)
-			System.out.println(d1.get(100, 1000, i));
+			print(d1.get(100, 1000, i));
 		System.out.println(getString("-", 50));
 
 		for (int i=0;i < 3;i++)
-			System.out.println(d2.get(i));
+			print(d2.get(i));
 		System.out.println(getString("-", 20));
 
 		for (int i=0;i < 3;i++)
-			System.out.println(d2.get(0, i));
+			print(d2.get(0, i));
 		System.out.println(getString("-", 20));
 
-		for (int i=0;i < 3;i++)
-			System.out.println(d2.get(5, i));
-		System.out.println(getString("-", 20));
+		if (!Mode.isStrictBroadcastEnabled())
+		{
+			print("non-strict broadcast mode test");
+			for (int i=0;i < 3;i++)
+				print(d2.get(5, i)); // 5 clipped to 1
+			System.out.println(getString("-", 20));
 
-		for (int i=0;i < 3;i++)
-			System.out.println(d2.get(100, 1000, i));
-		System.out.println(getString("-", 20));
-
+			for (int i=0;i < 3;i++)
+				print(d2.get(100, 1000, i)); // [100, 1000] clipped to [2. 3]
+			System.out.println(getString("-", 20));
+		}
 
 		System.out.println("is " + Arrays.toString(d1.shape) + " broadcastable to " + Arrays.toString(d2.shape) + " : " + d1.isBrodcastable(d2.shape));
 		System.out.println("new common shape : " + Arrays.toString(getCommonShape(d1.shape, d2.shape)));

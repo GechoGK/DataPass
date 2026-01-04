@@ -8,13 +8,21 @@ import static gss.Util.*;
 
 public class Conv1d extends Module
 {
-	private int n_channels;
+	private int n_channels; // or features
 	private int n_kernels;
 	private int kernel_size;
 	private int output_size=0;
 	private int input_size=0;
 
 	public Base kernels,biase;
+
+	/*
+	 input dimension = (batch_size, feature_size, input_size);
+	 kernel dimension = (num_kernels, num_channels, kernel_size);
+	 biase dimension = (num_kernels, output_size);
+
+	 output_size = (input_size - kernel_size) + 1;
+	 */
 
 	public Conv1d(int input_size, int n_channels, int n_kernels, int kernel_size)
 	{
@@ -42,8 +50,8 @@ public class Conv1d extends Module
 		 .. 1 - features(channels). e.g rgb = 3
 		 .. 2 - kernel size. e.g 5
 		 -- so the final dimension of kernel will be arr[2,3,5].
-		 !!! ho can we calculate on these 3 dims.
-		 let's say the input dim is 2 [4,10];
+		 !!! how can we calculate on these 3 dims.
+		 let's say the input dim is 2 [3,10]; 3 == kernel_channels.
 		 -- output = new [input.shape[0],kernels.shape[0], outputSize];
 		 -- first we iterate through all out inputs outer dim.
 		 : for di in input.shape[0];  accessing all our data rows.
@@ -65,13 +73,13 @@ public class Conv1d extends Module
 			throw new IllegalArgumentException("input data size must be equal to input size(" + input_size + ")");
 		if ((input.shape.length < 2 && n_channels != 1) | (input.shape.length > 1 && n(input.shape, 1) != n_channels))
 			throw new IllegalArgumentException("input data feature size must be equal to features(" + n_channels + ").");
-		Base in=input.reshape(-1, n_channels/* n(input.shape, 1)*/, n(input.shape, 0)); // 3d array.
+		Base in=input.reshape(-1, n_channels/* n(input.shape, 1)*/, n(input.shape, 0)); // 3d array(batch_size, channel, input_size)
 		// float[][][] out=new float[in.shape[0]][n_kernels][output_size];
 		float[] outF=new float[in.shape[0] * n_kernels * output_size];
 		// input iteration.
 		// System.out.println(Arrays.toString(in.shape) + ", " + n_kernels + ", " + n_channels);
 		int pos=0;
-		for (int din=0;din < in.shape[0];din++) // for input data count.
+		for (int din=0;din < in.shape[0];din++) // batch_size
 		{
 			// System.out.println("data ::: " + din);
 			for (int kr=0;kr < n_kernels;kr++) // loop over number of kernels.
@@ -104,7 +112,7 @@ public class Conv1d extends Module
 			}
 		}
 		// System.out.println(sb.toString());
-		Base output=new Base(outF, new int[]{in.shape[0],kernels.shape[0],output_size});
+		Base output=new Base(outF, new int[]{in.shape[0],kernels.shape[0],output_size}); // output=(batch_size, number_of_kernels, output_size);
 		output.setRequiresGradient(kernels.hasGradient() | biase.hasGradient() | input.hasGradient());
 		output.setGradientFunctionS(conv1dGradient, kernels, biase, in);
 		// System.out.println("... " + input + " >>> " + d);
@@ -203,5 +211,5 @@ public class Conv1d extends Module
 			return null;
 		}
 	};
-	
+
 }

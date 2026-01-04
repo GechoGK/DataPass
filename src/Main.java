@@ -16,8 +16,10 @@ public class Main
 
 		new Main().a();
 
+		Mode.setStrictBroadcast(true);
+		
 	}
-	
+
 	void a() throws Exception
 	{
 //		test1();

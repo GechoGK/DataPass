@@ -180,6 +180,9 @@ public class Base implements Serializable
 			int ln=0;
 			for (int k=r[0];k < r[1];k += r[2])
 				ln++;
+			// check if ln > shape[i]; then throw out of range error.
+			if (ln > shape[i])
+				error("index out of range" + Arrays.toString(r) + "reason :" + r[1] + " > " + shape[i]);
 			sh[i] = ln;
 			str[i] = strides[i] * r[2];
 			off += r[0] * strides[i];
@@ -207,7 +210,7 @@ public class Base implements Serializable
 		else
 			Arrays.fill(data.items, offset, offset + length, v);
 	}
-	private int shapeToIndex(int...index)
+	public int shapeToIndex(int...index)
 	{
 		int newPos=0;
 		int strShPos = Math.max(0, shape.length - index.length);
@@ -215,7 +218,14 @@ public class Base implements Serializable
 		for (int i = 0;i < Math.min(shape.length, index.length);i++)
 		{
 			int shps=i + strShPos;
-			int shapeInd = Math.min(index[i + strIndPos], shape[shps] - 1); 
+			int indps=i + strIndPos;
+			// strict broadcasting.
+			// to enable, uncomment the if code block below.
+//			if (Mode.isStrictBroadcastEnabled() && shape[shps] != 1 && index[indps] >= shape[shps]){
+//				error("index out of bound exception " + index[indps] + " >= " + shape[shps]);
+//			}
+			int shapeInd = Math.min(index[indps], shape[shps] - 1);
+			// int shapeInd = Math.min(index[indps], shape[shps] - 1); 
 			// lazy broadcasting enabled --^
 			// to disable use
 			// int shapeInd = index[i+strIndPos] // it will automatically throw error when out of range.

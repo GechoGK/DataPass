@@ -20,12 +20,15 @@ public class Test2_Func
 		new Test2_Func().a();
 		System.out.println(line(50));
 
+		/*
+		 -- embedding
+		 -- LayerNorm (layer normalization)
+		 -- BatchNorm (batch normalization)
+		 */
+
 	}
 	void a() throws Exception
 	{
-
-		// slice problem.
-		// slicing more than shape length can happen.
 
 //		test1();
 //		test2();
@@ -52,9 +55,9 @@ public class Test2_Func
 //		test21();
 //		test22();
 // 		test23();
-		bug10();
+//		bug10();
 //		bug11();
-//		bug13();
+		bug13();
 
 
 		/*
@@ -66,18 +69,6 @@ public class Test2_Func
 		 -- Data supplier. maybe.
 		 -- more modules. ...
 		 */
-
-	}
-	void bug10()
-	{
-		Base bo=NDArray.arange(24, ar(2, 3, 4));
-
-		Base b=bo.slice(5); // should throw error.
-		// -------------^ equivalent to bo.slice(1);
-		// this mistake is occured because of "shapeToIndex" lazy broadcasting....
-		Base b2=bo.slice(new int[][]{r(1, 4)}); // should throw range error.
-		// b2.shape must not equal to [3,3,4]
-		println(bo, b, b2.shape);
 
 	}
 	void bug13()
@@ -122,6 +113,18 @@ public class Test2_Func
 		comb.backward();
 
 		println("child grads", b1.detachGradient(), b2.detachGradient());
+
+	}
+	void bug10()
+	{
+		Base bo=NDArray.arange(24, ar(2, 3, 4));
+
+		Base b=bo.slice(5, 0); //5,5 should throw error.
+		// -------------^ equivalent to bo.slice(1);
+		// this mistake is occured because of "shapeToIndex" lazy broadcasting....
+		Base b2=bo.slice(new int[][]{r(1)}); // should throw range error.
+		// b2.shape must not equal to [3,3,4]
+		println(bo, b, b2);
 
 	}
 	void test23()
