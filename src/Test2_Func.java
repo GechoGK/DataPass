@@ -24,6 +24,9 @@ public class Test2_Func
 		 -- embedding
 		 -- LayerNorm (layer normalization)
 		 -- BatchNorm (batch normalization)
+
+		 >> min
+		 >> max
 		 */
 
 	}
@@ -54,10 +57,11 @@ public class Test2_Func
 //		test20();
 //		test21();
 //		test22();
-// 		test23();
+//		test23();
 //		bug10();
 //		bug11();
-		bug13();
+//		bug13();
+		test24();
 
 
 		/*
@@ -69,6 +73,10 @@ public class Test2_Func
 		 -- Data supplier. maybe.
 		 -- more modules. ...
 		 */
+
+	}
+	void test24()
+	{
 
 	}
 	void bug13()
@@ -95,11 +103,10 @@ public class Test2_Func
 
 		println(b2.detachGradient(), bo1.detachGradient(), bo2.detachGradient());
 
-
 	}
 	void bug11()
 	{
-		print(decString("Test 24. concat backward gradient test", "-", 7));
+		// print(decString("bug 11. concat backward gradient test", "-", 7));
 		Base b1=NDArray.arange(20).reshapeLocal(2, 2, 5).setRequiresGradient(true);
 		Base b2=NDArray.arange(12).reshapeLocal(2, 6).setRequiresGradient(true);
 
@@ -143,7 +150,7 @@ public class Test2_Func
 		println(line(20), out);
 		print(line(20));
 
-		draw(out);
+		// draw(out);
 
 	}
 	void test22()
@@ -268,7 +275,7 @@ public class Test2_Func
 		String path="/sdcard/xor_module.mdl";
 		Util.saveObject(path, m);
 
-		Module m2=NDArray.loadModule(path);
+		Module m2=NDIO.loadModule(path);
 
 		Base out2=m2.forward(in);
 
@@ -283,20 +290,20 @@ public class Test2_Func
 		Base b1=NDArray.rand(2, 4, 10).setRequiresGradient(true);
 
 		String path="/sdcard/testArray.ndbin";
-		NDArray.save(b1, path, NDArray.FileType.BINARY);
-		Base b2=NDArray.load(path, NDArray.FileType.BINARY);
+		NDIO.save(b1, path, NDIO.FileType.BINARY);
+		Base b2=NDIO.load(path, NDIO.FileType.BINARY);
 		boolean result=Util.equals(b1, b2, true);
 		print("array from binary load and save result ", result);
 
 		path = "/sdcard/testArray.json";
-		NDArray.save(b1, path, NDArray.FileType.JSON);
-		b2 = NDArray.load(path, NDArray.FileType.JSON);
+		NDIO.save(b1, path, NDIO.FileType.JSON);
+		b2 = NDIO.load(path, NDIO.FileType.JSON);
 		result = Util.equals(b1, b2, true);
 		print("array from json load and save result ", result);
 
 		path = "/sdcard/testArray.txt";
-		NDArray.save(b1, path, NDArray.FileType.TEXT);
-		b2 = NDArray.load(path, NDArray.FileType.TEXT);
+		NDIO.save(b1, path, NDIO.FileType.TEXT);
+		b2 = NDIO.load(path, NDIO.FileType.TEXT);
 		result = Util.equals(b1, b2, true);
 		print("array from text load and save result ", result);
 

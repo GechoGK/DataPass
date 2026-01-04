@@ -29,8 +29,13 @@ public class LSTM extends Module
 	private  void init()
 	{
 		// example hidden = 4, input = 3;
-		W = newParam(NDArray.rand(4 * hiddenSize, hiddenSize + inputSize)); // 16,4+3 = (16,7)
+		// W = newParam(NDArray.rand(4 * hiddenSize, hiddenSize + inputSize)); // 16,4+3 = (16,7)
 		B = newParam(NDArray.ones(4 * hiddenSize)); // 16
+
+		// the original weight is the above one.
+		// we can swap the dimension of the weights in order to save some computation
+		// like (W.transpose()) this prevent us from accesing as 1d aray.
+		W = newParam(NDArray.rand(hiddenSize + inputSize, 4 * hiddenSize));
 	}
 	@Override
 	public Base forward(Base dataIn)
@@ -46,7 +51,7 @@ public class LSTM extends Module
 		{
 			// concat doesn't have gradientFunction.
 			Base comb=NDArray.concat(hiddenState, dataIn.slice(i), 1); // 7 
-			Base gate = NDArray.add(NDArray.dot(comb, W.transpose()), B);  // 16
+			Base gate = NDArray.add(NDArray.dot(comb, W), B);  // 16
 			Base fg=new Sigmoid().forward(gate.slice(new int[][]{r(-1),r(4)})); // 4
 			Base ig=new Sigmoid().forward(gate.slice(new int[][]{r(-1),r(4, 8)})); // 4
 			Base gg=new Tanh().forward(gate.slice(new int[][]{r(-1),r(8, 12)})); // 4

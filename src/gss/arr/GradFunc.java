@@ -379,14 +379,14 @@ public abstract class GradFunc implements Serializable
 			return null;
 		}	
 	};
-	public static GradFunc maxGradient = new GradFunc("dropout"){
+	public static GradFunc indexGradient = new GradFunc("index"){
 		@Override
 		public Base backward(Base host, Base[] childs, Object params)
 		{
 			int index=params;
 			Base c1=childs[0];
 			if (host.length != 1)
-				error("invalid gradient value for max");
+				error("invalid gradient value for index");
 			c1.set1dGrad(index, host.getGrad(0));
 			return null;
 		}
