@@ -15,6 +15,7 @@ public class NDArray
 	 TO-DO
 	 -- mode.
 	 -- median.
+	 -- variance >> review.
 	 >> export.
 	 >> import.
 	 */
@@ -318,6 +319,7 @@ public class NDArray
 			throw new RuntimeException("invalid shape dor dot product.");
 		int[] sh={a.shape[0],b.shape[0]};
 		Base bs=new Base(sh);
+		// make it faster by caching it.
 		// float[] outData=new float[a.shape[0] * b.shape[0]];
 		for (int ar=0;ar < a.shape[0];ar++)
 			for (int br=0;br < b.shape[0];br++)
@@ -556,7 +558,7 @@ public class NDArray
 	}
 	public static Base sum(final Base b, final int axis)
 	{
-		int[] sumShape=removeAtIndex(b.shape, axis);
+		int[] sumShape=remove(b.shape, axis);
 		final Base out=empty(sumShape).setRequiresGradient(b.hasGradient());
 		final int count=b.shape[axis];
 		loop(sumShape, new ArrayToFloatFunction(){
@@ -566,7 +568,7 @@ public class NDArray
 					float sm=0;
 					for (int i=0;i < count;i++)
 					{
-						int[]sh=putAtIndex(p1, i, axis);
+						int[]sh=insert(p1, i, axis);
 						sm += b.get(sh);
 					}
 					out.set(p1, sm);
@@ -633,6 +635,18 @@ public class NDArray
 	public static Base mean(Base d)
 	{
 		return NDArray.div(sum(d), d.length);
+	}
+	public static Base mean(Base d, int axis)
+	{
+		return NDArray.div(sum(d, axis), d.shape[axis]);
+	}
+	public static Base variance(Base d, int axis)
+	{
+		Base m=mean(d, axis);
+		m = m.reshape(insert(m.shape, 1,  axis));
+		Base v0 = NDArray.pow(NDArray.sub(d, m), 2);
+		v0 = NDArray.div(NDArray.sum(v0, axis), v0.shape[axis]);
+		return v0;
 	}
 	// less than
 	public static Base lt(Base d1, Base d2)
@@ -769,5 +783,18 @@ public class NDArray
 		b.setGradientFunctionS(concatGradient, ax, b1, b2);
 		return b;
 	}
-
+	public static Base onehot(Base ind, int vocab_size)
+	{
+		float[][]out=new float[ind.length][];
+		for (int i=0;i < out.length;i++)
+		{
+			float[] f=new float[vocab_size];
+			f[(int)ind.get1d(i)] = 1;
+			out[i] = f;
+		}
+		Base b=NDArray.wrap(out).reshapeLocal(append(ind.shape, vocab_size));
+		b.setRequiresGradient(ind.hasGradient());
+		b.setGradientFunctionS(stepGradient, ind);
+		return b;
+	}
 }

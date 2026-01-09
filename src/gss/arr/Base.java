@@ -225,7 +225,6 @@ public class Base implements Serializable
 //				error("index out of bound exception " + index[indps] + " >= " + shape[shps]);
 //			}
 			int shapeInd = Math.min(index[indps], shape[shps] - 1);
-			// int shapeInd = Math.min(index[indps], shape[shps] - 1); 
 			// lazy broadcasting enabled --^
 			// to disable use
 			// int shapeInd = index[i+strIndPos] // it will automatically throw error when out of range.
@@ -611,7 +610,7 @@ public class Base implements Serializable
 		if (isOriginal())
 			return getRaw(x);
 		else if (shape.length == 1)
-			return get(ar(x));
+		 	return get(ar(x));
 		else
 			return get(indexToShape(x));
 	}

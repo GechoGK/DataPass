@@ -733,7 +733,7 @@ public class Util
 	 removeAtIndex(a,1);
 	 == [1,3];
 	 */
-	public static int[] removeAtIndex(int[]arr, int ind)
+	public static int[] remove(int[]arr, int ind)
 	{
 		if (ind >= arr.length)
 			error("invalid index range(" + ind + ")");
@@ -747,6 +747,31 @@ public class Util
 		}
 		return newArr;
 	}
+	public static int[]remove(int[]arr, int...ind)
+	{
+		// bloated.
+		if (arr.length < ind.length)
+			error("index length should not be grrate than array size");
+		int[] out=new int[arr.length - ind.length];
+		Arrays.sort(ind);
+		int index=0;
+		int indInd=0;
+		for (int i=0;i < arr.length;i++)
+		{
+			if (indInd < ind.length)
+			{
+				if (i == ind[indInd])
+				{
+					indInd++;
+					continue;
+				}
+				if (ind[indInd] < i)
+					error("repeating index isn't allowed \"" + ind[indInd] + "\"");
+			}
+			out[index++] = arr[i];
+		}
+		return out;
+	}
 	/*
 	 put new element into an array.
 	 @int[] arr. target array.
@@ -758,7 +783,7 @@ public class Util
 	 putAtIndex(a,1,5);
 	 == [1,5,2]
 	 */
-	public static int[] putAtIndex(int[]arr, int val, int ind)
+	public static int[] insert(int[]arr, int val, int ind)
 	{
 		if (ind < 0 || ind >= arr.length + 1)
 			error("invalid index range(" + ind + ")");
@@ -772,6 +797,10 @@ public class Util
 		}
 		newArr[ind] = val;
 		return newArr;
+	}
+	public static int[] append(int[] arr, int val)
+	{
+		return insert(arr, val, arr.length);
 	}
 	/*
 	 loop through all posible values fro the given shape(array)
@@ -813,6 +842,12 @@ public class Util
 		int len=length(b.shape);
 		for (int i=0;i < len;i++)
 			func.apply(b.indexToShape(i));
+	}
+	public static void loop(Base b, MapFunction func)
+	{
+		int len=length(b.shape);
+		for (int i=0;i < len;i++)
+			func.apply(b.get1d(i));
 	}
 	/*
 	 read text from file.

@@ -21,12 +21,20 @@ public class Test2_Func
 		System.out.println(line(50));
 
 		/*
-		 -- embedding
+		 -- embedding 80 % review.
 		 -- LayerNorm (layer normalization)
 		 -- BatchNorm (batch normalization)
+		 -- conv2d
+		 -- maxPool2d
+		 -- avPool1d
+		 -- avPool2d
 
+		 >> dot product. review. use cache
 		 >> min
 		 >> max
+		 >> fix mean.
+		 >> fix variance.
+		 !! fix functions to use map...
 		 */
 
 	}
@@ -61,7 +69,11 @@ public class Test2_Func
 //		bug10();
 //		bug11();
 //		bug13();
-		test24();
+//		test24();
+//		test25();
+//		test26();
+//		test27();
+		test28();
 
 
 		/*
@@ -75,8 +87,187 @@ public class Test2_Func
 		 */
 
 	}
+	void test28()
+	{
+
+	}
+	void test27()
+	{
+		print(decString("Test 27. (Layer, Batch) normalization test.", "-", 7));
+		float[][]dt={{3,5,2,8},{1,3,5,8},{3,2,7,9}};
+		Base b=NDArray.wrap(dt).setRequiresGradient(true);
+
+		// something weng wromg for gradient.
+		LayerNorm ln=new LayerNorm(4);
+		Base out=ln.forward(b);
+
+		println(decString("layer normalization", 5), out);
+
+		draw(out);
+		// not tested.
+		BatchNorm bn=new BatchNorm(3);
+		Base out2=bn.forward(b);
+
+		println(line(20), decString("batch normalization", 5), out2);
+
+		draw(out2);
+
+	}
+	void test261()
+	{
+		print(decString("Test 26.1. variance test.", "-", 7));
+		float[][]dt={{3,5,2,8},{1,3,5,8},{3,2,7,9}};
+		Base b=NDArray.wrap(dt);
+
+		print("orig", b);
+
+		Base var=NDArray.variance(b, 1);
+
+		print("variance", var);
+
+
+	}
+	void test26()
+	{
+		print(decString("Test 26. NDArray stress test.", "-", 7));
+		float[] f=new float[1024 * 1024];
+		long t=0;
+		float s=0;
+		for (int l=0;l < 30;l++)
+		{
+			t = System.currentTimeMillis();
+			for (int i=0;i < f.length;i++)
+				s = f[i] * 2;
+			t = System.currentTimeMillis() - t;
+			print(t, "millis, raw float");
+		}
+
+		print(line(20));
+		Base b=NDArray.wrap(f);
+		for (int l=0;l < 30;l++)
+		{
+			t = System.currentTimeMillis();
+			for (int i=0;i < f.length;i++)
+				s = b.get(i) * 2;
+			t = System.currentTimeMillis() - t;
+			print(t, "millis, NDArray(1d).get(...)");
+		}
+
+		print(line(20));
+		for (int l=0;l < 30;l++)
+		{
+			t = System.currentTimeMillis();
+			for (int i=0;i < f.length;i++)
+				s = b.get1d(i) * 2;
+			t = System.currentTimeMillis() - t;
+			print(t, "millis, NDArray(1d).get1d(...)");
+		}
+
+		print(line(20));
+		for (int l=0;l < 30;l++)
+		{
+			t = System.currentTimeMillis();
+			for (int i=0;i < f.length;i++)
+				s = b.getRaw(i) * 2;
+			t = System.currentTimeMillis() - t;
+			print(t, "millis, getRaw(...)");
+		}
+
+		print(line(20));
+		for (int l=0;l < 30;l++)
+		{
+			t = System.currentTimeMillis();
+			for (int i=0;i < f.length;i++)
+				s = get(b, i) * 2;
+			t = System.currentTimeMillis() - t;
+			print(t, "millis, getRaw(...)");
+		}
+
+		b = b.transpose();
+		print(line(20));
+		for (int l=0;l < 30;l++)
+		{
+			t = System.currentTimeMillis();
+			for (int i=0;i < f.length;i++)
+				s = b.get(i) * 2;
+			t = System.currentTimeMillis() - t;
+			print(t, "millis, NDArray(1d).T.get(...)");
+		}
+
+		// b = b.transpose(); // already transposed.
+		print(line(20));
+		for (int l=0;l < 30;l++)
+		{
+			t = System.currentTimeMillis();
+			for (int i=0;i < f.length;i++)
+				s = b.get1d(i) * 2;
+			t = System.currentTimeMillis() - t;
+			print(t, "millis, NDArray(1d).T.get1d(...)");
+		}
+
+	}
+	float get(Base b, int i)
+	{
+		return b.data.items[i];
+	}
+	void test25()
+	{
+		// review embedding layer.
+		print(decString("Test 25. Embedding layer stress test.", "-", 7));
+		int voc_size=512;
+		long t=System.currentTimeMillis();
+		Embedding emb=new Embedding(voc_size, 127);
+		t = System.currentTimeMillis() - t;
+		print(t, " millis, embedded weights created");
+		t = System.currentTimeMillis();
+		float[]indf=new float[100];
+		Random r=new Random();
+		for (int i=0;i < indf.length;i++)
+			indf[i] = r.nextInt(voc_size);
+
+		Base ind=NDArray.wrap(indf, 100);
+		t = System.currentTimeMillis() - t;
+		print(t, " millis, indices prepared");
+
+		t = System.currentTimeMillis();
+		Base embOut1=emb.forwardWithIndices(ind);
+		t = System.currentTimeMillis() - t;
+		print(t, " millis, embedded layer forward  with indices complete! ", embOut1.shape);
+
+		t = System.currentTimeMillis();
+		Base onehot=NDArray.onehot(ind, emb.vocabSize);
+		t = System.currentTimeMillis() - t;
+		print(t, " millis, onehot vector created", onehot.shape);
+
+		t = System.currentTimeMillis();
+		Base embOut2 = emb.forward(onehot);
+		t = System.currentTimeMillis() - t;
+		print(t, " millis, forward with onehot or matmul(dot) completed! ", embOut2.shape);
+
+		print("equals", Util.equals(embOut1, embOut2));
+
+	}
 	void test24()
 	{
+		print(decString("Test 24. simple Embedding layer test.", "-", 7));
+		Embedding emb=new Embedding(5, 3);
+
+		Base onehot=NDArray.wrap(new float[]{0,1,0,0,0,0,0,0,1,0}, 2, 5);
+		Base embOut=emb.forward(onehot);
+
+		println("one hot", onehot, "embedded", embOut);
+		print(line(20));
+
+		Base ind=NDArray.wrap(new float[]{1,3});
+		Base embOut2=emb.forwardWithIndices(ind);
+
+		println("indices", ind, "embedded with indices", embOut2);
+		boolean eq=Util.equals(embOut, embOut2);
+		print("embedded equality", eq, eq ?"✓✓✓✓✓✓✓✓✓✓✓✓": "XXXXXXXXXXXX");
+		Base onehot2=NDArray.onehot(ind, 5);
+
+		boolean eq2=Util.equals(onehot, onehot2);
+		print("onehot equality", eq2, eq2 ?"✓✓✓✓✓✓✓✓✓✓": "XXXXXXXXXX");
 
 	}
 	void bug13()
@@ -507,13 +698,13 @@ public class Test2_Func
 				float out=0;
 				for (int i=0;i < b1.shape[axis];i++)
 				{
-					int[]ar=putAtIndex(p1, i, axis);
+					int[]ar=insert(p1, i, axis);
 					out += b1.get(ar);
 				}
 				return out;
 			}
 		};
-		loop(removeAtIndex(b1.shape, axis), cons);
+		loop(remove(b1.shape, axis), cons);
 
 	}
 	void test10()
