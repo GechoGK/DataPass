@@ -815,39 +815,60 @@ public class Util
 	 == [1,0]
 	 == [1,1]
 	 == [1,2]
-	 */
-	public static int[][] loop(int[]shape)
-	{
-		int len=length(shape);
-		int[][]out=new int[len][];
-		for (int i=0;i < len;i++)
-			out[i] = indexToShape(i, shape);
-		return out;
-	}
-	/*
-	 the same as the above value.
-	 except it doesn't return an array of posible values.
 	 it call the func.apply(...);
 	 */
-	public static float[] loop(int[]shape, ArrayToFloatFunction func)
+	public static float[] loop(int[]shapeOrig, ArrayFunction func)
 	{
+		return loop(shapeOrig, new int[0], func);
+	}
+	public static float[] loop(int[]shapeOrig, int[]axis, ArrayFunction func)
+	{
+		if (axis == null)
+			axis = new int[0];
+		if (axis.length > shapeOrig.length)
+			error("axis length can't be greater than shape length, axis length :" + axis.length + " > " + shapeOrig.length);
+		int[]shape=Arrays.copyOf(shapeOrig, shapeOrig.length);
+		shape = fromAxis(shape, axis);
 		int len=length(shape);
 		float[]out=new float[len];
 		for (int i=0;i < len;i++)
 			out[i] = func.apply(indexToShape(i, shape));
 		return out;
 	}
-	public static void loop(Base b, ArrayToFloatFunction func)
+	public static int[] loop(int[]shapeOrig, int[]axis, ArrayConsumer func)
 	{
-		int len=length(b.shape);
+		if (axis == null)
+			axis = new int[0];
+		if (axis.length > shapeOrig.length)
+			error("axis length can't be greater than shape length, axis length :" + axis.length + " > " + shapeOrig.length);
+		int[]shape=Arrays.copyOf(shapeOrig, shapeOrig.length);
+		for (int i=0;i < axis.length;i++)
+			shape[axis[i]] = 1;
+		int len=length(shape);
+		print("original shape", shapeOrig, "loop over shape", shape, "axis", axis);
 		for (int i=0;i < len;i++)
-			func.apply(b.indexToShape(i));
+			func.consume(indexToShape(i, shape));
+		return shape;
 	}
-	public static void loop(Base b, MapFunction func)
+	public static void loop(Base b, ArrayConsumer func)
 	{
 		int len=length(b.shape);
 		for (int i=0;i < len;i++)
-			func.apply(b.get1d(i));
+			func.consume(b.indexToShape(i));
+	}
+	// each index items should not be greater than arrays(arr).length.
+	public static int[] collect(int[] arr, int[]index)
+	{
+		int[] out=new int[index.length];
+		for (int i=0;i < index.length;i++)
+			out[i] = arr[index[i]];
+		return out;
+	}
+	public static int[] fromAxis(int[]sh, int[]ax)
+	{
+		for (int i=0;i < ax.length;i++)
+			sh[ax[i]] = 1;
+		return sh;
 	}
 	/*
 	 read text from file.

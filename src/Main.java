@@ -1,10 +1,8 @@
 import gss.*;
 import gss.act.*;
 import gss.arr.*;
-import gss.layers.*;
 import gss.lossfunctions.*;
-import gss.optimizers.*;
-import java.util.*;
+import test.*;
 
 import static gss.Util.*;
 import static gss.arr.NDArray.*;

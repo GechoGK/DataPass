@@ -16,8 +16,8 @@ public class NDArray
 	 -- mode.
 	 -- median.
 	 -- variance >> review.
-	 >> export.
-	 >> import.
+	 >> export. ✓
+	 >> import. ✓
 	 */
 	// array generators.
 	public static Base arange(float end)
@@ -54,11 +54,10 @@ public class NDArray
 	}
 	public static Base idt(int size)
 	{
-		int[] sh={size,size};
-		float[]f=new float[length(sh)];
+		float[][]f=new float[size][size];
 		for (int i=0;i < size;i++)
-			f[shapeToIndex(ar(size, size), sh)] = 1;
-		Base d=new Base(f, sh);
+			f[size][size] = 1;
+		Base d=new Base(flatten(f), size, size);
 		return d;
 	}
 	public static Base wrap(float...v)
@@ -132,6 +131,13 @@ public class NDArray
 		}
 		return res;
 	}
+	public static Base map(int[]shape, ArrayFunction func)
+	{
+		float[]data=loop(shape, func);
+		Base b=NDArray.wrap(data, shape);
+		return b;
+	}
+	// @not_used.
 	public static Base assign(Base b, MapFunction mapFunc)
 	{
 		int len=b.length;
@@ -142,11 +148,14 @@ public class NDArray
 		}
 		return b;
 	}
-	public static Base map(int[]shape, ArrayToFloatFunction func)
+	public static Base reduce(Base b, int[]axis, boolean keepDim, ArrayFunction func)
 	{
-		float[]data=loop(shape, func);
-		Base b=NDArray.wrap(data, shape);
-		return b;
+		// keepdim = true;
+		int[]sh=b.shape;
+		int[]newShape=fromAxis(sh, axis);
+		float[] data=loop(sh, axis, func);
+		Base out=NDArray.wrap(data, newShape);
+		return out;
 	}
 	// addition
 	public static Base add(Base d1, Base d2)
@@ -561,7 +570,16 @@ public class NDArray
 		int[] sumShape=remove(b.shape, axis);
 		final Base out=empty(sumShape).setRequiresGradient(b.hasGradient());
 		final int count=b.shape[axis];
-		loop(sumShape, new ArrayToFloatFunction(){
+//		reduce(b, axis, true, new ArrayFunction(){
+//
+//				@Override
+//				public float apply(int[] p1)
+//				{
+//					// TODO: Implement this method
+//					return 0;
+//				}
+//			});
+		loop(sumShape, new ArrayFunction(){
 				@Override
 				public float apply(int[] p1)
 				{
@@ -767,7 +785,7 @@ public class NDArray
 		final int diff2=i1_shape[axis];
 
 		int[] outShape=concatShape(i1_shape, i2_shape, axis);
-		Base b=map(outShape, new ArrayToFloatFunction(){
+		Base b=map(outShape, new ArrayFunction(){
 				@Override
 				public float apply(int[] p1)
 				{

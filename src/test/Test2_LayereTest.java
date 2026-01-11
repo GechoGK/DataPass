@@ -1,9 +1,16 @@
+package test;
+
+import gss.*;
 import gss.act.*;
 import gss.arr.*;
 import gss.layers.*;
 import gss.lossfunctions.*;
+import gss.optimizers.*;
 import java.util.*;
+import modules.*;
 
+import static gss.arr.NDArray.*;
+import static test.Test2_Func.*;
 import static gss.Util.*;
 import static java.util.Arrays.*;
 
@@ -36,6 +43,195 @@ public class Test2_LayereTest
 		test15();
 		test16();
 
+	}
+
+	void test27()
+	{
+		print(decString("Test 27. (Layer, Batch) normalization test.", "-", 7));
+		float[][]dt={{3,5,2,8},{1,3,5,8},{3,2,7,9}};
+		Base b=NDArray.wrap(dt).setRequiresGradient(true);
+
+		LayerNorm ln=new LayerNorm(4);
+		Base out=ln.forward(b);
+
+		println(decString("layer normalization", 5), out);
+
+		draw(out);
+		// not tested.
+		BatchNorm bn=new BatchNorm(3);
+		Base out2=bn.forward(b);
+
+		println(line(20), decString("batch normalization", 5), out2);
+
+		draw(out2);
+
+	}
+	void test25()
+	{
+		// review embedding layer.
+		print(decString("Test 25. Embedding layer stress test.", "-", 7));
+		int voc_size=512;
+		long t=System.currentTimeMillis();
+		Embedding emb=new Embedding(voc_size, 127);
+		t = System.currentTimeMillis() - t;
+		print(t, " millis, embedded weights created");
+		t = System.currentTimeMillis();
+		float[]indf=new float[100];
+		Random r=new Random();
+		for (int i=0;i < indf.length;i++)
+			indf[i] = r.nextInt(voc_size);
+
+		Base ind=NDArray.wrap(indf, 100);
+		t = System.currentTimeMillis() - t;
+		print(t, " millis, indices prepared");
+
+		t = System.currentTimeMillis();
+		Base embOut1=emb.forwardWithIndices(ind);
+		t = System.currentTimeMillis() - t;
+		print(t, " millis, embedded layer forward  with indices complete! ", embOut1.shape);
+
+		t = System.currentTimeMillis();
+		Base onehot=NDArray.onehot(ind, emb.vocabSize);
+		t = System.currentTimeMillis() - t;
+		print(t, " millis, onehot vector created", onehot.shape);
+
+		t = System.currentTimeMillis();
+		Base embOut2 = emb.forward(onehot);
+		t = System.currentTimeMillis() - t;
+		print(t, " millis, forward with onehot or matmul(dot) completed! ", embOut2.shape);
+
+		print("equals", Util.equals(embOut1, embOut2));
+
+	}
+	void test24()
+	{
+		print(decString("Test 24. simple Embedding layer test.", "-", 7));
+		Embedding emb=new Embedding(5, 3);
+
+		Base onehot=NDArray.wrap(new float[]{0,1,0,0,0,0,0,0,1,0}, 2, 5);
+		Base embOut=emb.forward(onehot);
+
+		println("one hot", onehot, "embedded", embOut);
+		print(line(20));
+
+		Base ind=NDArray.wrap(new float[]{1,3});
+		Base embOut2=emb.forwardWithIndices(ind);
+
+		println("indices", ind, "embedded with indices", embOut2);
+		boolean eq=Util.equals(embOut, embOut2);
+		print("embedded equality", eq, eq ?"✓✓✓✓✓✓✓✓✓✓✓✓": "XXXXXXXXXXXX");
+		Base onehot2=NDArray.onehot(ind, 5);
+
+		boolean eq2=Util.equals(onehot, onehot2);
+		print("onehot equality", eq2, eq2 ?"✓✓✓✓✓✓✓✓✓✓": "XXXXXXXXXX");
+
+	}
+	void test23()
+	{
+		print(decString("Test 23. simple LSTM module test", "-", 7));
+		LSTM lstm=new LSTM(3, 4);
+		// sequence length > 1 in progress.(doesn't support for now).
+		Base in = NDArray.arange(12).reshapeLocal(2, 2, 3); // NDArray.wrap(.1f, .2f, .3f, .5f, .9f, .7f).reshapeLocal(2, 3);
+		Base p_hidd=NDArray.wrap(.4f, .5f, .6f, .7f).setRequiresGradient(true);
+		Base p_cell=NDArray.wrap(.8f, .9f, 1.0f, 1.1f).setRequiresGradient(true);
+
+		lstm.cellState = p_cell;
+		lstm.hiddenState = p_hidd; 
+
+		Base out=lstm.forward(in);
+		println(line(20), out);
+		print(line(20));
+
+		// draw(out);
+
+	}
+	void test21()
+	{
+		print(decString("Test 21. simple RNN module next number prediction test.", "-", 7));
+		Object[] dt=prepareData();
+		Base trainX=NDArray.wrap((float[][])dt[0]);
+		Base trainY=NDArray.wrap(asFloat((Float[])dt[1]));
+
+		println(trainX, trainY);
+		print(line(20));
+
+		RNN rnn=new RNN(2, 1);
+		LossFunc loss=new MSE();
+		Adam opt=new Adam(rnn.getParameters());
+		opt.learningRate = 0.0001f;
+
+		print("learning rate", opt.learningRate);
+		float lsv=100;
+		int iter=0;
+		while (lsv >= 0.0015f)
+		{
+			Base out=rnn.forward(trainX);
+			Base ls=loss.forward(out, trainY);
+			lsv = ls.get(0);
+
+			if (iter++ % 1000 == 0)
+				print("loss = " + lsv);
+
+			opt.zeroGrad();
+			ls.setGrad(1);
+			ls.backward();
+			opt.step();
+
+		}
+		Base test=rnn.forward(trainX);
+		print(test.as1DArray(), trainY);
+		print("matches =", isClose(trainY, test, 0.05f));
+	}
+	Object[]prepareData()
+	{
+		// some random seed.
+		float[] data=rand(ar(6), -690715410).data.items;
+		int seq_len=2;
+
+		ArrayList<float[]>X=new ArrayList<>();
+		ArrayList<Float>Y=new ArrayList<>();
+		for (int i=0;i < data.length - seq_len;i++)
+		{
+			X.add(Arrays.copyOfRange(data, i, i + seq_len));
+			Y.add(data[i + seq_len]);
+		}
+		return new Object[]{X.toArray(new float[0][]),Y.toArray(new Float[0])};
+	}
+	Module test17()
+	{
+		print(decString("Test 17. XOR module Test", "-", 7));
+
+		Base in=new Base(new float[]{0,0,1,1,0,1,1,0}, 4, 2);
+		Base target=new Base(new float[]{0,0,1,1});
+
+		Module xor=new XOR();
+
+		Optimizer opt=new Adam(xor.getParameters());
+
+		LossFunc lossF=new BCE();
+
+		println(line(30));
+
+		float loss=100;
+		int iter=0;
+		while (loss >= 0.1f)
+		{
+			Base X=xor.forward(in);
+
+			X = lossF.forward(X, target);
+			loss = X.get(0);
+
+			if (iter++ % 1000 == 0)
+				print("loss", loss);
+
+			opt.zeroGrad();
+			X.setGrad(1);
+			X.backward();
+			opt.step();
+
+		}
+		print("final prediction", xor.forward(in));
+		return xor;
 	}
 	void test16()
 	{

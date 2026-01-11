@@ -411,9 +411,9 @@ public abstract class GradFunc implements Serializable
 
 				final int diff2=i1_shape[axis];
 
-				Util.loop(host, new Functions.ArrayToFloatFunction(){
+				Util.loop(host, new Functions.ArrayConsumer(){
 						@Override
-						public float apply(int[] p1)
+						public void consume(int[] p1)
 						{
 							float v=host.getGrad(p1);
 							if (p1[axis] >= i1_shape[axis])
@@ -425,7 +425,6 @@ public abstract class GradFunc implements Serializable
 							else
 							// set to b1
 								b1.setGrad(p1, v);
-							return 0;
 						}
 					});
 			}
