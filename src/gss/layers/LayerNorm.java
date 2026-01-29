@@ -7,7 +7,7 @@ public class LayerNorm extends Module
 {
 	private Base gamma,beta;
 	private float eps=0;
-	
+
 	public LayerNorm(int features_shape)
 	{
 		gamma = newParam(NDArray.ones(features_shape));
@@ -17,10 +17,14 @@ public class LayerNorm extends Module
 	@Override
 	public Base forward(Base dataIn)
 	{
+		return forward(dataIn, new int[0]);
+	}
+	public Base forward(Base dataIn, int[]axis)
+	{
 		// gradient block start
 		Base in = dataIn.as2DArray();
-		Base mean = NDArray.mean(in, 1).reshape(in.shape[0], 1);
-		Base var = NDArray.variance(in, 1).reshape(mean.shape);
+		Base mean = NDArray.mean(in, axis).reshape(in.shape[0], 1);
+		Base var = NDArray.variance(in, axis).reshape(mean.shape);
 
 		Base norm = NDArray.div(NDArray.sub(in , mean), NDArray.sqrt(NDArray.add(var, eps)));
 

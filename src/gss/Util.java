@@ -576,6 +576,8 @@ public class Util
 				System.out.print(Arrays.toString((float[])o));
 			else if (o instanceof char[])
 				System.out.print(Arrays.toString((char[])o));
+			else if (o instanceof double[])
+				System.out.print(Arrays.toString((double[])o));
 			else if (o instanceof long[])
 				System.out.print(Arrays.toString((long[])o));
 			else if (o instanceof short[])
@@ -585,7 +587,9 @@ public class Util
 			else if (o instanceof boolean[])
 				System.out.print(Arrays.toString((boolean[])o));
 			else if (o instanceof Object[])
+			{
 				System.out.print(Arrays.toString((Object[])o));
+			}
 			else if (o instanceof ArrayList)
 			{
 				for (int i=0;i < ((ArrayList)o).size();i++)
@@ -667,7 +671,7 @@ public class Util
 	 */
 	public static boolean isClose(Base b1, Base b2)
 	{
-		return isClose(b1, b2, 0.0001f);
+		return isClose(b1, b2, 0.001f);
 	}
 	public static boolean isClose(Base b1, Base b2, float thresh)
 	{
@@ -801,6 +805,19 @@ public class Util
 	public static int[] append(int[] arr, int val)
 	{
 		return insert(arr, val, arr.length);
+	}
+	public static int[]replace(int[]src, int index, int repV)
+	{
+		if (index >= src.length)
+			error("the index should be less than the source array length. index(" + index + ") >= src.length(" + src.length + ")");
+		src[index] = repV;
+		return src;
+	}
+	public static int[]replace(int[]arr, int[]index, int[]val)
+	{
+		for (int i=0;i < index.length;i++)
+			arr[index[i]] = val[i];
+		return arr;
 	}
 	/*
 	 loop through all posible values fro the given shape(array)
@@ -978,18 +995,22 @@ public class Util
 				src[i] = repV;
 		return src;
 	}
-	public static int[]replace(int[]src, int index, int repV)
-	{
-		if (index >= src.length)
-			error("the index should be less than the source array length. index(" + index + ") >= src.length(" + src.length + ")");
-		src[index] = repV;
-		return src;
-	}
 	public static Scanner input(String...msg)
 	{
 		if (msg.length != 0)
 			System.out.print(msg[0] + " >> ");
 		else System.out.print(">> ");
 		return new Scanner(System.in);
+	}
+	public static float[][] findDiff(float[][] a, float[][] b)
+	{
+		if (a.length != b.length)
+			error("array a and b are not the same shape");
+		List<float[]>o=new ArrayList<>();
+		for (int r=0;r < a.length;r++)
+			for (int c=0;c < a[0].length;c++)
+				if (a[r][c] != b[r][c])
+					o.add(new float[]{a[r][c], b[r][c],a[r][c] - b[r][c]});
+		return o.toArray(new float[0][]);
 	}
 }

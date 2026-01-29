@@ -66,16 +66,11 @@ public class Test2_Func
 //		test19();
 //		test20();
 //		test21();
-//		test22();
-//		test23();
 //		bug10();
 //		bug11();
 //		bug13();
-//		test24();
-//		test25();
-//		test26();
-//		test27();
-		test28();
+//		test22();
+		test23();
 
 
 		/*
@@ -89,26 +84,78 @@ public class Test2_Func
 		 */
 
 	}
-	void test28()
+	void test23()
 	{
-		final int[]sh={2,3,5};
-		final int[]ind={0,2};
-		final int[]subSh=collect(sh, ind);
+		print(decString("Test 23. conv2d benchmark test. new method.", "-", 7));
+		Base in=NDArray.arange(100 * 100).reshapeLocal(100, 100);
+		Base k=NDArray.arange(30 * 30).reshapeLocal(30, 30);
 
-		loop(sh, ind, new Functions.ArrayFunction(){
-				@Override
-				public float apply(int[] p1)
-				{
-					print("..", sh, p1, ind, subSh);
-					return 0;
-				}
-			});
+		long t=0;
+		float[][]out=new float[1][1];
+		int cnt=20;
+		long aTime=0,lTime=0,sTime=Long.MAX_VALUE;
+		while (count(cnt))
+		{
+			// expect 25 get print messages.
+			t = System.currentTimeMillis();
+			out = MathUtil.conv2d(in, k);
+			t = System.currentTimeMillis() - t;
+			lTime = Math.max(lTime, t);
+			sTime = Math.min(sTime, t);
+			aTime += t;
+			// print(out);
+		}
+		aTime = aTime / cnt;
+		println("time :" + aTime + " millis in average(" + sTime + " - " + lTime + ")", "input", in.shape, "kernel", k.shape, "output", out.length);
+		// println("output ndarray", NDArray.wrap(out), "output float", NDArray.wrap(out2));
+		resetCount();
+
 
 	}
-
-	void test261()
+	void test22()
 	{
-		print(decString("Test 26.1. variance test.", "-", 7));
+		print(decString("Test 22. conv1d benchmark test. new method.", "-", 7));
+		Base in=NDArray.rand(100);
+		Base k=NDArray.rand(35);
+
+		long t=0;
+		Base out=NDArray.zeros(1);
+		float[]out2=new float[1];
+		int cnt=100;
+		float aTime=0,lTime=0,sTime=Float.MAX_VALUE;
+		while (count(cnt))
+		{
+			t = System.nanoTime();
+			// out = NDArray.convolve1d(in, k);
+			out2 = MathUtil.conv1d(in, k);
+			t = System.nanoTime() - t;
+			lTime = Math.max(lTime, t);
+			sTime = Math.min(sTime, t);
+			aTime += t;
+			// print(ff);
+		}
+		aTime = aTime / cnt;
+		// println(in, k);
+		println("time :" + aTime + " millis in average(" + sTime + " - " + lTime + ")", "input", in.shape, "kernel", k.shape, "output", out.shape, "float shape :" + out2.length);
+		print("equals", Util.isClose(NDArray.wrap(out2), out));
+		// println("output ndarray", out, "output float", out2);
+		resetCount();
+
+	}
+	public static void resetCount()
+	{
+		count = 0;
+	}
+	static int count=0;
+	public static boolean count(int lim)
+	{
+		if (count++ < lim)
+			return true;
+		return false;
+	}
+	void test211()
+	{
+		print(decString("Test 21.1. variance test.", "-", 7));
 		float[][]dt={{3,5,2,8},{1,3,5,8},{3,2,7,9}};
 		Base b=NDArray.wrap(dt);
 
@@ -120,9 +167,9 @@ public class Test2_Func
 
 
 	}
-	void test26()
+	void test21()
 	{
-		print(decString("Test 26. NDArray stress test.", "-", 7));
+		print(decString("Test 21. NDArray stress test.", "-", 7));
 		float[] f=new float[1024 * 1024];
 		long t=0;
 		float s=0;
@@ -260,9 +307,9 @@ public class Test2_Func
 
 	}
 
-	void test22()
+	void test20()
 	{
-		print(decString("Test 22. concatinate test", "-", 7));
+		print(decString("Test 20. concatinate test", "-", 7));
 
 		Base b=NDArray.arange(10).reshape(2, 5);
 		print(">>", b.get(20, 3));
@@ -306,9 +353,9 @@ public class Test2_Func
 
 	}
 
-	void test20()
+	void test19()
 	{
-		print(decString("Test 20. simple RNN module test", "-", 7));
+		print(decString("Test 18. simple RNN module test", "-", 7));
 		// input_size, hidden_size(output);
 		Module m=new RNN(1, 1);
 		// sequence, batch, input_size.
@@ -319,9 +366,9 @@ public class Test2_Func
 		println(out);
 
 	}
-	void test19() throws Exception
+	void test18() throws Exception
 	{
-		print(decString("Test 19. Import and Export Modules", "-", 7));
+		print(decString("Test 18. Import and Export Modules", "-", 7));
 		Module m=new XOR();
 
 		Base in=NDArray.wrap(asFloat(0, 1, 1, 0, 0, 0, 1, 1), 4, 2);
@@ -338,9 +385,9 @@ public class Test2_Func
 		println(out, out2);
 
 	}
-	void test18() throws Exception
+	void test17() throws Exception
 	{
-		print(decString("Test 18. Import and Export Arrays", "-", 7));
+		print(decString("Test 17. Import and Export Arrays", "-", 7));
 		// test export and import array.
 
 		Base b1=NDArray.rand(2, 4, 10).setRequiresGradient(true);

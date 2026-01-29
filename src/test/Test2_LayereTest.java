@@ -42,12 +42,17 @@ public class Test2_LayereTest
 		test14();
 		test15();
 		test16();
+		test17();
+		test18();
+		test19();
+		test20();
+		test21();
+		test22();
 
 	}
-
-	void test27()
+	void test22()
 	{
-		print(decString("Test 27. (Layer, Batch) normalization test.", "-", 7));
+		print(decString("Test 22. (Layer, Batch) normalization test.", "-", 7));
 		float[][]dt={{3,5,2,8},{1,3,5,8},{3,2,7,9}};
 		Base b=NDArray.wrap(dt).setRequiresGradient(true);
 
@@ -66,10 +71,10 @@ public class Test2_LayereTest
 		draw(out2);
 
 	}
-	void test25()
+	void test21()
 	{
 		// review embedding layer.
-		print(decString("Test 25. Embedding layer stress test.", "-", 7));
+		print(decString("Test 21. Embedding layer stress test.", "-", 7));
 		int voc_size=512;
 		long t=System.currentTimeMillis();
 		Embedding emb=new Embedding(voc_size, 127);
@@ -103,9 +108,9 @@ public class Test2_LayereTest
 		print("equals", Util.equals(embOut1, embOut2));
 
 	}
-	void test24()
+	void test20()
 	{
-		print(decString("Test 24. simple Embedding layer test.", "-", 7));
+		print(decString("Test 20. simple Embedding layer test.", "-", 7));
 		Embedding emb=new Embedding(5, 3);
 
 		Base onehot=NDArray.wrap(new float[]{0,1,0,0,0,0,0,0,1,0}, 2, 5);
@@ -126,9 +131,9 @@ public class Test2_LayereTest
 		print("onehot equality", eq2, eq2 ?"✓✓✓✓✓✓✓✓✓✓": "XXXXXXXXXX");
 
 	}
-	void test23()
+	void test19()
 	{
-		print(decString("Test 23. simple LSTM module test", "-", 7));
+		print(decString("Test 19. simple LSTM module test", "-", 7));
 		LSTM lstm=new LSTM(3, 4);
 		// sequence length > 1 in progress.(doesn't support for now).
 		Base in = NDArray.arange(12).reshapeLocal(2, 2, 3); // NDArray.wrap(.1f, .2f, .3f, .5f, .9f, .7f).reshapeLocal(2, 3);
@@ -145,9 +150,9 @@ public class Test2_LayereTest
 		// draw(out);
 
 	}
-	void test21()
+	void test18()
 	{
-		print(decString("Test 21. simple RNN module next number prediction test.", "-", 7));
+		print(decString("Test 18. simple RNN module next number prediction test.", "-", 7));
 		Object[] dt=prepareData();
 		Base trainX=NDArray.wrap((float[][])dt[0]);
 		Base trainY=NDArray.wrap(asFloat((Float[])dt[1]));

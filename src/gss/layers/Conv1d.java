@@ -14,6 +14,8 @@ public class Conv1d extends Module
 	private int output_size=0;
 	private int input_size=0;
 
+	private boolean haveBiase=false;
+
 	public Base kernels,biase;
 
 	/*
@@ -30,13 +32,15 @@ public class Conv1d extends Module
 		this.n_channels = n_channels;
 		this.n_kernels = n_kernels;
 		this.kernel_size = kernel_size;
+		haveBiase = true;
 		init();
 	}
 	private void init()
 	{
 		output_size = (input_size - kernel_size) + 1; // for normal convolution.
 		kernels = newParam(NDArray.rand(n_kernels, n_channels, kernel_size)); // change NDArray.ones -> NDArray.rand
-		biase = newParam(NDArray.ones(n_kernels, output_size));
+		if (haveBiase)
+			biase = newParam(NDArray.ones(n_kernels, output_size));
 	}
 	@Override
 	public Base forward(Base input)
@@ -103,10 +107,11 @@ public class Conv1d extends Module
 							sm += in.get(din, chn, w + k) * kv; // get kernel in reverse order
 							kp--;
 						}
-						// out[din][kr][w] += sm;
-						outF[pos++] += sm + biase.get(kr, w);					
-					}				
-					// pos++;
+						if (!haveBiase)
+							outF[pos++] += sm;
+						else outF[pos++] += sm + biase.get(kr, w);								
+						// pos++;
+					}
 				}			
 				// out[din][kr] = karr;
 			}

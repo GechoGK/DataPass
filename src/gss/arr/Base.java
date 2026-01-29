@@ -22,6 +22,9 @@ public class Base implements Serializable
 	public List<Base> childs;
 	public Object params;
 
+	private int getCount=0;
+	public boolean debugGet=false;
+
 	public Base(int...shp)
 	{
 		if (shp.length == 0)
@@ -245,7 +248,10 @@ public class Base implements Serializable
 	public float get(int...index)
 	{
 		int ind=Math.max(0, shapeToIndex(index));
-		return data.items[ind];
+		float dt= data.items[ind];
+		if (debugGet)
+			System.out.println(getCount++ + ". get at(" + Arrays.toString(index) + ") = " + dt);
+		return dt;
 	}
 	// get array data length of @count.
 	public float[] get(int[]index, int count)
@@ -563,6 +569,20 @@ public class Base implements Serializable
 		if (shape.length == 1)
 		{
 			return reshape(-1, 1, shape[shape.length - 1]);
+		}
+		return reshape(-1, shape[shape.length - 2], shape[shape.length - 1]);
+	}
+	public Base as4DArray()
+	{
+		if (getDim() == 4)
+			return this;
+		if (shape.length == 1)
+		{
+			return reshape(-1, 1, 1, shape[shape.length - 1]);
+		}
+		else if (shape.length == 2)
+		{
+			return reshape(-1, 1, shape[shape.length - 2], shape[shape.length - 1]);
 		}
 		return reshape(-1, shape[shape.length - 2], shape[shape.length - 1]);
 	}

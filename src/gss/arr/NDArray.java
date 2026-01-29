@@ -87,6 +87,12 @@ public class NDArray
 		float[] dt=Util.flatten(data);
 		return new Base(dt, shp);
 	}
+	public static Base wrap(float[][][][]data)
+	{
+		int[] shp={data.length,data[0].length,data[0][0].length,data[0][0][0].length};
+		float[] dt=Util.flatten(data);
+		return new Base(dt, shp);
+	}
 	public static Base rand(int...shape)
 	{
 		return rand(shape, -1); // change -1 into another to use seed value.
@@ -150,11 +156,12 @@ public class NDArray
 	}
 	public static Base reduce(Base b, int[]axis, boolean keepDim, ArrayFunction func)
 	{
-		// keepdim = true;
-		int[]sh=b.shape;
-		int[]newShape=fromAxis(sh, axis);
+		int[]sh=copy(b.shape);
 		float[] data=loop(sh, axis, func);
-		Base out=NDArray.wrap(data, newShape);
+		int[]newShape=fromAxis(sh, axis);
+		if (!keepDim)
+			newShape = remove(newShape, axis);
+		Base out=NDArray.wrap(data, newShape).setRequiresGradient(b.hasGradient());
 		return out;
 	}
 	// addition
@@ -565,32 +572,23 @@ public class NDArray
 		}
 		return outData;
 	}
-	public static Base sum(final Base b, final int axis)
+	public static Base sum(final Base b, final int...axis)
 	{
-		int[] sumShape=remove(b.shape, axis);
-		final Base out=empty(sumShape).setRequiresGradient(b.hasGradient());
-		final int count=b.shape[axis];
-//		reduce(b, axis, true, new ArrayFunction(){
-//
-//				@Override
-//				public float apply(int[] p1)
-//				{
-//					// TODO: Implement this method
-//					return 0;
-//				}
-//			});
-		loop(sumShape, new ArrayFunction(){
+		final int[]sh=b.shape;
+		final int[]subSh=collect(sh, axis);
+		final int length=length(subSh);
+		Base out=reduce(b, axis, true, new Functions.ArrayFunction(){
 				@Override
 				public float apply(int[] p1)
 				{
-					float sm=0;
-					for (int i=0;i < count;i++)
+					float sum=0;
+					for (int i=0;i < length;i++)
 					{
-						int[]sh=insert(p1, i, axis);
-						sm += b.get(sh);
+						int[]newSH=indexToShape(i, subSh);
+						replace(p1, axis, newSH);
+						sum += b.get(p1);
 					}
-					out.set(p1, sm);
-					return 0;
+					return sum;
 				}
 			});
 		out.setGradientFunctionS(sumGradient, axis, b);
@@ -654,16 +652,15 @@ public class NDArray
 	{
 		return NDArray.div(sum(d), d.length);
 	}
-	public static Base mean(Base d, int axis)
+	public static Base mean(Base d, int...axis)
 	{
-		return NDArray.div(sum(d, axis), d.shape[axis]);
+		return NDArray.div(sum(d, axis), length(collect(d.shape, axis)));// d.shape[axis]);
 	}
-	public static Base variance(Base d, int axis)
+	public static Base variance(Base d, int...axis)
 	{
 		Base m=mean(d, axis);
-		m = m.reshape(insert(m.shape, 1,  axis));
 		Base v0 = NDArray.pow(NDArray.sub(d, m), 2);
-		v0 = NDArray.div(NDArray.sum(v0, axis), v0.shape[axis]);
+		v0 = NDArray.div(NDArray.sum(v0, axis), length(collect(v0.shape, axis)));
 		return v0;
 	}
 	// less than
@@ -814,5 +811,13 @@ public class NDArray
 		b.setRequiresGradient(ind.hasGradient());
 		b.setGradientFunctionS(stepGradient, ind);
 		return b;
+	}
+	public static Base convolv2d(Base in, Base kern)
+	{
+		float[][] out=new float[2][2];MathUtil.conv2d(in, kern);
+		Base o=NDArray.wrap(out);
+		o.setRequiresGradient(in.hasGradient() || kern.hasGradient());
+		// o.setGradientFunctionS(convolve2DGradient);
+		return o;
 	}
 }
