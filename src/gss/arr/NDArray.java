@@ -814,7 +814,7 @@ public class NDArray
 	}
 	public static Base convolv2d(Base in, Base kern)
 	{
-		float[][] out=new float[2][2];MathUtil.conv2d(in, kern);
+		float[][] out=MathUtil.conv2d(in, kern);
 		Base o=NDArray.wrap(out);
 		o.setRequiresGradient(in.hasGradient() || kern.hasGradient());
 		// o.setGradientFunctionS(convolve2DGradient);

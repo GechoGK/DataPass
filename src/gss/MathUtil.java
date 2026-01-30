@@ -1,6 +1,7 @@
 package gss;
 
 import gss.arr.*;
+import java.util.*;
 
 import static gss.Util.*;
 
@@ -55,6 +56,10 @@ public class MathUtil
 	}
 	public static float[][] conv2d(Base inp, Base krn)
 	{
+		return conv2d(inp, krn, null);
+	}
+	public static float[][] conv2d(Base inp, Base krn, float[][]out)
+	{
 		if (krn.getDim() != 2 || krn.shape[0] != krn.shape[1])
 			error("the kernel dimension should be 2: found = " + krn.getDim());
 		if (inp.getDim() != 2)
@@ -64,10 +69,14 @@ public class MathUtil
 		int outputR=(inp.shape[0] - krn.shape[0]) + 1;
 		int outputC=(inp.shape[1] - k_size) + 1;
 
+		if (out == null)
+			out = new float[outputR][outputC];
+		if (out.length != outputR || out[0].length != outputC)
+			error("the parameter out array length should be (" + (outputR + ", " + outputC) + "), found :(" + out.length + ", " + out[0].length + ")");
+
+
 		float[][] in=copy(inp);
 		float[][] kern=copy(krn);
-
-		float[][] out=new float[outputR][outputC];
 
 		for (int or=0;or < outputR;or++)
 		{
@@ -81,7 +90,7 @@ public class MathUtil
 						sm += in[ir + or][ic + oc] * kern[kr][kc];
 					}
 				}
-				out[or][oc] = sm;
+				out[or][oc] += sm;
 			}
 		}
 		return out;
@@ -95,5 +104,120 @@ public class MathUtil
 			for (int oc=0;oc < in.shape[1];oc++) // we used one loop for caching kernel.
 				o[or][oc] = in.get(or, oc);
 		return o;
+	}
+	public static float[] maxPool1d(Base in, int poolSize)
+	{
+		return maxPool1d(in, poolSize, null);
+	}
+	public static float[] maxPool1d(Base in, int poolSize, float[]out)
+	{
+		if (in.getDim() != 1)
+			error("for 1d pool, the input data should be 1d array.");
+		if (in.shape[0] % poolSize != 0)
+			error("the input size should be divisble by pool size");
+		if (out == null)
+			out = new float[in.shape[0] / poolSize];
+		if (out.length != in.shape[0] / poolSize)
+			error("the output array size should be (" + in.shape[0] / poolSize + "), found :" + out.length);
+		for (int i=0,pp=0;i < in.shape[0];i += poolSize,pp++)
+		{
+			float cp=Float.MIN_VALUE;
+			for (int p=0;p < poolSize;p++)
+			{
+				float v=in.get(i + p);
+				if (v > cp)
+					cp = v;
+			}
+			out[pp] = cp;
+		}
+		return out;
+	}
+	public static float[] averagePool1d(Base in, int poolSize)
+	{
+		return averagePool1d(in, poolSize, null);
+	}
+	public static float[] averagePool1d(Base in, int poolSize, float[]out)
+	{
+		if (in.getDim() != 1)
+			error("for 1d pool, the input data should be 1d array.");
+		if (in.shape[0] % poolSize != 0)
+			error("the input size should be divisble by pool size");
+		if (out == null)
+			out = new float[in.shape[0] / poolSize];
+		if (out.length != in.shape[0] / poolSize)
+			error("the output array size should be (" + in.shape[0] / poolSize + "), found :" + out.length);
+		for (int i=0,pp=0;i < in.shape[0];i += poolSize,pp++)
+		{
+			float sm=0;
+			for (int p=0;p < poolSize;p++)
+			{
+				sm += in.get(i + p);
+			}
+			out[pp] = sm / poolSize;
+		}
+		return out;
+	}
+	public static float[][]maxPool2d(Base in, int...poolSize)
+	{
+		return maxPool2d(in, null, poolSize);
+	}
+	public static float[][]maxPool2d(Base in, float[][]out, int...poolSize)
+	{
+		if (poolSize.length != 2)
+			error("2d array pool size expected.");
+		if (in.getDim() != 2)
+			error("2d input array expected. found :" + in.getDim());
+		if (in.shape[0] % poolSize[0] != 0 || in.shape[1] % poolSize[1] != 0)
+			error("the input size should be divisible by pool size. in" + Arrays.toString(in.shape) + ", poolSize" + Arrays.toString(poolSize));
+		int[]outShape={in.shape[0] / poolSize[0],in.shape[1] / poolSize[1]};
+		if (out == null)
+			out = new float[outShape[0]][outShape[1]];
+		if (out.length != outShape[0] || out[0].length != outShape[1])
+			error("the output array size should be (" + outShape[0] / poolSize[0] + ", " + outShape[1] / poolSize[1] + "), found :(" + out.length + ", " + out[0].length + ")");
+		for (int ir=0,or=0;ir < in.shape[0];ir += poolSize[0],or++)
+			for (int ic=0,oc=0;ic < in.shape[1];ic += poolSize[1],oc++)
+			{
+				float mx=Float.MIN_VALUE;
+				for (int r=0;r < poolSize[0];r++)
+					for (int c=0;c < poolSize[1];c++)
+					{
+						float v=in.get(ir + r, ic + c);
+						if (v > mx)
+							mx = v;
+					}
+				out[or][oc] = mx;
+			}
+		return out;
+	}
+	public static float[][] averagePool2d(Base in, int...poolSize)
+	{
+		return averagePool2d(in, null, poolSize);
+	}
+	public static float[][] averagePool2d(Base in, float[][]out, int...poolSize)
+	{
+		if (poolSize.length != 2)
+			error("2d array pool size expected.");
+		if (in.getDim() != 2)
+			error("2d input array expected. found :" + in.getDim());
+		if (in.shape[0] % poolSize[0] != 0 || in.shape[1] % poolSize[1] != 0)
+			error("the input size should be divisible by pool size. in" + Arrays.toString(in.shape) + ", poolSize" + Arrays.toString(poolSize));
+		int[]outShape={in.shape[0] / poolSize[0],in.shape[1] / poolSize[1]};
+		if (out == null)
+			out = new float[outShape[0]][outShape[1]];
+		if (out.length != outShape[0] || out[0].length != outShape[1])
+			error("the output array size should be (" + outShape[0] / poolSize[0] + ", " + outShape[1] / poolSize[1] + "), found :(" + out.length + ", " + out[0].length + ")");
+		int len=poolSize[0]   * poolSize[1];
+		for (int ir=0,or=0;ir < in.shape[0];ir += poolSize[0],or++)
+			for (int ic=0,oc=0;ic < in.shape[1];ic += poolSize[1],oc++)
+			{
+				float sm=0;
+				for (int r=0;r < poolSize[0];r++)
+					for (int c=0;c < poolSize[1];c++)
+					{
+						sm += in.get(ir + r, ic + c);
+					}
+				out[or][oc] = sm / len;
+			}
+		return out;
 	}
 }

@@ -3,6 +3,8 @@ package gss.layers;
 import gss.*;
 import gss.arr.*;
 
+import static gss.Util.*;
+
 public class Conv2d extends Module
 {
 	private int inputSize,numChannels,numKernels,kernelSize;
@@ -38,12 +40,24 @@ public class Conv2d extends Module
 		 dataIn should be 4d array. (batch, channels, size,size);
 		 output array dim = 4d array (batch, num_kernels, size,size);
 		 */
-
+		// check input size.
 		Base in=dataIn.as4DArray(); // 4d array (batch_size, num_channels, input_size, input_size);
-
-		// for single kernel.
-		
-
-		return null;
+		if (in.shape[1] != numChannels)
+			error("number of channels for the input must be \"" + numChannels + "\"");
+		// output = batch_size, 
+		float[][][][] out=new float[in.shape[0]][numKernels][outputSize][outputSize];
+		// output = batch,numKernels,outSize,outSize
+		for (int bs=0;bs < in.shape[0];bs++) // loop over batch size
+		{
+			for (int ks=0;ks < numKernels;ks++) // loop over number of kernels
+			{
+				for (int cs=0;cs < in.shape[1];cs++) // loop over channels size
+				{
+					MathUtil.conv2d(in.slice(bs, cs), kernels.slice(ks, cs), out[bs][ks]);
+				}
+			}
+		}
+		Base o=NDArray.wrap(out);
+		return o;
 	}
 }

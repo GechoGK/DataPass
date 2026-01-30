@@ -23,19 +23,20 @@ public class Test2_Func
 		System.out.println(line(50));
 
 		/*
-		 -- embedding 80 % review.
+		 -- embedding 80 % review. -> use index method.
 		 -- LayerNorm (layer normalization) 50 %
 		 -- BatchNorm (batch normalization) 50 %
-		 -- conv2d
-		 -- maxPool2d
-		 -- avPool1d
-		 -- avPool2d
+		 -- conv2d module ✓  gradient ? // fix out shape ✓
+		 -- maxPool2d module ✓  gradient ? // fix out shape ✓
+		 -- avPool1d module ✓  gradient ? // fix out shape ✓
+		 -- avPool2d module ✓  gradient ? // fix out shape ✓
 
 		 >> dot product. review. use cache
 		 >> min
 		 >> max
 		 >> fix mean.
 		 >> fix variance.
+		 >> fix NDArray.wrap(.) -> Util.flatten(.) copied array.
 		 !! fix functions to use map...
 		 */
 
@@ -70,7 +71,10 @@ public class Test2_Func
 //		bug11();
 //		bug13();
 //		test22();
-		test23();
+//		test23();
+//		test24();
+//		test25();
+		test26();
 
 
 		/*
@@ -84,15 +88,66 @@ public class Test2_Func
 		 */
 
 	}
+	void test26()
+	{
+		print(decString("Test 26. MaxPool2d, averagePool1d, averagePool2d modules test.", "-", 7));
+
+		Base in2=NDArray.arange(128).reshapeLocal(2, 8, 8);
+
+		MaxPool2d max2=new MaxPool2d(2);
+		AvPool1d avr1=new AvPool1d(2);
+		AvPool2d avr2=new AvPool2d(2);
+
+		Base mx2o=max2.forward(in2);
+		Base av1o=avr1.forward(in2);
+		Base av2o=avr2.forward(in2);
+		println(in2, decString("MaxPool2d result", "-", 10), mx2o);
+		println(decString("averagePool1d result", "-", 10), av1o);
+		println(decString("AveragePool2d result", "-", 10), av2o);
+
+
+	}
+	void test25()
+	{
+		print(decString("Test 25. maxPool2d, averagePool1d, averagePool2d test.", "-", 7));
+		Base in=NDArray.arange(30);
+
+		float[] mx=MathUtil.maxPool1d(in, 5);
+		float[] av=MathUtil.averagePool1d(in, 5);
+
+		Base in2=NDArray.arange(100).reshapeLocal(10, 10);
+
+		float[][]mx2=MathUtil.maxPool2d(in2, 2, 2);
+		float[][]av2=MathUtil.averagePool2d(in2, 2, 2);
+		println(in, getString("-", 20), "maxpool result", mx, getString("-", 20), "average pool result", av);
+		print(in2);
+		print("mxpool2d result");
+		println(mx2);
+		print("avpool2d result");
+		println(av2);
+	}
+	void test24()
+	{
+		print(decString("Test 24. conv2d module test.", "-", 7));
+
+		Base in=NDArray.rand(5, 1, 32, 32);
+		// 32 x 32 = image size, 5 batch size , 1 number of channels(only gray);
+
+		Conv2d conv=new Conv2d(32, 1, 2, 5); // grayscale.
+
+		Base out=conv.forward(in);
+		println("input shape =" + Arrays.toString(in.shape), getString("-", 20), out.shape);
+
+	}
 	void test23()
 	{
-		print(decString("Test 23. conv2d benchmark test. new method.", "-", 7));
+		print(decString("Test 23. conv2d function benchmark test. new method.", "-", 7));
 		Base in=NDArray.arange(100 * 100).reshapeLocal(100, 100);
 		Base k=NDArray.arange(30 * 30).reshapeLocal(30, 30);
 
 		long t=0;
 		float[][]out=new float[1][1];
-		int cnt=20;
+		int cnt=5;
 		long aTime=0,lTime=0,sTime=Long.MAX_VALUE;
 		while (count(cnt))
 		{

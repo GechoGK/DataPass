@@ -16,36 +16,20 @@ public class MaxPool1d extends Module
 	public Base forward(Base input)
 	{
 		Base in=input.as2DArray();
-		int mds=in.shape[1] % poolSize;
-		if (mds != 0)
-			throw new RuntimeException("unable to make maxPool! make sure the pool size is divisble by the total length of the array.");
-		int newLen=in.shape[1] / poolSize;
-		Base outData=new Base(in.shape[0], newLen);
-		index = new int[in.shape[0]][outData.shape[1]];
-		for (int r=0;r < in.shape[0];r++) // row count.
-			for (int c=0;c < newLen;c++) // column count.
-			{
-				int np=c * poolSize;
-				float pmx=-Float.MIN_VALUE;
-				for (int p=np;p < np + poolSize;p++)
-				{
-					float fp=in.get(r, p);
-					if (fp >= pmx)
-					{
-						pmx = fp;
-						index[r][c] = p;
-					}
-				}
-				outData.set(new int[]{r,c}, pmx);
-			}
-		int[] nsh=input.shape.clone();
-		nsh[nsh.length - 1] = newLen; // nsh[nsh.length - 1] / poolSize;
-		// outData.reshapeLocal(nsh);
-		outData.setRequiresGradient(input.hasGradient());
-		if (outData.hasGradient())
-			outData.setGradientFunction(maxPool1dGradient, index, input);
-		// outData.setGradientParams(index);
-		return outData.reshape(nsh);
+		int outSize=in.shape[1] / poolSize;
+		float[][]out=new float[in.shape[0]][outSize];
+		for (int b=0;b < in.shape[0];b++)
+		{
+			MathUtil.averagePool1d(in.slice(b), poolSize, out[b]);
+		}
+		Base o=NDArray.wrap(out);
+		o.setRequiresGradient(input.hasGradient());
+		// o.setGradientFunctionS(maxPool1dGradient, index, input);
+		// reshape ths output array based on the input array.
+		int[]outShape=input.shape.clone();
+		outShape[outShape.length - 1] = outSize;
+		o = o.reshape(outShape);
+		return o;
 	}
 	public static GradFunc maxPool1dGradient=new GradFunc("maxPool1d"){
 		@Override
