@@ -107,9 +107,9 @@ public class MathUtil
 	}
 	public static float[] maxPool1d(Base in, int poolSize)
 	{
-		return maxPool1d(in, poolSize, null);
+		return maxPool1d(in, poolSize, null, null);
 	}
-	public static float[] maxPool1d(Base in, int poolSize, float[]out)
+	public static float[] maxPool1d(Base in, int poolSize, float[]out, int[]indexOut)
 	{
 		if (in.getDim() != 1)
 			error("for 1d pool, the input data should be 1d array.");
@@ -121,14 +121,21 @@ public class MathUtil
 			error("the output array size should be (" + in.shape[0] / poolSize + "), found :" + out.length);
 		for (int i=0,pp=0;i < in.shape[0];i += poolSize,pp++)
 		{
-			float cp=Float.MIN_VALUE;
-			for (int p=0;p < poolSize;p++)
+			float cp=in.get(i);
+			int idx=i;
+			for (int p=1;p < poolSize;p++)
 			{
-				float v=in.get(i + p);
+				int ip=i + p;
+				float v=in.get(ip);
 				if (v > cp)
+				{
 					cp = v;
+					idx = ip;
+				}
 			}
 			out[pp] = cp;
+			if (indexOut != null)
+				indexOut[pp] = idx;
 		}
 		return out;
 	}
@@ -159,10 +166,11 @@ public class MathUtil
 	}
 	public static float[][]maxPool2d(Base in, int...poolSize)
 	{
-		return maxPool2d(in, null, poolSize);
+		return maxPool2d(in, null, null, poolSize);
 	}
-	public static float[][]maxPool2d(Base in, float[][]out, int...poolSize)
+	public static float[][]maxPool2d(Base in, float[][]out, int[][][]indexOut, int...poolSize)
 	{
+		// set to index array.
 		if (poolSize.length != 2)
 			error("2d array pool size expected.");
 		if (in.getDim() != 2)
@@ -177,15 +185,22 @@ public class MathUtil
 		for (int ir=0,or=0;ir < in.shape[0];ir += poolSize[0],or++)
 			for (int ic=0,oc=0;ic < in.shape[1];ic += poolSize[1],oc++)
 			{
-				float mx=Float.MIN_VALUE;
+				float mx=in.get(ir, ic);
+				int[] idx={ir,ic};
 				for (int r=0;r < poolSize[0];r++)
 					for (int c=0;c < poolSize[1];c++)
 					{
 						float v=in.get(ir + r, ic + c);
 						if (v > mx)
+						{
 							mx = v;
+							idx[0] = ir + r;
+							idx[1] = ic + c;
+						}
 					}
 				out[or][oc] = mx;
+				if (indexOut != null)
+					indexOut[or][oc] = idx;
 			}
 		return out;
 	}

@@ -11,14 +11,6 @@ import static gss.Functions.*;
 
 public class NDArray
 {
-	/*
-	 TO-DO
-	 -- mode.
-	 -- median.
-	 -- variance >> review.
-	 >> export. ✓
-	 >> import. ✓
-	 */
 	// array generators.
 	public static Base arange(float end)
 	{
@@ -78,19 +70,19 @@ public class NDArray
 	public static Base wrap(float[][]data)
 	{
 		int[] shp={data.length,data[0].length};
-		float[] dt=Util.flatten(data);
+		float[] dt=Util.flatten(data); // avoid it.
 		return new Base(dt, shp);
 	}
 	public static Base wrap(float[][][]data)
 	{
 		int[] shp={data.length,data[0].length,data[0][0].length};
-		float[] dt=Util.flatten(data);
+		float[] dt=Util.flatten(data); // avoid it.
 		return new Base(dt, shp);
 	}
 	public static Base wrap(float[][][][]data)
 	{
 		int[] shp={data.length,data[0].length,data[0][0].length,data[0][0][0].length};
-		float[] dt=Util.flatten(data);
+		float[] dt=Util.flatten(data); // avoid it.
 		return new Base(dt, shp);
 	}
 	public static Base rand(int...shape)

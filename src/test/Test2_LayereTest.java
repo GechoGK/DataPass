@@ -16,7 +16,7 @@ import static java.util.Arrays.*;
 
 public class Test2_LayereTest
 {
-	public static void test()
+	public static void test() throws Exception
 	{
 
 		new Test2_LayereTest().a();
@@ -24,7 +24,7 @@ public class Test2_LayereTest
 		System.out.println(line(54));
 
 	}
-	void a()
+	void a() throws Exception
 	{
 		test1();
 		test2();
@@ -48,11 +48,87 @@ public class Test2_LayereTest
 		test20();
 		test21();
 		test22();
+		test23();
+		test24();
+		test25();
+		test26();
+		test27();
+		test27();
+		test28();
+		test29();
 
 	}
-	void test22()
+	void test29()
 	{
-		print(decString("Test 22. (Layer, Batch) normalization test.", "-", 7));
+		
+	}
+	void test28()
+	{
+		print(decString("Test 28. MaxPool2d, averagePool1d, averagePool2d modules test.", "-", 7));
+
+		Base in2=NDArray.arange(128).reshapeLocal(2, 8, 8);
+
+		MaxPool2d max2=new MaxPool2d(2);
+		AvPool1d avr1=new AvPool1d(2);
+		AvPool2d avr2=new AvPool2d(2);
+
+		Base mx2o=max2.forward(in2);
+		Base av1o=avr1.forward(in2);
+		Base av2o=avr2.forward(in2);
+		println(in2, decString("MaxPool2d result", "-", 10), mx2o);
+		println(decString("averagePool1d result", "-", 10), av1o);
+		println(decString("AveragePool2d result", "-", 10), av2o);
+
+
+	}
+	void test27()
+	{
+		print(decString("Test 27. conv2d module test.", "-", 7));
+
+		Base in=NDArray.rand(5, 1, 32, 32);
+		// 32 x 32 = image size, 5 batch size , 1 number of channels(only gray);
+
+		Conv2d conv=new Conv2d(32, 1, 2, 5); // grayscale.
+
+		Base out=conv.forward(in);
+		println("input shape =" + Arrays.toString(in.shape), getString("-", 20), out.shape);
+
+	}
+	void test26()
+	{
+		print(decString("Test 26. simple RNN module test", "-", 7));
+		// input_size, hidden_size(output);
+		Module m=new RNN(1, 1);
+		// sequence, batch, input_size.
+		Base in=NDArray.wrap(new float[]{0.5f,0.1f,0.7f,0.2f,0.9f}, 5, 1, 1);
+
+		Base out=m.forward(in);
+
+		println(out);
+
+	}
+	void test25() throws Exception
+	{
+		print(decString("Test 25. Import and Export Modules", "-", 7));
+		Module m=new XOR();
+
+		Base in=NDArray.wrap(asFloat(0, 1, 1, 0, 0, 0, 1, 1), 4, 2);
+
+		Base out=m.forward(in);
+
+		String path="/sdcard/xor_module.mdl";
+		Util.saveObject(path, m);
+
+		Module m2=NDIO.loadModule(path);
+
+		Base out2=m2.forward(in);
+
+		println(out, out2);
+
+	}
+	void test24()
+	{
+		print(decString("Test 24. (Layer, Batch) normalization test.", "-", 7));
 		float[][]dt={{3,5,2,8},{1,3,5,8},{3,2,7,9}};
 		Base b=NDArray.wrap(dt).setRequiresGradient(true);
 
@@ -69,6 +145,112 @@ public class Test2_LayereTest
 		println(line(20), decString("batch normalization", 5), out2);
 
 		draw(out2);
+
+	}
+	void test23()
+	{
+		System.out.println(decString("Test 23.0 XOR Test.", "=", 10));
+		Base x=new Base(new float[]{0,0,1,1,0,1,1,0}, 4, 2);
+		Base y=new Base(new float[]{0,0,1,1});
+
+		int hiddenSize=5;
+		// it works with hidden size starts from 2 upto ...
+
+		Linear l1=new Linear(2, hiddenSize);
+		Linear l2=new Linear(hiddenSize, 1);
+
+		Activation a2=new Tanh();
+		LossFunc lossFunc=new MSE();
+		/*
+		 --- MSE
+		 Adam >6000 iterations. Tanh(1200, )
+		 GradientDescent >100_000 iterations. Tanh(27_700,25_800)
+		 SGDM >50_000 iterations. Tanh(4600,3400)
+		 --- BCE more accurate loss functiom
+		 Adam >7000 iterations, Tanh(2100)
+		 GradientDescent >100_000 iterations. Tanh(11300)
+		 SGDM >30_000 iterations, Tanh(1400,2100)
+		 --- MAE
+		 Adam stuck. Tanh(3000,1800) sometimes.
+		 GradientDescent stuck
+		 SGDM stuck
+		 --- MCCE accurate loss function.
+		 Adam 10_000, Tanh(3800)
+		 GradientDescent >100_000 stuck.Tanh(28000) iterations.
+		 SGDM > 60_000. Tanh(3700)
+		 */
+		Optimizer optim=new Adam(l1.getParameters(), l2.getParameters()); // very fast. < 7000 iterations.
+		// sometimes when we use Adam optimizer it stuck to local minima, or unable to fit the dataset. so keep try again.
+		// optim = new GradientDescent(l1.getParameters(), l2.getParameters()); // very slow. >100,000 iterations.
+		// optim = new SGDM(l1.getParameters(), l2.getParameters()); // very slow. > 49,000 iterations.
+
+		Base output=null;
+
+		int ps=0;
+		float lsv=1000;
+		while (lsv >= 0.05f)
+		{
+			Base X = l1.forward(x);
+			X = a2.forward(X);
+			X = l2.forward(X);
+			X = a2.forward(X);
+			output = X;
+
+			Base loss=lossFunc.forward(X, y);
+			lsv = loss.get(0);
+
+			if (ps % 100 == 0)
+				print(ps++, lsv);
+
+			optim.zeroGrad();
+			loss.setGrad(1);
+			loss.backward();
+
+			optim.step();
+			ps++;
+			// Thread.sleep(100);
+		}
+		print(decString("-", 30));
+		print("total iterations ", ps);
+		print(output);
+	}
+	void test22()
+	{
+		System.out.println(decString("Test 22.0 layers backward pass.", "=", 10));
+
+		Sequential sq=new Sequential();
+		sq.add(new Conv1d(800, 1, 10, 21));
+		// 800 - 21 + 1 = 780
+		sq.add(new MaxPool1d(5));
+		// 780 / 5 = 156
+		sq.add(new Dropout(0.25f));
+		// === 10,156.
+		sq.add(new Conv1d(156, 10, 15, 7));
+		// 156 - 7 + 1 = 150
+		sq.add(new MaxPool1d(3));
+		// 150 / 3 = 50
+		sq.add(new Dropout(0.21f));
+		// third  15,50
+		sq.add(new Conv1d(50, 15, 30, 3));
+		// 50 - 3 + 1 = 48
+		sq.add(new MaxPool1d(3));
+		// 48 / 3 = 16
+		sq.add(new Dropout(0.15f));
+		// 30,16
+		sq.add(new Flatten());
+		sq.add(new Linear(480, 100, true));
+		sq.add(new Linear(100, 50, true));
+		// 1,250
+
+		// input.
+		Base d=NDArray.rand(800);
+
+		Base out=sq.forward(d);
+		// System.out.println(decString("forward complete.", 10));
+		out.setGrad(1);
+		out.backward();
+		System.out.println(decString("complete.", 10));
+		// System.out.println(out);
 
 	}
 	void test21()
@@ -609,4 +791,5 @@ public class Test2_LayereTest
 		System.out.println(l1.biase);
 
 	}
+
 }

@@ -15,7 +15,7 @@ public class Main
 		new Main().a();
 
 		Mode.setStrictBroadcast(true);
-		
+
 	}
 
 	void a() throws Exception
@@ -31,13 +31,13 @@ public class Main
 //
 //		Test1_NDArrayData.test();
 //
-//		print(getString("=", 30));
-//
-//		Test2_LayereTest.test();
-//
-//		print(getString("=", 30));
+		print(getString("=", 30));
 
 		Test2_Func.test();
+
+//		print(getString("=", 30));
+//		
+//		Test2_LayereTest.test();
 
 		print(decString("Test completed.", "=", 10));
 

@@ -26,10 +26,10 @@ public class Test2_Func
 		 -- embedding 80 % review. -> use index method.
 		 -- LayerNorm (layer normalization) 50 %
 		 -- BatchNorm (batch normalization) 50 %
-		 -- conv2d module ✓  gradient ? // fix out shape ✓
-		 -- maxPool2d module ✓  gradient ? // fix out shape ✓
-		 -- avPool1d module ✓  gradient ? // fix out shape ✓
-		 -- avPool2d module ✓  gradient ? // fix out shape ✓
+		 -- conv2d module ✓  gradient ? // fix out shape ✓ use cache
+		 -- maxPool2d module ✓  gradient ? // fix out shape ✓ use cache
+		 -- avPool1d module ✓  gradient ? // fix out shape ✓ use cache
+		 -- avPool2d module ✓  gradient ? // fix out shape ✓ use cache
 
 		 >> dot product. review. use cache
 		 >> min
@@ -38,6 +38,7 @@ public class Test2_Func
 		 >> fix variance.
 		 >> fix NDArray.wrap(.) -> Util.flatten(.) copied array.
 		 !! fix functions to use map...
+		 !! fix sumGradient -> since axis is an array, it is still using as an integer.
 		 */
 
 	}
@@ -47,11 +48,11 @@ public class Test2_Func
 //		test1();
 //		test2();
 //		test3();
-//		test4();
+//		test41();
+//		test42();
+//		test43();
 //		test5();
-//		test61();
-//		test62();
-//		test63();
+//		test6();
 //		test7();
 //		test8();
 //		test9();
@@ -62,19 +63,17 @@ public class Test2_Func
 //		test14();
 //		test15();
 //		test16();
+//		bug10();
+//		bug11();
+//		bug13();
 //		test17();
 //		test18();
 //		test19();
 //		test20();
 //		test21();
-//		bug10();
-//		bug11();
-//		bug13();
 //		test22();
 //		test23();
-//		test24();
-//		test25();
-		test26();
+		test24();
 
 
 		/*
@@ -88,28 +87,70 @@ public class Test2_Func
 		 */
 
 	}
-	void test26()
+	void test24()
 	{
-		print(decString("Test 26. MaxPool2d, averagePool1d, averagePool2d modules test.", "-", 7));
+		print(decString("Test 24. ... test.", "-", 7));
+		
+	}
+	void test23()
+	{
+		print(decString("Test 23. maxPool2d, averagePool2d gradient test.", "-", 7));
+		Base in=NDArray.arange(100).reshapeLocal(10, 10).setRequiresGradient(true);
+		println(in);
 
-		Base in2=NDArray.arange(128).reshapeLocal(2, 8, 8);
+		Base customGrd=NDArray.arange(1, 26).reshapeLocal(5, 5);
+		print(getString("-", 20));
 
-		MaxPool2d max2=new MaxPool2d(2);
-		AvPool1d avr1=new AvPool1d(2);
-		AvPool2d avr2=new AvPool2d(2);
+		// for maxpool1d gradient
+		MaxPool2d mx1=new MaxPool2d(2);
+		Base out=mx1.forward(in);
+		out.setGrad(customGrd);
+		out.backward();
+		println("maxPool2d gradient", out.detachGradient(), in.detachGradient());
+		print(getString("+", 20));
 
-		Base mx2o=max2.forward(in2);
-		Base av1o=avr1.forward(in2);
-		Base av2o=avr2.forward(in2);
-		println(in2, decString("MaxPool2d result", "-", 10), mx2o);
-		println(decString("averagePool1d result", "-", 10), av1o);
-		println(decString("AveragePool2d result", "-", 10), av2o);
+		in.zeroGrad();
 
+		// for avpool1d gradient
+		AvPool2d av1=new AvPool2d(2);
+		out = av1.forward(in);
+		out.setGrad(customGrd);
+		out.backward();
+
+		println("avPool1d gradient", out.detachGradient(), in.detachGradient());
 
 	}
-	void test25()
+	void test22()
 	{
-		print(decString("Test 25. maxPool2d, averagePool1d, averagePool2d test.", "-", 7));
+		print(decString("Test 22. maxPool1d, averagePool1d gradient test.", "-", 7));
+		Base in=NDArray.arange(100).reshapeLocal(5, 20).setRequiresGradient(true);
+		println(in);
+
+		Base customGrd=NDArray.arange(1, 21).reshapeLocal(5, 4);
+		print(getString("-", 20));
+
+		// for maxpool1d gradient
+		MaxPool1d mx1=new MaxPool1d(5);
+		Base out=mx1.forward(in);
+		out.setGrad(customGrd);
+		out.backward();
+		println("maxPool1d gradient", out.detachGradient(), in.detachGradient());
+		print(getString("+", 20));
+
+		in.zeroGrad();
+
+		// for avpool1d gradient
+		AvPool1d av1=new AvPool1d(5);
+		out = av1.forward(in);
+		out.setGrad(customGrd);
+		out.backward();
+
+		println("avPool1d gradient", out.detachGradient(), in.detachGradient());
+
+	}
+	void test21()
+	{
+		print(decString("Test 21. maxPool2d, averagePool1d, averagePool2d functions test.", "-", 7));
 		Base in=NDArray.arange(30);
 
 		float[] mx=MathUtil.maxPool1d(in, 5);
@@ -126,22 +167,10 @@ public class Test2_Func
 		print("avpool2d result");
 		println(av2);
 	}
-	void test24()
+
+	void test20()
 	{
-		print(decString("Test 24. conv2d module test.", "-", 7));
-
-		Base in=NDArray.rand(5, 1, 32, 32);
-		// 32 x 32 = image size, 5 batch size , 1 number of channels(only gray);
-
-		Conv2d conv=new Conv2d(32, 1, 2, 5); // grayscale.
-
-		Base out=conv.forward(in);
-		println("input shape =" + Arrays.toString(in.shape), getString("-", 20), out.shape);
-
-	}
-	void test23()
-	{
-		print(decString("Test 23. conv2d function benchmark test. new method.", "-", 7));
+		print(decString("Test 20. conv2d function benchmark test. new method.", "-", 7));
 		Base in=NDArray.arange(100 * 100).reshapeLocal(100, 100);
 		Base k=NDArray.arange(30 * 30).reshapeLocal(30, 30);
 
@@ -167,9 +196,9 @@ public class Test2_Func
 
 
 	}
-	void test22()
+	void test19()
 	{
-		print(decString("Test 22. conv1d benchmark test. new method.", "-", 7));
+		print(decString("Test 19. conv1d benchmark test. new method.", "-", 7));
 		Base in=NDArray.rand(100);
 		Base k=NDArray.rand(35);
 
@@ -208,9 +237,9 @@ public class Test2_Func
 			return true;
 		return false;
 	}
-	void test211()
+	void test18()
 	{
-		print(decString("Test 21.1. variance test.", "-", 7));
+		print(decString("Test 18. variance test.", "-", 7));
 		float[][]dt={{3,5,2,8},{1,3,5,8},{3,2,7,9}};
 		Base b=NDArray.wrap(dt);
 
@@ -222,9 +251,9 @@ public class Test2_Func
 
 
 	}
-	void test21()
+	void test17()
 	{
-		print(decString("Test 21. NDArray stress test.", "-", 7));
+		print(decString("Test 17. NDArray stress test.", "-", 7));
 		float[] f=new float[1024 * 1024];
 		long t=0;
 		float s=0;
@@ -362,9 +391,9 @@ public class Test2_Func
 
 	}
 
-	void test20()
+	void test16()
 	{
-		print(decString("Test 20. concatinate test", "-", 7));
+		print(decString("Test 16. concatinate test", "-", 7));
 
 		Base b=NDArray.arange(10).reshape(2, 5);
 		print(">>", b.get(20, 3));
@@ -407,42 +436,9 @@ public class Test2_Func
 		print("concatenation test 2", check(Util.equals(comb2, NDArray.wrap(asFloat(1, 6, 4, 3, 8, 6, 0, 9)))));
 
 	}
-
-	void test19()
+	void test15() throws Exception
 	{
-		print(decString("Test 18. simple RNN module test", "-", 7));
-		// input_size, hidden_size(output);
-		Module m=new RNN(1, 1);
-		// sequence, batch, input_size.
-		Base in=NDArray.wrap(new float[]{0.5f,0.1f,0.7f,0.2f,0.9f}, 5, 1, 1);
-
-		Base out=m.forward(in);
-
-		println(out);
-
-	}
-	void test18() throws Exception
-	{
-		print(decString("Test 18. Import and Export Modules", "-", 7));
-		Module m=new XOR();
-
-		Base in=NDArray.wrap(asFloat(0, 1, 1, 0, 0, 0, 1, 1), 4, 2);
-
-		Base out=m.forward(in);
-
-		String path="/sdcard/xor_module.mdl";
-		Util.saveObject(path, m);
-
-		Module m2=NDIO.loadModule(path);
-
-		Base out2=m2.forward(in);
-
-		println(out, out2);
-
-	}
-	void test17() throws Exception
-	{
-		print(decString("Test 17. Import and Export Arrays", "-", 7));
+		print(decString("Test 15. Import and Export Arrays", "-", 7));
 		// test export and import array.
 
 		Base b1=NDArray.rand(2, 4, 10).setRequiresGradient(true);
@@ -466,9 +462,9 @@ public class Test2_Func
 		print("array from text load and save result ", result);
 
 	}
-	void test16()
+	void test14()
 	{
-		print(decString("Test 16. sum gradient", "-", 7));
+		print(decString("Test 14. sum gradient", "-", 7));
 
 		Base b=NDArray.arange(30).reshape(2, 3, 5).setRequiresGradient(true);
 
@@ -487,9 +483,9 @@ public class Test2_Func
 		println(b, "sum===", s1, "grad", sgd, igd);
 
 	}
-	void test15()
+	void test13()
 	{
-		print(decString("Test 15. more functions", "-", 7));
+		print(decString("Test 13. more functions", "-", 7));
 
 		Base b=NDArray.arange(20).reshape(2, 10);
 
@@ -514,9 +510,9 @@ public class Test2_Func
 		println("input 1", b, "log", l, "sqrt", s, "exp", e, "mean", m, "negate", n, "inv", i, "input 2", b2, "less than", lt, "equals", eq);
 
 	}
-	void test14()
+	void test12()
 	{
-		print(decString("Test 14. slice test 2", "-", 7));
+		print(decString("Test 12. slice test 2", "-", 7));
 
 		Base a=NDArray.arange(30).reshape(3, 5, 2);
 
@@ -527,9 +523,9 @@ public class Test2_Func
 		println(a, b, c);
 
 	}
-	void test13()
+	void test11()
 	{
-		print(decString("Test 13. sum operations.", "-", 7));
+		print(decString("Test 11. sum operations.", "-", 7));
 		Base a=NDArray.arange(30).reshape(3, 5, 2).setRequiresGradient(true);
 
 		Base b=NDArray.sum(a);
@@ -541,9 +537,9 @@ public class Test2_Func
 		b.setGrad(3);
 		b.backward();
 	}
-	void test12()
+	void test10()
 	{
-		print(decString("Test 12. Basic math operations.", "-", 7));
+		print(decString("Test 10. Basic math operations.", "-", 7));
 		Base a=NDArray.wrap(5, 5, 2);
 		Base b=NDArray.wrap(10, 5, 2).setRequiresGradient(true);
 
@@ -614,7 +610,7 @@ public class Test2_Func
 
 
 	}
-	void test11()
+	void test9()
 	{
 
 		final Base b1=NDArray.arange(60).reshapeLocal(3, 4, 5);
@@ -638,9 +634,9 @@ public class Test2_Func
 		loop(remove(b1.shape, axis), cons);
 
 	}
-	void test10()
+	void test8()
 	{
-		print(decString("Test 10.0 : array value test.", 9));
+		print(decString("Test 8.0 : array value test.", 9));
 		Base b1=NDArray.arange(10).setRequiresGradient(true);
 		Base b2=NDArray.arange(10).setRequiresGradient(true);
 
@@ -682,9 +678,9 @@ public class Test2_Func
 			for (Value  vv:vl.args)
 				treeV(vv, t.replace("_", " ").replace("|", " ") + "|_____ ");
 	}
-	void test9()
+	void test7()
 	{
-		print(decString("Test 9.0 dot product test.", 8));
+		print(decString("Test 7.0 dot product test.", 8));
 		Base a=NDArray.arange(3 * 5).reshapeLocal(3, 5).setRequiresGradient(true);
 		Base b=NDArray.arange(5 * 2).reshapeLocal(5, 2).setRequiresGradient(true);
 
@@ -799,9 +795,9 @@ public class Test2_Func
 				draw2(bs.childs.get(ps));
 		}
 	}
-	void test8() throws InterruptedException
+	void test6() throws InterruptedException
 	{
-		print(decString("Test 8.0 approximation test with different loss functions.", 7));
+		print(decString("Test 6.0 approximation test with different loss functions.", 7));
 
 		int input=2;
 		int output=6;
@@ -978,9 +974,9 @@ public class Test2_Func
 		output.printArray();
 		print(line(30));
 	}
-	void test7()
+	void test5()
 	{
-		print(decString("Test 7.0 approximation using optimizers.", "✓", 5));
+		print(decString("Test 5.0 approximation using optimizers.", "✓", 5));
 
 		Base in=NDArray.rand(5);
 		Base tr=new Base(new float[]{1,0,1,1,0});
@@ -1011,9 +1007,9 @@ public class Test2_Func
 		print(res);
 
 	}
-	void test63()
+	void test43()
 	{
-		print(decString("Test 6.3.0 activation function test.", "✓", 5));
+		print(decString("Test 4.3.0 activation function test.", "✓", 5));
 
 		Base inp=new Base(new float[]{-0.5f ,0 ,1 ,-5 ,3 ,5}).setRequiresGradient(true);
 		print("input", inp);
@@ -1033,9 +1029,9 @@ public class Test2_Func
 		print("gardient", inp.detachGradient());
 
 	}
-	void test62()
+	void test42()
 	{
-		print(decString("Test 6.2.0 loss function test.", "✓", 5));
+		print(decString("Test 4.2.0 loss function test.", "✓", 5));
 
 		Base in=NDArray.rand(4).setRequiresGradient(true);
 		Base tr=new Base(new float[]{1,0,1,1});
@@ -1073,9 +1069,9 @@ public class Test2_Func
 		print("== loss :", loss);
 
 	}
-	void test61()
+	void test41()
 	{
-		print(decString("Test 6.1.0 optimizers test.", "✓", 5));
+		print(decString("Test 4.1.0 optimizers test.", "✓", 5));
 
 		Base data=new Base(new float[]{10}).setRequiresGradient(true);
 		data.set1dGrad(0, 1);
@@ -1128,9 +1124,9 @@ public class Test2_Func
 		print(decString("done", 10));
 
 	}
-	void test5()
+	void test3()
 	{
-		print(decString("Test 5.0 approximation using array class.", "✓", 5));
+		print(decString("Test 3.0 approximation using array class.", "✓", 5));
 		// gradient descent example.
 		float lr=0.0001f;
 
@@ -1174,9 +1170,9 @@ public class Test2_Func
 		print("≈≈");
 		t.printArray();
 	}
-	void test4() throws Exception
+	void test2() throws Exception
 	{
-		print(decString("Test 4.0 approximation using array class.", "✓", 5));
+		print(decString("Test 2.0 approximation using array class.", "✓", 5));
 
 		float lr=0.001f;
 
@@ -1215,9 +1211,9 @@ public class Test2_Func
 		print(line(10));
 		print("result :", res.get(0), " ≈≈ ", t.get(0));
 	}
-	void test3() throws Exception
+	void test1() throws Exception
 	{
-		print(decString("Test 3.0 approximation using raw float", "✓", 5));
+		print(decString("Test 1.0 approximation using raw float", "✓", 5));
 
 		float lr=0.001f; // learning rate.
 
@@ -1250,111 +1246,5 @@ public class Test2_Func
 			b += bg * lr;
 		}
 		print("result :" + result + " ≈≈≈ " + t);
-	}
-	void test2() throws InterruptedException
-	{
-		System.out.println(decString("Test 2.0 XOR Test.", "=", 10));
-		Base x=new Base(new float[]{0,0,1,1,0,1,1,0}, 4, 2);
-		Base y=new Base(new float[]{0,0,1,1});
-
-		int hiddenSize=5;
-		// it works with hidden size starts from 2 upto ...
-
-		Linear l1=new Linear(2, hiddenSize);
-		Linear l2=new Linear(hiddenSize, 1);
-
-		Activation a2=new Tanh();
-		LossFunc lossFunc=new MSE();
-		/*
-		 --- MSE
-		 Adam >6000 iterations. Tanh(1200, )
-		 GradientDescent >100_000 iterations. Tanh(27_700,25_800)
-		 SGDM >50_000 iterations. Tanh(4600,3400)
-		 --- BCE more accurate loss functiom
-		 Adam >7000 iterations, Tanh(2100)
-		 GradientDescent >100_000 iterations. Tanh(11300)
-		 SGDM >30_000 iterations, Tanh(1400,2100)
-		 --- MAE
-		 Adam stuck. Tanh(3000,1800) sometimes.
-		 GradientDescent stuck
-		 SGDM stuck
-		 --- MCCE accurate loss function.
-		 Adam 10_000, Tanh(3800)
-		 GradientDescent >100_000 stuck.Tanh(28000) iterations.
-		 SGDM > 60_000. Tanh(3700)
-		 */
-		Optimizer optim=new Adam(l1.getParameters(), l2.getParameters()); // very fast. < 7000 iterations.
-		// sometimes when we use Adam optimizer it stuck to local minima, or unable to fit the dataset. so keep try again.
-		// optim = new GradientDescent(l1.getParameters(), l2.getParameters()); // very slow. >100,000 iterations.
-		// optim = new SGDM(l1.getParameters(), l2.getParameters()); // very slow. > 49,000 iterations.
-
-		Base output=null;
-
-		int ps=0;
-		float lsv=1000;
-		while (lsv >= 0.05f)
-		{
-			Base X = l1.forward(x);
-			X = a2.forward(X);
-			X = l2.forward(X);
-			X = a2.forward(X);
-			output = X;
-
-			Base loss=lossFunc.forward(X, y);
-			lsv = loss.get(0);
-
-			if (ps % 100 == 0)
-				print(ps++, lsv);
-
-			optim.zeroGrad();
-			loss.setGrad(1);
-			loss.backward();
-
-			optim.step();
-			ps++;
-			// Thread.sleep(100);
-		}
-		print(decString("-", 30));
-		print("total iterations ", ps);
-		print(output);
-	}
-	void test1()
-	{
-		System.out.println(decString("Test 1.0 layers backward pass.", "=", 10));
-
-		Sequential sq=new Sequential();
-		sq.add(new Conv1d(800, 1, 10, 21));
-		// 800 - 21 + 1 = 780
-		sq.add(new MaxPool1d(5));
-		// 780 / 5 = 156
-		sq.add(new Dropout(0.25f));
-		// === 10,156.
-		sq.add(new Conv1d(156, 10, 15, 7));
-		// 156 - 7 + 1 = 150
-		sq.add(new MaxPool1d(3));
-		// 150 / 3 = 50
-		sq.add(new Dropout(0.21f));
-		// third  15,50
-		sq.add(new Conv1d(50, 15, 30, 3));
-		// 50 - 3 + 1 = 48
-		sq.add(new MaxPool1d(3));
-		// 48 / 3 = 16
-		sq.add(new Dropout(0.15f));
-		// 30,16
-		sq.add(new Flatten());
-		sq.add(new Linear(480, 100, true));
-		sq.add(new Linear(100, 50, true));
-		// 1,250
-
-		// input.
-		Base d=NDArray.rand(800);
-
-		Base out=sq.forward(d);
-		// System.out.println(decString("forward complete.", 10));
-		out.setGrad(1);
-		out.backward();
-		System.out.println(decString("complete.", 10));
-		// System.out.println(out);
-
 	}
 }
