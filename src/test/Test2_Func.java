@@ -13,7 +13,7 @@ import static gss.Util.*;
 import static gss.arr.GradFunc.*;
 import static gss.Functions.*;
 import static gss.arr.NDArray.*;
-
+import static gss.MathUtil.*;
 public class Test2_Func
 {
 	public static void test() throws Exception
@@ -39,6 +39,24 @@ public class Test2_Func
 		 >> fix NDArray.wrap(.) -> Util.flatten(.) copied array.
 		 !! fix functions to use map...
 		 !! fix sumGradient -> since axis is an array, it is still using as an integer.
+
+		 +++ test againest value.
+		 >> conv1d 		?
+		 >> conv2d .... 50%
+		 >> maxpool1d 	✓
+		 >> maxpool2d 	✓
+		 >> avpool1d 	✓
+		 >> avpool2d 	✓
+		 >> RNN 		?
+		 >> LSTM 		?
+		 >> BatchNorm 	?
+		 >> LayerNorm 	?
+		 >> concat 		?
+		 >> variance 	?
+		 >> mean 		?
+		 >> sum 		?
+		 >> dot 		?
+
 		 */
 
 	}
@@ -73,7 +91,8 @@ public class Test2_Func
 //		test21();
 //		test22();
 //		test23();
-		test24();
+//		test24();
+		test25();
 
 
 		/*
@@ -87,10 +106,97 @@ public class Test2_Func
 		 */
 
 	}
+	void test25()
+	{
+		
+
+	}
 	void test24()
 	{
-		print(decString("Test 24. ... test.", "-", 7));
-		
+		print(decString("Test 24. conv2d gradient test.", "-", 7));
+		Base i1=NDArray.arange(1, 19).reshapeLocal(1, 2, 3, 3).setRequiresGradient(true);
+		Conv2d cnn=new Conv2d(3, 2, 2, 2, false);
+		float[][][][]kr=
+		{
+			{
+				{
+					{4,3},
+					{2,1}
+				},
+				{
+					{8,7},
+					{6,5}
+				}
+			},
+			{
+				{
+					{12,11},
+					{10,9}
+				},
+				{
+					{16,15},
+					{14,13}
+				}
+			}
+		};
+		Base krn=NDArray.wrap(kr).setRequiresGradient(true);
+		cnn.setKernels(krn);
+
+		Base out=cnn.forward(i1);
+
+		float[][][][]outd={{
+				{{356, 392},
+					{464, 500}},
+				{{836, 936},
+					{1136, 1236}
+				}}};
+		Base res=NDArray.wrap(outd);
+
+		println(decString("output", 10), out);
+
+		out.fillGrad(2);
+		out.backward();
+
+		float[][][][]ing={
+			{
+				{
+					{20, 44,  24},
+					{48, 104, 56},
+					{28, 60,  32}},
+				{
+					{36, 76,  40},
+					{80, 168, 88},
+					{44, 92,  48}
+				}
+			}};
+		Base inpGrd=NDArray.wrap(ing);
+
+		println(decString("input gradient result ", 20),  i1.detachGradient());
+		println("result equals ::" + (Util.equals(out, res) ? "true : ✓": "false : X"));
+		print("input gradient equals ::" + (Util.equals(inpGrd, i1.detachGradient()) ?"true : ✓": "false : X"));
+	}
+	void agrad(float[][]in, float[][]k, float[][]grd, float[][]aout, float[][]bout)
+	{
+		print("calculating input gradient");
+		print(in.length + "," + in[0].length);
+		print(k.length + "," + k[0].length);
+		print(grd.length + "," + grd[0].length);
+		for (int gr=0;gr < grd.length;gr++)
+			for (int gc=0;gc < grd[0].length;gc++)
+			{
+				float gval=grd[gr][gc];
+				for (int kr=0;kr < k.length;kr++)
+					for (int kc=0;kc < k[0].length;kc++)
+					{
+						float kval=k[kr][kc];
+						float ival=in[gr + kr][gc + kc];
+						// ag += kval * gval;
+						aout[gr + kr][gc + kc] += kval * gval;
+						// kg += ival * gval;
+						bout[kr][kc] += ival * gval;
+					}
+			}
+		// calculate input gradient.
 	}
 	void test23()
 	{

@@ -445,6 +445,7 @@ public abstract class GradFunc implements Serializable
 				lst.add(host.getValue(host.indexToShape(i)));
 			while (lst.size() != 0)
 			{
+				// System.out.println(lst.size() + " value items found");
 				for (Value v:lst)
 				{
 					v.backward();

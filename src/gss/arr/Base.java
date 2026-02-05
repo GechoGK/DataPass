@@ -268,6 +268,11 @@ public class Base implements Serializable
 		return f;
 	}
 	// set single value to the data.
+	public void append(int[]index, float val)
+	{
+		int ind=shapeToIndex(index);
+		data.items[ind] += val;
+	}
 	public void set(int[]index, float val)
 	{
 		int ind=shapeToIndex(index);
@@ -507,6 +512,39 @@ public class Base implements Serializable
 			return d;
 		}
 	}
+	public Base deepCopy()
+	{
+		// System.out.println("copying...");
+		if (!isOriginal()) // or broadcasted.
+		{
+			// print("copy transposed");
+			float[] dt=new float[length];
+			Base d=newBase(dt, shape);
+			d.setRequiresGradient(hasGradient());
+			// print(d.gradientFunction);
+			// d.setGradientParams(params);
+			for (int i=0;i < length;i++)
+			{
+				int[] shp=indexToShape(i);
+				dt[i] = get(shp);
+				if (d.hasGradient())
+					d.setRawGrad(i,  getGrad(shp));
+			}
+			return d;
+		}
+		else
+		{
+			// print("copy non-transposed");
+			// don't use data.items.
+			Base d = newBase(Arrays.copyOfRange(data.items, offset, offset + length), shape);
+			d.setRequiresGradient(hasGradient());
+			if (d.hasGradient())
+			{
+				d.data.gradient = Arrays.copyOfRange(data.gradient, offset, offset + data.length);
+			}
+			return d;
+		}
+	}
 	@Override
 	public String toString()
 	{
@@ -584,7 +622,7 @@ public class Base implements Serializable
 		{
 			return reshape(-1, 1, shape[shape.length - 2], shape[shape.length - 1]);
 		}
-		return reshape(-1, shape[shape.length - 2], shape[shape.length - 1]);
+		return reshape(-1, shape[shape.length - 3], shape[shape.length - 2], shape[shape.length - 1]);
 	}
 	public Base trim()
 	{
@@ -766,7 +804,8 @@ public class Base implements Serializable
 		// error("no gradient function found for backward pass.");
 		gradientFunction.backward(this, childs.toArray(new Base[0]), params);
 		for (Base b:childs)
-			b.backward();
+			if (b != null)
+				b.backward();
 		return this;
 	}
 	public Base zeroGrad()

@@ -38,8 +38,8 @@ public class MathUtil
 			p++;
 		}
 		out[0] += sm;
-		// kernel cached use cache kernel, to gain some performance.
-		for (int i=1;i < len;i++) // starts from 1, 0 used for kernel caching...
+		// kernel cached, use cached kernel, to gain some performance.
+		for (int i=1;i < len;i++) // starts from 1, 0 is used for kernel caching...
 		{
 			int k=klen - 1;
 			float iv=in.get(i + k);
@@ -56,9 +56,9 @@ public class MathUtil
 	}
 	public static float[][] conv2d(Base inp, Base krn)
 	{
-		return conv2d(inp, krn, null);
+		return conv2d(inp, krn, null, null);
 	}
-	public static float[][] conv2d(Base inp, Base krn, float[][]out)
+	public static float[][] conv2d(Base inp, Base krn, Base bs, float[][]out)
 	{
 		if (krn.getDim() != 2 || krn.shape[0] != krn.shape[1])
 			error("the kernel dimension should be 2: found = " + krn.getDim());
@@ -74,9 +74,10 @@ public class MathUtil
 		if (out.length != outputR || out[0].length != outputC)
 			error("the parameter out array length should be (" + (outputR + ", " + outputC) + "), found :(" + out.length + ", " + out[0].length + ")");
 
+		boolean hasB=bs != null;
 
-		float[][] in=copy(inp);
-		float[][] kern=copy(krn);
+		float[][] in=copy2(inp);
+		float[][] kern=copy2(krn);
 
 		for (int or=0;or < outputR;or++)
 		{
@@ -90,20 +91,15 @@ public class MathUtil
 						sm += in[ir + or][ic + oc] * kern[kr][kc];
 					}
 				}
-				out[or][oc] += sm;
+				if (!hasB)
+					out[or][oc] = sm;
+				else
+				{
+					out[or][oc] = sm + bs.get(or, oc);
+				}
 			}
 		}
 		return out;
-	}
-	public static float[][]copy(Base in)
-	{
-		if (in.getDim() != 2)
-			error("the input dimension must be 2, found :" + in.getDim());
-		float[][] o=new float[in.shape[0]][in.shape[1]];
-		for (int or=0;or < in.shape[0];or++)
-			for (int oc=0;oc < in.shape[1];oc++) // we used one loop for caching kernel.
-				o[or][oc] = in.get(or, oc);
-		return o;
 	}
 	public static float[] maxPool1d(Base in, int poolSize)
 	{
@@ -234,5 +230,116 @@ public class MathUtil
 				out[or][oc] = sm / len;
 			}
 		return out;
+	}
+	public static float[][]copy2(Base in)
+	{
+		if (in.getDim() != 2)
+			error("the input dimension must be 2, found :" + in.getDim());
+		float[][] o=new float[in.shape[0]][in.shape[1]];
+		for (int or=0;or < in.shape[0];or++)
+			for (int oc=0;oc < in.shape[1];oc++) // we used one loop for caching kernel.
+				o[or][oc] = in.get(or, oc);
+		return o;
+	}
+	public static float[][][]copy3(Base in)
+	{
+		if (in.getDim() != 3)
+			error("the input dimension must be 3, found :" + in.getDim());
+		float[][][] o=new float[in.shape[0]][in.shape[1]][in.shape[2]];
+		for (int od=0;od < in.shape[0];od++)
+			for (int or=0;or < in.shape[1];or++)
+				for (int oc=0;oc < in.shape[2];oc++)
+					o[od][or][oc] = in.get(od, or, oc);
+		return o;
+	}
+	public static float[][][][]copy4(Base in)
+	{
+		if (in.getDim() != 4)
+			error("the input dimension must be 4, found :" + in.getDim());
+		float[][][][] o=new float[in.shape[0]][in.shape[1]][in.shape[2]][in.shape[3]];
+		for (int ob=0;ob < in.shape[0];ob++)
+			for (int od=0;od < in.shape[1];od++)
+				for (int or=0;or < in.shape[2];or++)
+					for (int oc=0;oc < in.shape[3];oc++)
+						o[ob][od][or][oc] = in.get(ob, od, or, oc);
+		return o;
+	}
+	// set float array value to NDArray.
+	public static Base set(Base arr, float[]val)
+	{
+		if (arr.getDim() != 1 || arr.length != val.length)
+			error(arr.getDim() != 1 ?"input dimension doesn't match to input value:(" + arr.getDim() + "≠" + 1 + ").": "arr.length doesn't match with value length:(" + arr.length + "≠" + val.length + ").");
+		for (int i=0;i < arr.shape[0];i++)
+			arr.set(ar(i), val[i]);
+		return arr;
+	}
+	public static Base set(Base arr, float[][]val)
+	{
+		if (arr.getDim() != 2 || arr.length != val.length * val[0].length)
+			error(arr.getDim() != 2 ?"input dimension doesn't match to input value:(" + arr.getDim() + "≠" + 2 + ").": "arr.length doesn't match with value length:(" + arr.shape[0] + "," + arr.shape[1] + " ≠ " + val.length + "," + val[0].length + ").");
+		for (int i=0;i < arr.shape[0];i++)
+			for (int j=0;j < arr.shape[1];j++)
+				arr.set(ar(i, j), val[i][j]);
+		return arr;
+	}
+	public static Base set(Base arr, float[][][]val)
+	{
+		if (arr.getDim() != 3 || arr.length != val.length * val[0].length * val[0][0].length)
+			error(arr.getDim() != 3 ?"input dimension doesn't match to input value:(" + arr.getDim() + "≠" + 3 + ").": "arr.length doesn't match with value length:(" + arr.shape[0] + "," + arr.shape[1] + "," + arr.shape[2] + " ≠ " + val.length + "," + val[0].length + "," + val[0][0].length + ").");
+		for (int d=0;d < arr.shape[0];d++)
+			for (int r=0;r < arr.shape[1];r++)
+				for (int c=0;c < arr.shape[2];c++)
+					arr.set(ar(d, r, c), val[d][r][c]);
+		return arr;
+	}
+	public static Base set(Base arr, float[][][][]val)
+	{
+		if (arr.getDim() != 4 || arr.length != val.length * val[0].length * val[0][0].length * val[0][0][0].length)
+			error(arr.getDim() != 4 ?"input dimension doesn't match to input value:(" + arr.getDim() + "≠" + 4 + ").": "arr.length doesn't match with value length:(" + arr.shape[0] + "," + arr.shape[1] + "," + arr.shape[2] + "," + arr.shape[3] + " ≠ " + val.length + "," + val[0].length + "," + val[0][0].length + "," + val[0][0][0].length + ").");
+		for (int b=0;b < arr.shape[0];b++)
+			for (int d=0;d < arr.shape[1];d++)
+				for (int r=0;r < arr.shape[2];r++)
+					for (int c=0;c < arr.shape[3];c++)
+						arr.set(ar(b, d, r, c), val[b][d][r][c]);
+		return arr;
+	}
+	// append values.
+	public static Base append(Base arr, float[]val)
+	{
+		if (arr.getDim() != 1 || arr.length != val.length)
+			error(arr.getDim() != 1 ?"input dimension doesn't match to input value:(" + arr.getDim() + "≠" + 1 + ").": "arr.length doesn't match with value length:(" + arr.length + "≠" + val.length + ").");
+		for (int i=0;i < arr.shape[0];i++)
+			arr.append(ar(i), val[i]);
+		return arr;
+	}
+	public static Base append(Base arr, float[][]val)
+	{
+		if (arr.getDim() != 2 || arr.length != val.length * val[0].length)
+			error(arr.getDim() != 2 ?"input dimension doesn't match to input value:(" + arr.getDim() + "≠" + 2 + ").": "arr.length doesn't match with value length:(" + arr.shape[0] + "," + arr.shape[1] + " ≠ " + val.length + "," + val[0].length + ").");
+		for (int i=0;i < arr.shape[0];i++)
+			for (int j=0;j < arr.shape[1];j++)
+				arr.append(ar(i, j), val[i][j]);
+		return arr;
+	}
+	public static Base append(Base arr, float[][][]val)
+	{
+		if (arr.getDim() != 3 || arr.length != val.length * val[0].length * val[0][0].length)
+			error(arr.getDim() != 3 ?"input dimension doesn't match to input value:(" + arr.getDim() + "≠" + 3 + ").": "arr.length doesn't match with value length:(" + arr.shape[0] + "," + arr.shape[1] + "," + arr.shape[2] + " ≠ " + val.length + "," + val[0].length + "," + val[0][0].length + ").");
+		for (int d=0;d < arr.shape[0];d++)
+			for (int r=0;r < arr.shape[1];r++)
+				for (int c=0;c < arr.shape[2];c++)
+					arr.append(ar(d, r, c), val[d][r][c]);
+		return arr;
+	}
+	public static Base append(Base arr, float[][][][]val)
+	{
+		if (arr.getDim() != 4 || arr.length != val.length * val[0].length * val[0][0].length * val[0][0][0].length)
+			error(arr.getDim() != 4 ?"input dimension doesn't match to input value:(" + arr.getDim() + "≠" + 4 + ").": "arr.length doesn't match with value length:(" + arr.shape[0] + "," + arr.shape[1] + "," + arr.shape[2] + "," + arr.shape[3] + " ≠ " + val.length + "," + val[0].length + "," + val[0][0].length + "," + val[0][0][0].length + ").");
+		for (int b=0;b < arr.shape[0];b++)
+			for (int d=0;d < arr.shape[1];d++)
+				for (int r=0;r < arr.shape[2];r++)
+					for (int c=0;c < arr.shape[3];c++)
+						arr.append(ar(b, d, r, c), val[b][d][r][c]);
+		return arr;
 	}
 }

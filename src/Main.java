@@ -60,7 +60,7 @@ public class Main
 		b.detachGradient().printArray();
 		print(line(30));
 
-		Base c2=TestValue.bce(b2, bt2);
+		Base c2=TestValue.bce2(b2, bt2);
 		print(c2);
 		c2.printArray();
 		c2.setGrad(1);
@@ -267,7 +267,7 @@ public class Main
 
 		Base b=NDArray.arange(20).reshapeLocal(2, 10).setRequiresGradient(true);
 
-		Base b2=TestValue.tanh(b);
+		Base b2=TestValue.tanh2(b);
 		print(b2);
 		b2.printArray();
 		print(line(10));
@@ -300,7 +300,7 @@ public class Main
 
 		Base b=NDArray.arange(20).reshapeLocal(2, 10).setRequiresGradient(true);
 
-		Base b2=TestValue.sigmoid(b);
+		Base b2=TestValue.sigmoid2(b);
 		print(b2);
 		b2.printArray();
 		print(line(10));
@@ -333,7 +333,7 @@ public class Main
 
 		Base b=NDArray.arange(20).reshapeLocal(2, 10).setRequiresGradient(true);
 
-		Base b2=TestValue.relu(b);
+		Base b2=TestValue.relu2(b);
 		print(b2);
 		print(line(10));
 		b2.setGrad(NDArray.arange(1, 21).reshape(2, 10));
