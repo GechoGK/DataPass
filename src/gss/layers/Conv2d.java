@@ -14,6 +14,8 @@ public class Conv2d extends Module
 	private int outputSize;
 	private boolean useBiase;
 
+	// ... padding and strides.
+
 	public Base biase,kernels;
 
 	public Conv2d(int inputSize, int inputChannels, int outputChannel, int kernelSize)
@@ -68,7 +70,7 @@ public class Conv2d extends Module
 	 .      [11,12]],
 	 .     [[13,14]
 	 .      [15,16]]] = 2,2,2,2 the kernel is already flipped.
-	 // for kernel 1 cannel 1
+	 // for kernel 1 channel 1
 	 = 1*1 + 2*2 + 4*3 + 5*4 = 37
 	 = 2*1 + 3*2 + 5*3 + 6*4 = 47
 	 = 4*1 + 5*2 + 7*3 + 8*4 = 67
@@ -120,7 +122,7 @@ public class Conv2d extends Module
 	 -----------
 	 input gradient;
 	 == 37 ==
-	 1 = 1*2 = 2
+	 1 = 1*2 = 2 & 
 	 2 = 2*2 = 4
 	 4 = 3*2 = 6
 	 5 = 4*2 = 8
@@ -247,11 +249,6 @@ public class Conv2d extends Module
 			error("number of channels for the input must be \"" + numChannels + "\"");
 		// output = batch_size, 
 		float[][][][] out=new float[in.shape[0]][numKernels][outputSize][outputSize];
-		float[][][]bis=null;
-		if (useBiase)
-		{
-			bis = copy3(biase);
-		}
 		float[][][][]inp=copy4(in);
 		float[][][][]krn=copy4(kernels);
 		int k_size=kernels.shape[3];
@@ -321,10 +318,6 @@ public class Conv2d extends Module
 		}
 		void agrad(float[][]in, float[][]k, float[][]grd, float[][]aout, float[][]bout)
 		{
-//			print("calculating input gradient");
-//			print(in.length + "," + in[0].length);
-//			print(k.length + "," + k[0].length);
-//			print(grd.length + "," + grd[0].length);
 			for (int gr=0;gr < grd.length;gr++)
 				for (int gc=0;gc < grd[0].length;gc++)
 				{
@@ -340,7 +333,6 @@ public class Conv2d extends Module
 							bout[kr][kc] += ival * gval;
 						}
 				}
-			// calculate input gradient.
 		}
 	};
 }

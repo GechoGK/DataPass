@@ -49,7 +49,6 @@ public class LSTM extends Module
 		cellState = NDArray.empty(batch, hiddenSize); // (batch, hidden)
 		for (int i=0;i < sequence;i++)
 		{
-			// concat doesn't have gradientFunction.
 			Base comb=NDArray.concat(hiddenState, dataIn.slice(i), 1); // 7 
 			Base gate = NDArray.add(NDArray.dot(comb, W), B);  // 16
 			Base fg=new Sigmoid().forward(gate.slice(new int[][]{r(-1),r(4)})); // 4

@@ -7,13 +7,13 @@ import gss.layers.*;
 import gss.lossfunctions.*;
 import gss.optimizers.*;
 import java.util.*;
-import modules.*;
 
 import static gss.Util.*;
 import static gss.arr.GradFunc.*;
 import static gss.Functions.*;
 import static gss.arr.NDArray.*;
 import static gss.MathUtil.*;
+
 public class Test2_Func
 {
 	public static void test() throws Exception
@@ -41,7 +41,7 @@ public class Test2_Func
 		 !! fix sumGradient -> since axis is an array, it is still using as an integer.
 
 		 +++ test againest value.
-		 >> conv1d 		?
+		 >> conv1d 		50%
 		 >> conv2d .... 50%
 		 >> maxpool1d 	✓
 		 >> maxpool2d 	✓
@@ -92,7 +92,8 @@ public class Test2_Func
 //		test22();
 //		test23();
 //		test24();
-		test25();
+//		test25();
+		test26();
 
 
 		/*
@@ -106,10 +107,50 @@ public class Test2_Func
 		 */
 
 	}
+	void test26()
+	{
+		print(decString("Test 26. embedding new dot product test.", "-", 7));
+		Embedding e=new Embedding(50, 10);
+		print("embedding weights generated.");
+
+		Base indices=NDArray.wrap(asFloat(1, 2, 4, 20));
+		Base oneHot=NDArray.onehot(indices, e.vocabSize);
+
+
+		Base o=e.forward(oneHot);
+		Base o2=e.forwardWithIndices(indices);
+		// Base o2=o;
+
+		println("one hot", o, " === ", o2);
+
+		Base g=NDArray.arange(length(o.shape), o.shape);
+		o.setGrad(g);
+		o.backward();
+
+		println(g, e.embeddingWeight.detachGradient());
+
+		println("both operation are equals = " + Util.equals(o, o2));
+
+	}
 	void test25()
 	{
-		
+		print(decString("Test 25. new dot function test.", "-", 7));
+		int sz=128;
+		Base aa=NDArray.rand(sz, sz);
+		Base bb=NDArray.rand(sz, sz);
 
+		float[][]a=MathUtil.copy2(aa);
+		float[][]b=MathUtil.copy2(bb);
+
+		long t=System.currentTimeMillis();
+		// Base out2=NDArray.dot(aa, bb); // 106000
+		// float[][]out=MathUtil.dot(a, b); // 9000
+		float[]out2=MathUtil.dot2(a, b);
+		t = System.currentTimeMillis() - t;
+
+		// print("result equals " + Util.equals(NDArray.wrap(out), NDArray.wrap(out2, sz, sz)));
+
+		print(t + " millis to finish(" + sz + ", " + sz + ") arrays");
 	}
 	void test24()
 	{
@@ -174,6 +215,8 @@ public class Test2_Func
 		println(decString("input gradient result ", 20),  i1.detachGradient());
 		println("result equals ::" + (Util.equals(out, res) ? "true : ✓": "false : X"));
 		print("input gradient equals ::" + (Util.equals(inpGrd, i1.detachGradient()) ?"true : ✓": "false : X"));
+
+
 	}
 	void agrad(float[][]in, float[][]k, float[][]grd, float[][]aout, float[][]bout)
 	{

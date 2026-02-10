@@ -7,6 +7,52 @@ import static gss.Util.*;
 
 public class MathUtil
 {
+	public static float dot(float[]a, float[]b)
+	{
+		if (a.length != b.length)
+			error("both a and b array are not equal in length(" + (a.length + " ≠ " + b.length) + ")");
+		float s=0;
+		for (int i=0;i < a.length;i++)
+			s += a[i] * b[i];
+		return s;
+	}
+	// use this function if you know the output shape of the dot product of two arrays.
+	// this method returns the flat array.
+	public static float[]dot2(float[][]a, float[][]b)
+	{
+		if (a[0].length != b.length)
+			error("invalid dimension for dot product: a.column(" + a[0].length + ") not equal to b.row(" + b.length + ")");
+		float[]out=new float[a.length * b[0].length];
+		int pos=0;
+		for (int ar=0;ar < a.length;ar++)
+			for (int bc=0;bc < b[0].length;bc++)
+			{
+				float sm=0;	
+				for (int c=0;c < a[0].length;c++)
+				{
+					sm += a[ar][c] * b[bc][c];
+				}
+				out[pos++] = sm;
+			}
+		return out;
+	}
+	public static float[][]dot(float[][]a, float[][]b)
+	{
+		if (a[0].length != b.length)
+			error("invalid dimension for dot product: a.column(" + a[0].length + ") not equal to b.row(" + b.length + ")");
+		float[][]out=new float[a.length][b[0].length];
+		for (int ar=0;ar < a.length;ar++)
+			for (int bc=0;bc < b[0].length;bc++)
+			{
+				float sm=0;	
+				for (int c=0;c < a[0].length;c++)
+				{
+					sm += a[ar][c] * b[bc][c];
+				}
+				out[ar][bc] = sm;
+			}
+		return out;
+	}
 	public static float[]conv1d(Base in, Base kern)
 	{
 		return conv1d(in, kern, null);
@@ -230,6 +276,15 @@ public class MathUtil
 				out[or][oc] = sm / len;
 			}
 		return out;
+	}
+	public static float[]copy1(Base in)
+	{
+		if (in.getDim() != 1)
+			error("the input dimension must be 1, found :" + in.getDim());
+		float[] o=new float[in.shape[0]];
+		for (int or=0;or < in.shape[0];or++)
+			o[or] = in.get(or);
+		return o;
 	}
 	public static float[][]copy2(Base in)
 	{

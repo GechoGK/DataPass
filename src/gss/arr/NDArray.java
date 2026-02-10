@@ -326,19 +326,26 @@ public class NDArray
 		if (b.shape[b.shape.length - 1] != a.shape[a.shape.length - 1])
 			throw new RuntimeException("invalid shape dor dot product.");
 		int[] sh={a.shape[0],b.shape[0]};
-		Base bs=new Base(sh);
+		print("==",sh);
 		// make it faster by caching it.
 		// float[] outData=new float[a.shape[0] * b.shape[0]];
+		float[][]aa=MathUtil.copy2(a);
+		float[][]bb=MathUtil.copy2(b);
+		float[][]o=new float[a.shape[0]][b.shape[0]];
+		int p=0;
 		for (int ar=0;ar < a.shape[0];ar++)
 			for (int br=0;br < b.shape[0];br++)
 			{
 				float sm=0;	
 				for (int c=0;c < a.shape[1];c++)
 				{
-					sm += a.get(ar, c) * b.get(br, c);
+					sm += aa[ar][c] * bb[br][c];
+					// sm += a.get(ar, c) * b.get(br, c);
 				}
-				bs.set(new int[]{ar,br}, sm);
+				o[ar][br] = sm;
+				// bs.set(new int[]{ar,br}, sm);
 			}
+		Base bs=NDArray.wrap(o);
 		bs.setRequiresGradient(a.hasGradient() | b.hasGradient());
 		bs.setGradientFunctionS(GradFunc.dotGradient, a, b);
 		return bs.reshape(out);
