@@ -150,7 +150,7 @@ public class NDArray
 	{
 		int[]sh=copy(b.shape);
 		float[] data=loop(sh, axis, func);
-		int[]newShape=fromAxis(sh, axis);
+		int[]newShape=fromNonAxis(sh, axis);
 		if (!keepDim)
 			newShape = remove(newShape, axis);
 		Base out=NDArray.wrap(data, newShape).setRequiresGradient(b.hasGradient());
@@ -657,6 +657,7 @@ public class NDArray
 	}
 	public static Base variance(Base d, int...axis)
 	{
+		// needs caching....
 		Base m=mean(d, axis);
 		Base v0 = NDArray.pow(NDArray.sub(d, m), 2);
 		v0 = NDArray.div(NDArray.sum(v0, axis), length(collect(v0.shape, axis)));

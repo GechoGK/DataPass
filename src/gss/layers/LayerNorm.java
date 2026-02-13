@@ -17,10 +17,12 @@ public class LayerNorm extends Module
 	@Override
 	public Base forward(Base dataIn)
 	{
+		// fix axis problem.
 		return forward(dataIn, new int[0]);
 	}
 	public Base forward(Base dataIn, int[]axis)
 	{
+		// needs caching.
 		// gradient block start
 		Base in = dataIn.as2DArray();
 		Base mean = NDArray.mean(in, axis).reshape(in.shape[0], 1);

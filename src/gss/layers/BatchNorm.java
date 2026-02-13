@@ -17,11 +17,16 @@ public class BatchNorm extends Module
 	@Override
 	public Base forward(Base dataIn)
 	{
+		return forward(dataIn, 0);
+	}
+	public Base forward(Base dataIn, int...axis)
+	{
+		// needs caching.
 		// gradient block start
 		Base in = dataIn.reshape(dataIn.shape[0], -1);
-		Base mean = NDArray.mean(in, 0).reshape(1, in.shape[1]);
+		Base mean = NDArray.mean(in, axis).reshape(1, in.shape[1]);
 
-		Base var = NDArray.variance(in, 0).reshape(mean.shape);
+		Base var = NDArray.variance(in, axis).reshape(mean.shape);
 		Base norm = NDArray.div(NDArray.sub(in , mean), NDArray.sqrt(NDArray.add(var, eps)));
 
 		Base out = NDArray.add(NDArray.mul(gamma, norm), beta);

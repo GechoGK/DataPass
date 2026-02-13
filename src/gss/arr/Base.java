@@ -7,6 +7,16 @@ import java.util.*;
 import static gss.Util.*;
 import static gss.arr.GradFunc.*;
 
+/*
+ --- create a container for
+ >> unmodified data.
+ >> transposed data.
+ >> sliced data -> if it have !=1 jumps
+ -- remake all method with the tag @CONT on all containers.
+ // that will increase a little performance.
+ */
+
+// Basic unmodified container.
 public class Base implements Serializable
 {
 	public static final long serialVersionUID=297474738l;
@@ -196,6 +206,7 @@ public class Base implements Serializable
 		b.setGradientFunctionS(stepGradient, this);
 		return b;
 	}
+	// @CONT
 	public void fill(float v)
 	{
 		// don't fill all items.
@@ -213,6 +224,7 @@ public class Base implements Serializable
 		else
 			Arrays.fill(data.items, offset, offset + length, v);
 	}
+	// @CONT
 	public int shapeToIndex(int...index)
 	{
 		int newPos=0;
@@ -235,6 +247,7 @@ public class Base implements Serializable
 		}
 		return newPos + offset;
 	}
+	// @CONT
 	public int[] indexToShape(int index)
 	{
 		int[] out=new int[shape.length];
@@ -245,6 +258,7 @@ public class Base implements Serializable
 		}
 		return out;
 	}
+	// @CONT...
 	public float get(int...index)
 	{
 		int ind=Math.max(0, shapeToIndex(index));
@@ -253,6 +267,7 @@ public class Base implements Serializable
 			System.out.println(getCount++ + ". get at(" + Arrays.toString(index) + ") = " + dt);
 		return dt;
 	}
+	// @CONT
 	// get array data length of @count.
 	public float[] get(int[]index, int count)
 	{
@@ -267,17 +282,20 @@ public class Base implements Serializable
 		}
 		return f;
 	}
+	// @CONT
 	// set single value to the data.
 	public void append(int[]index, float val)
 	{
 		int ind=shapeToIndex(index);
 		data.items[ind] += val;
 	}
+	// @CONT
 	public void set(int[]index, float val)
 	{
 		int ind=shapeToIndex(index);
 		data.items[ind] = val;
 	}
+	// @CONT
 	public void set(Base d)
 	{
 		// lazy set value.
@@ -357,6 +375,7 @@ public class Base implements Serializable
 //		for (int i=index;i < Math.min(dt.length, data.length - index);i++)
 //			data.items[index] = dt[pos++];
 //	}
+	// @CONT
 	// data manipulation functions.
 	public Base reshape(int...newShape)
 	{
@@ -373,13 +392,7 @@ public class Base implements Serializable
 			throw new RuntimeException("can't view this array into " + Arrays.toString(newShape) + " shape. Reason!! the length is not equal");
 		Base d=newBase(data, newShape, offset);
 		d.setRequiresGradient(hasGradient());
-		if (d.hasGradient())
-		{
-			d.setGradientFunction(stepGradient, this);
-//			// d.setGradientFunction(gradientFunction);
-//			// d.setGradientParams(params);
-//			// d.gradient = gradient;
-		}
+		d.setGradientFunctionS(stepGradient, this);
 		return d;
 	}
 	public Base reshapeLocal(int...newShape)
@@ -397,6 +410,7 @@ public class Base implements Serializable
 		// 	throw new RuntimeException("invalid shape or data. they are not equal in length.");
 		return this;
 	}
+	// @CONT
 	public Base transpose()
 	{
 		int[] ax=new int[shape.length];
@@ -404,6 +418,7 @@ public class Base implements Serializable
 			ax[i] = ax.length - i - 1;
 		return transpose(ax);
 	}
+	// @CONT
 	public Base transpose(int...axes)
 	{
 		if (axes.length != shape.length)
@@ -475,6 +490,7 @@ public class Base implements Serializable
 	{
 		return !isTransposed() && !isSliced();
 	}
+	// @CONT
 	public Base copy()
 	{
 		// System.out.println("copying...");
@@ -512,6 +528,7 @@ public class Base implements Serializable
 			return d;
 		}
 	}
+	// @CONT
 	public Base deepCopy()
 	{
 		// System.out.println("copying...");
@@ -653,6 +670,7 @@ public class Base implements Serializable
 		}
 		return d;
 	}
+	// @CONT
 	// set and get method for specific dim.
 	public void set1d(int x, float val)
 	{
@@ -663,6 +681,7 @@ public class Base implements Serializable
 		else
 			set(indexToShape(x), val);
 	}
+	// @CONT
 	public float get1d(int x)
 	{
 		if (isOriginal())
@@ -693,23 +712,27 @@ public class Base implements Serializable
 	{
 		fillGrad(v);
 	}
+	// @CONT
 	// --v  this function appends the gradient value.
 	public void setGrad(int[]index, float val)
 	{
 		int ind=shapeToIndex(index);
 		data.gradient[ind] += val;
 	}
+	// @CONT
 	// --v this function overwrite the value of gradient into a new one, used for zero gradient.
 	public void setGrad2(int[]index, float val)
 	{
 		int ind=shapeToIndex(index);
 		data.gradient[ind] = val;
 	}
+	// @CONT
 	public float getGrad(int...index)
 	{
 		int ind=Math.max(0, shapeToIndex(index));
 		return data.gradient[ind];
 	}
+	// @CONT
 	public void fillGrad(float v)
 	{
 		if (!hasGradient())
@@ -733,6 +756,7 @@ public class Base implements Serializable
 			// Arrays.fill(data.gradient, offset, offset + length, v);
 		}
 	}
+	// @CONT
 	public void setGrad(Base d)
 	{
 		if (!hasGradient())
@@ -748,6 +772,7 @@ public class Base implements Serializable
 			setGrad(tmpSh, d.get(tmpSh));
 		}
 	}
+	// @CONT
 	public void set1dGrad(int x, float val)
 	{
 		if (isOriginal())
@@ -757,6 +782,7 @@ public class Base implements Serializable
 		else
 			setGrad(indexToShape(x), val);
 	}
+	// @CONT
 	public float get1dGrad(int x)
 	{
 		if (isOriginal())

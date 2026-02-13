@@ -693,6 +693,10 @@ public class Util
 	{
 		throw new RuntimeException(o + "");
 	}
+	public static void warn(Object o)
+	{
+		System.out.println("!!! " + o);
+	}
 	public static int[] copyB(int[] src, int len)
 	{
 		int[] out=new int[len];
@@ -845,7 +849,7 @@ public class Util
 		if (axis.length > shapeOrig.length)
 			error("axis length can't be greater than shape length, axis length :" + axis.length + " > " + shapeOrig.length);
 		int[]shape=Arrays.copyOf(shapeOrig, shapeOrig.length);
-		shape = fromAxis(shape, axis);
+		shape = fromNonAxis(shape, axis);
 		int len=length(shape);
 		float[]out=new float[len];
 		for (int i=0;i < len;i++)
@@ -881,7 +885,7 @@ public class Util
 			out[i] = arr[index[i]];
 		return out;
 	}
-	public static int[] fromAxis(int[]sh, int[]ax)
+	public static int[] fromNonAxis(int[]sh, int[]ax)
 	{
 		for (int i=0;i < ax.length;i++)
 			sh[ax[i]] = 1;

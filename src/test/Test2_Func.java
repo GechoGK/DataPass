@@ -93,7 +93,8 @@ public class Test2_Func
 //		test23();
 //		test24();
 //		test25();
-		test26();
+//		test26();
+		test27();
 
 
 		/*
@@ -105,6 +106,11 @@ public class Test2_Func
 		 -- Data supplier. maybe.
 		 -- more modules. ...
 		 */
+
+	}
+	void test27()
+	{
+
 
 	}
 	void test26()

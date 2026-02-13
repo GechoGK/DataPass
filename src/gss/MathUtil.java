@@ -47,7 +47,7 @@ public class MathUtil
 				float sm=0;	
 				for (int c=0;c < a[0].length;c++)
 				{
-					sm += a[ar][c] * b[bc][c];
+					sm += a[ar][c] * b[c][bc];
 				}
 				out[ar][bc] = sm;
 			}
@@ -276,6 +276,14 @@ public class MathUtil
 				out[or][oc] = sm / len;
 			}
 		return out;
+	}
+	public static float[] variance()
+	{
+		return null;
+	}
+	public static float[]sum()
+	{
+		return null;
 	}
 	public static float[]copy1(Base in)
 	{

@@ -16,8 +16,9 @@ public class Main
 
 		Mode.setStrictBroadcast(true);
 
-	}
+		print(decString("Test completed.", "=", 10));
 
+	}
 	void a() throws Exception
 	{
 //		test1();
@@ -38,8 +39,6 @@ public class Main
 //		print(getString("=", 30));
 //		
 //		Test2_LayereTest.test();
-
-		print(decString("Test completed.", "=", 10));
 
 	}
 	void test6() throws Exception
