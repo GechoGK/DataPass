@@ -59,7 +59,7 @@ public class Softmax extends Activation
 		// Calculate exponentials
 		float sum=0;
 		float[] exponentials = new float[ar];
-		for (int i = 0; i < ar; i++)
+		for (int i = 0;i < ar; i++)
 		{
 			float exps=(float)Math.exp(arr.getRaw(i) - max);
 			exponentials[i] = exps;

@@ -13,6 +13,7 @@ import static gss.arr.GradFunc.*;
 import static gss.Functions.*;
 import static gss.arr.NDArray.*;
 import static gss.MathUtil.*;
+import gss.DataLoader.*;
 
 public class Test2_Func
 {
@@ -94,8 +95,8 @@ public class Test2_Func
 //		test24();
 //		test25();
 //		test26();
-		test27();
-
+//		test27();
+		test28();
 
 		/*
 		 TO-DO
@@ -108,10 +109,72 @@ public class Test2_Func
 		 */
 
 	}
-	void test27()
+	void test28() throws Exception
 	{
+		test27();
+	}
+	void test27() throws Exception
+	{
+		print(decString("Test 27.Conv2d prediction test. ✓", "-", 7));
 
+		Base i1=NDArray.wrap(new float[][][]{
+								 {
+									 {0.1f,0.02f,0.1f},
+									 {1,1,1},
+									 {0.1f,0.2f,0.1f}
+								 },
+								 {
+									 {1,0.1f,0.1f},
+									 {0.1f,1,0.1f},
+									 {0.1f,0.1f,1}
+								 },		
+								 {
+									 {0.1f,1,0.1f},
+									 {0.05f,1,0.07f},
+									 {0.1f,1,0.1f}
+								 }
 
+							 }).reshapeLocal(3, 1, 3, 3);
+		Base tr=NDArray.wrap(new float[][]{{0,1,0,0},{0,0,1,0},{0,0,0,1}});
+
+		Conv2d cnn1=new Conv2d(3, 1, 5, 2);
+		// println("===" + cnn1.outputSize);
+		// print(i1);
+		// print(cnn1.kernels);
+		Sequential mdl=new Sequential(
+			cnn1
+			//, new Printer()
+			, new Relu()
+			, new Flatten(true)
+			, new Linear(20, 7)
+			, new Relu()
+			, new Linear(7, 4)
+			, new Relu()
+		);
+
+		LossFunc lossF=new MSE();
+		Optimizer opt=new Adam(mdl.getParameters());
+		opt.learningRate = 0.001f;
+		int ps=0;
+		float lossV=Float.MAX_VALUE;
+		Base out=null;
+		while (lossV >= 0.0005f)
+		{
+			out = mdl.forward(i1);
+			Base loss=lossF.forward(out, tr);
+			lossV = loss.get(0);
+
+			// print("loss :" + lossV);
+			if (ps % 100 == 0)
+				print("loss :" + lossV, out);
+
+			opt.zeroGrad();
+			loss.setGrad(1);
+			loss.backward();
+			opt.step();
+			ps++;
+		}
+		println("Itetation completed.\n==== Final ouput ====", "loss = " + lossV, out);
 	}
 	void test26()
 	{
@@ -121,7 +184,6 @@ public class Test2_Func
 
 		Base indices=NDArray.wrap(asFloat(1, 2, 4, 20));
 		Base oneHot=NDArray.onehot(indices, e.vocabSize);
-
 
 		Base o=e.forward(oneHot);
 		Base o2=e.forwardWithIndices(indices);

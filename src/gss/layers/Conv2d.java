@@ -10,9 +10,9 @@ import static gss.MathUtil.*;
 
 public class Conv2d extends Module
 {
-	private int inputSize,numChannels,numKernels,kernelSize;
-	private int outputSize;
-	private boolean useBiase;
+	public int inputSize,numChannels,numKernels,kernelSize;
+	public int outputSize;
+	public boolean useBiase;
 
 	// ... padding and strides.
 
@@ -40,7 +40,7 @@ public class Conv2d extends Module
 	{
 		outputSize = (inputSize - kernelSize) + 1; // for normal convolution.
 		int[]sh={numKernels, numChannels, kernelSize, kernelSize};
-		kernels = newParam(NDArray.arange(1, length(sh) + 1)).reshapeLocal(sh); // change NDArray.ones -> NDArray.rand
+		kernels = newParam(NDArray.rand(sh)); // change NDArray.ones -> NDArray.rand
 		if (useBiase)
 			biase = newParam(NDArray.ones(numKernels, outputSize, outputSize)); // 3d array.
 	}
@@ -61,7 +61,7 @@ public class Conv2d extends Module
 	 .     [7,8,9]],
 	 .    [[10,11,12],
 	 .     [13,14.15]
-	 .     [16,17,18]]  = 1,2,3,3 (2 cahnnel 3 x 3) image.
+	 .     [16,17,18]]  = 1,2,3,3 (2 channel 3 x 3) image.
 	 b = [[[[1,2],
 	 .      [3,4]],
 	 .     [[5,6]
@@ -294,9 +294,11 @@ public class Conv2d extends Module
 			Base kernel=childs[1];
 
 			float[][][][]in=copy4(input);
-			float[][][][]inG=new float[in.length][in[0].length][in[0][0].length][in[0][0][0].length];
 			float[][][][]krn=copy4(kernel);
+			
+			float[][][][]inG=new float[in.length][in[0].length][in[0][0].length][in[0][0][0].length];
 			float[][][][]krnG=new float[krn.length][krn[0].length][krn[0][0].length][krn[0][0][0].length];
+			
 			float[][][][]grd=copy4(host.detachGradient());
 
 			for (int b=0;b < input.shape[0];b++) // loop over input batch.
@@ -312,8 +314,10 @@ public class Conv2d extends Module
 					}
 				}
 			}
-			MathUtil.append(kernel.detachGradient(), krnG);
-			MathUtil.append(input.detachGradient(), inG);
+			if (kernel.hasGradient())
+				MathUtil.append(kernel.detachGradient(), krnG);
+			if (input.hasGradient())
+				MathUtil.append(input.detachGradient(), inG);
 			return null;
 		}
 		void agrad(float[][]in, float[][]k, float[][]grd, float[][]aout, float[][]bout)
@@ -328,9 +332,9 @@ public class Conv2d extends Module
 							float kval=k[kr][kc];
 							float ival=in[gr + ir][gc + ic];
 							// ag += kval * gval;
-							aout[gr + ir][gc + ic] += kval * gval;
+							aout[gr + ir][gc + ic] += kval * gval; // input gradient.
 							// kg += ival * gval;
-							bout[kr][kc] += ival * gval;
+							bout[kr][kc] += ival * gval; // kernel gradient.
 						}
 				}
 		}

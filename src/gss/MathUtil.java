@@ -277,13 +277,19 @@ public class MathUtil
 			}
 		return out;
 	}
-	public static float[] variance()
+	public static float max(float[]dt)
 	{
-		return null;
+		float mx=Float.MIN_VALUE;
+		for (float f:dt)
+			mx = Math.max(f, mx);
+		return mx;
 	}
-	public static float[]sum()
+	public static float min(float[]dt)
 	{
-		return null;
+		float mx=Float.MAX_VALUE;
+		for (float f:dt)
+			mx = Math.min(f, mx);
+		return mx;
 	}
 	public static float[]copy1(Base in)
 	{

@@ -14,7 +14,7 @@ public class Tanh extends Activation
 		{
 			out[i] = (float)Math.tanh(dt.get(dt.indexToShape(i)));
 		}
-		Base arrOut=new Base(out, array.shape) .setRequiresGradient(dt.hasGradient());
+		Base arrOut=new Base(out, array.shape).setRequiresGradient(dt.hasGradient());
 		if (arrOut.hasGradient())
 			arrOut.setGradientFunction(tanhGradient, dt);
 		return arrOut;

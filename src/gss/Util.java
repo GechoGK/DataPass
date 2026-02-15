@@ -342,13 +342,15 @@ public class Util
 	public static float[] range(float str, float end, float inc)
 	{
 		float cnt=(end - str);
-		float[] f=new float[(int)(cnt / inc) + (cnt % inc == 0 ?0: 1)];
+		float[] f=new float[(int)(cnt / inc)];// + (cnt % inc == 0 ?0: 1)];
 		int p=0;
-		for (float i=str;i < end;i += inc)
-		{
-			f[p] = i;
-			p++;
-		}
+		for (int i=0;i < f.length;i++)
+			f[p++] = (i * inc) + str;
+//		for (float i=str;i < end;i += inc)
+//		{
+//			f[p] = i;
+//			p++;
+//		}
 		return f;
 	}
 	/*

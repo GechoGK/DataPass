@@ -29,7 +29,7 @@ public class NDArray
 	public static Base arange(float lim, int[]shape)
 	{
 		float len=length(shape);
-		float inc= lim / len;
+		float inc = lim / len;
 		return arange(0, lim, inc).reshapeLocal(shape);
 	}
 	public static Base ones(int...shape)
@@ -324,9 +324,9 @@ public class NDArray
 			b = b.reshape(-1, b.shape[b.shape.length - 1]);
 		}
 		if (b.shape[b.shape.length - 1] != a.shape[a.shape.length - 1])
-			throw new RuntimeException("invalid shape dor dot product.");
+			error("invalid shape dor dot product.(" + b.shape[b.shape.length - 1] + " != " + a.shape[a.shape.length - 1] + ")");
 		int[] sh={a.shape[0],b.shape[0]};
-		print("==",sh);
+		// print("==", sh);
 		// make it faster by caching it.
 		// float[] outData=new float[a.shape[0] * b.shape[0]];
 		float[][]aa=MathUtil.copy2(a);
@@ -365,7 +365,7 @@ public class NDArray
 	{
 		// this method expect the array before transposed.
 		if (n(sh1, 0) != n(sh2, sh2.length == 1 ?0: 1))
-			throw new RuntimeException("incompatable shape for dot product.");
+			error("incompatable shape for dot product.(" + n(sh1, 0) + " != " + n(sh2, sh2.length == 1 ?0: 1) + ")");
 		int len=sh1.length + sh2.length - 2;
 		// print("length :", len);
 		if (len == 0)
@@ -819,5 +819,48 @@ public class NDArray
 		o.setRequiresGradient(in.hasGradient() || kern.hasGradient());
 		// o.setGradientFunctionS(convolve2DGradient);
 		return o;
+	}
+	// functions that doesn't implemented gradient.
+	public static Base normalize(Base arr)
+	{
+		float[] dt=new float[arr.length]; // used for cache
+		dt[0] = arr.get(0);
+		float min=dt[0],max=dt[0];
+		for (int i=1;i < arr.length;i++)
+		{
+			float v=arr.get1d(i);
+			dt[i] = v;
+			min = Math.min(min, v);
+			max = Math.max(max, v);
+		}
+		float d=max - min;
+		if (d == 0)return arr;
+		float[] normalized = new float[dt.length];
+		for (int i = 0; i < dt.length; i++)
+		{
+			normalized[i] = (dt[i] - min) / d;
+		}
+		Base out=NDArray.wrap(normalized, arr.shape);
+		out.setRequiresGradient(arr.hasGradient());
+		// out.setGradientFunctionS(GradFunc.normalizeGradient, min, max, arr);
+		return out;
+	}
+	public static Base argMax(Base in)
+	{
+		int p=0;
+		float v=in.get1d(0);
+		for (int i=1;i < in.length;i++)
+		{
+			float iv=in.get1d(i);
+			if (iv > v)
+			{
+				v = iv;
+				p = i;
+			}
+		}
+		Base out= NDArray.wrap((float)p, 1);
+		out.setRequiresGradient(in.hasGradient());
+		out.setGradientFunctionS(GradFunc.stepGradient, in);
+		return out;
 	}
 }
