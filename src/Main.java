@@ -35,9 +35,9 @@ public class Main
 		print(getString("=", 30));
 
 		Test2_Func.test();
-
+//
 //		print(getString("=", 30));
-//		
+//
 //		Test2_LayereTest.test();
 
 	}

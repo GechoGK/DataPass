@@ -339,7 +339,11 @@ public class MathUtil
 		if (arr.getDim() != 1 || arr.length != val.length)
 			error(arr.getDim() != 1 ?"input dimension doesn't match to input value:(" + arr.getDim() + "≠" + 1 + ").": "arr.length doesn't match with value length:(" + arr.length + "≠" + val.length + ").");
 		for (int i=0;i < arr.shape[0];i++)
+		{
 			arr.set(ar(i), val[i]);
+			// to enable broadcasting, uncomment the code below instead.
+			// arr.set(ar(i), val[Math.min(i,val.length)]);
+		}
 		return arr;
 	}
 	public static Base set(Base arr, float[][]val)
@@ -348,7 +352,11 @@ public class MathUtil
 			error(arr.getDim() != 2 ?"input dimension doesn't match to input value:(" + arr.getDim() + "≠" + 2 + ").": "arr.length doesn't match with value length:(" + arr.shape[0] + "," + arr.shape[1] + " ≠ " + val.length + "," + val[0].length + ").");
 		for (int i=0;i < arr.shape[0];i++)
 			for (int j=0;j < arr.shape[1];j++)
+			{
 				arr.set(ar(i, j), val[i][j]);
+				// to enable broadcasting, uncomment the code below instead.
+				// arr.set(ar(i, j), val[Math.min(i,val.length)][Math.min(j,val[i].length)]);
+			}
 		return arr;
 	}
 	public static Base set(Base arr, float[][][]val)
@@ -358,7 +366,11 @@ public class MathUtil
 		for (int d=0;d < arr.shape[0];d++)
 			for (int r=0;r < arr.shape[1];r++)
 				for (int c=0;c < arr.shape[2];c++)
+				{
 					arr.set(ar(d, r, c), val[d][r][c]);
+					// to enable broadcasting, uncomment the code below instead.
+					// arr.set(ar(d,r,c), val[Math.min(d,val.length)][Math.min(r,val[d].length)][Math.min(c,val[d][r].length)]);
+				}
 		return arr;
 	}
 	public static Base set(Base arr, float[][][][]val)
@@ -369,7 +381,11 @@ public class MathUtil
 			for (int d=0;d < arr.shape[1];d++)
 				for (int r=0;r < arr.shape[2];r++)
 					for (int c=0;c < arr.shape[3];c++)
+					{
 						arr.set(ar(b, d, r, c), val[b][d][r][c]);
+						// to enable broadcasting, uncomment the code below instead.
+						// arr.set(ar(d,r,c), val[Math.min(b,val.length)][Math.min(d,val[b].length)][Math.min(r,val[b][d].length)]...);
+					}
 		return arr;
 	}
 	// append values.
@@ -378,7 +394,7 @@ public class MathUtil
 		if (arr.getDim() != 1 || arr.length != val.length)
 			error(arr.getDim() != 1 ?"input dimension doesn't match to input value:(" + arr.getDim() + "≠" + 1 + ").": "arr.length doesn't match with value length:(" + arr.length + "≠" + val.length + ").");
 		for (int i=0;i < arr.shape[0];i++)
-			arr.append(ar(i), val[i]);
+			arr.append(ar(i), val[i]); // use broadcast method same as, set(Base arr,float[...]val).
 		return arr;
 	}
 	public static Base append(Base arr, float[][]val)
@@ -387,7 +403,7 @@ public class MathUtil
 			error(arr.getDim() != 2 ?"input dimension doesn't match to input value:(" + arr.getDim() + "≠" + 2 + ").": "arr.length doesn't match with value length:(" + arr.shape[0] + "," + arr.shape[1] + " ≠ " + val.length + "," + val[0].length + ").");
 		for (int i=0;i < arr.shape[0];i++)
 			for (int j=0;j < arr.shape[1];j++)
-				arr.append(ar(i, j), val[i][j]);
+				arr.append(ar(i, j), val[i][j]); // use broadcast method same as, set(Base arr,float[...]val).
 		return arr;
 	}
 	public static Base append(Base arr, float[][][]val)
@@ -397,7 +413,7 @@ public class MathUtil
 		for (int d=0;d < arr.shape[0];d++)
 			for (int r=0;r < arr.shape[1];r++)
 				for (int c=0;c < arr.shape[2];c++)
-					arr.append(ar(d, r, c), val[d][r][c]);
+					arr.append(ar(d, r, c), val[d][r][c]); // use broadcast method same as, set(Base arr,float[...]val).
 		return arr;
 	}
 	public static Base append(Base arr, float[][][][]val)
@@ -408,7 +424,7 @@ public class MathUtil
 			for (int d=0;d < arr.shape[1];d++)
 				for (int r=0;r < arr.shape[2];r++)
 					for (int c=0;c < arr.shape[3];c++)
-						arr.append(ar(b, d, r, c), val[b][d][r][c]);
+						arr.append(ar(b, d, r, c), val[b][d][r][c]); // use broadcast method same as, set(Base arr,float[...]val).
 		return arr;
 	}
 }

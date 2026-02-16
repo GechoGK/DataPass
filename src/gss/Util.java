@@ -879,7 +879,15 @@ public class Util
 		for (int i=0;i < len;i++)
 			func.consume(b.indexToShape(i));
 	}
-	// each index items should not be greater than arrays(arr).length.
+	/*
+	 // each index items should not be greater than arrays(arr).length.
+	 // return items from (arr) at every (index)
+	 -- example :-
+	 a = [1,2,3,4,5]
+	 i = [0,2,3]
+	 b = collect(a,b);
+	 == [1,3,4]
+	 */
 	public static int[] collect(int[] arr, int[]index)
 	{
 		int[] out=new int[index.length];
@@ -887,6 +895,20 @@ public class Util
 			out[i] = arr[index[i]];
 		return out;
 	}
+	/*
+	 // return the shape excluding values at ax.
+	 // removing axis, but keepin the dim the same.
+	 -- example :-
+	 sh = [2,3,5]
+	 ax = [0]
+	 n  = fromNonAxis(sh,ax);
+	 ==== [1,3,5]
+	 -------
+	 sh = [2,3,5]
+	 ax = [0,2]
+	 n  = fromNonAxis(sh,ax);
+	 ==== [1,3,1]
+	 */
 	public static int[] fromNonAxis(int[]sh, int[]ax)
 	{
 		for (int i=0;i < ax.length;i++)

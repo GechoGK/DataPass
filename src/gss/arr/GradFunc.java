@@ -273,14 +273,12 @@ public abstract class GradFunc implements Serializable
 				Base a=childs[0];
 				if (!a.hasGradient())
 					return null;
-				int dim=params;
+				int[] axis=(int[])params;
+				print("axis for sumGradient :", axis);
 				int[] newShape=copy(a.shape);
-				newShape[dim] = 1;
+				newShape = fromNonAxis(newShape, axis);
 				Base g=host.reshape(newShape);
-				for (int i=0;i < a.length;i++)
-				{
-					a.set1dGrad(i, g.getGrad(indexToShape(i, a.shape))); // avoid getRaw.
-				}
+				a.detachGradient().append(g.detachGradient());
 			}
 			return null;
 		}

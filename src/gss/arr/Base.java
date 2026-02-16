@@ -303,10 +303,25 @@ public class Base implements Serializable
 		if (d.shape.length != this.shape.length) // dimension is not equal
 			throw new RuntimeException("invalid dimension to set.");
 		int[] tmpSh=new int[shape.length];
-		for (int i=0;i < Math.min(length, d.length);i++)
+		for (int i=0;i < length;i++)
 		{
 			Util.indexToShape(i, shape, tmpSh);
 			set(tmpSh, d.get(tmpSh));
+		}
+	}
+	// same as set(Base d) but it doesn't overwrite values.
+	// @CONT
+	public void append(Base d)
+	{
+		// lazy set value.
+		// it doesn't check the dimension equality and the length equality.
+		if (d.shape.length != this.shape.length) // dimension is not equal
+			throw new RuntimeException("invalid dimension to set.");
+		int[] tmpSh=new int[shape.length];
+		for (int i=0;i < length;i++)
+		{
+			Util.indexToShape(i, shape, tmpSh);
+			append(tmpSh, d.get(tmpSh));
 		}
 	}
 	/*

@@ -13,7 +13,6 @@ import static gss.arr.GradFunc.*;
 import static gss.Functions.*;
 import static gss.arr.NDArray.*;
 import static gss.MathUtil.*;
-import gss.DataLoader.*;
 
 public class Test2_Func
 {
@@ -24,22 +23,22 @@ public class Test2_Func
 		System.out.println(line(50));
 
 		/*
-		 -- embedding 80 % review. -> use index method.
+		 -- embedding 80 % review. -> use index method. ✓
 		 -- LayerNorm (layer normalization) 50 %
 		 -- BatchNorm (batch normalization) 50 %
-		 -- conv2d module ✓  gradient ? // fix out shape ✓ use cache
-		 -- maxPool2d module ✓  gradient ? // fix out shape ✓ use cache
-		 -- avPool1d module ✓  gradient ? // fix out shape ✓ use cache
-		 -- avPool2d module ✓  gradient ? // fix out shape ✓ use cache
+		 -- conv2d module ✓  gradient ? // fix out shape ✓ use cache ✓
+		 -- maxPool2d module ✓  gradient ? // fix out shape ✓ use cache ✓
+		 -- avPool1d module ✓  gradient ? // fix out shape ✓ use cache ✓
+		 -- avPool2d module ✓  gradient ? // fix out shape ✓ use cache ✓
 
-		 >> dot product. review. use cache
-		 >> min
-		 >> max
+		 >> dot product. review. use cache ✓
+		 >> min ✓
+		 >> max ✓
 		 >> fix mean.
 		 >> fix variance.
 		 >> fix NDArray.wrap(.) -> Util.flatten(.) copied array.
 		 !! fix functions to use map...
-		 !! fix sumGradient -> since axis is an array, it is still using as an integer.
+		 !! fix sumGradient -> since axis is an array, it is still using as an integer. ✓
 
 		 +++ test againest value.
 		 >> conv1d 		50%
@@ -76,10 +75,10 @@ public class Test2_Func
 //		test8();
 //		test9();
 //		test10();
-//		test11();
+//		test11(); // fix it. ✓
 //		test12();
 //		test13();
-//		test14();
+//		test14(); // fix it. ✓
 //		test15();
 //		test16();
 //		bug10();
@@ -111,7 +110,7 @@ public class Test2_Func
 	}
 	void test28() throws Exception
 	{
-		test27();
+
 	}
 	void test27() throws Exception
 	{
@@ -154,19 +153,18 @@ public class Test2_Func
 
 		LossFunc lossF=new MSE();
 		Optimizer opt=new Adam(mdl.getParameters());
-		opt.learningRate = 0.001f;
 		int ps=0;
 		float lossV=Float.MAX_VALUE;
 		Base out=null;
-		while (lossV >= 0.0005f)
+		while (lossV >= 0.085f)
 		{
 			out = mdl.forward(i1);
 			Base loss=lossF.forward(out, tr);
 			lossV = loss.get(0);
 
 			// print("loss :" + lossV);
-			if (ps % 100 == 0)
-				print("loss :" + lossV, out);
+			if (ps % 1000 == 0)
+				print("loss :" + lossV);
 
 			opt.zeroGrad();
 			loss.setGrad(1);
@@ -195,7 +193,7 @@ public class Test2_Func
 		o.setGrad(g);
 		o.backward();
 
-		println(g, e.embeddingWeight.detachGradient());
+		// println(g, e.embeddingWeight.detachGradient());
 
 		println("both operation are equals = " + Util.equals(o, o2));
 
@@ -474,77 +472,56 @@ public class Test2_Func
 		float[] f=new float[1024 * 1024];
 		long t=0;
 		float s=0;
-		for (int l=0;l < 30;l++)
-		{
-			t = System.currentTimeMillis();
-			for (int i=0;i < f.length;i++)
-				s = f[i] * 2;
-			t = System.currentTimeMillis() - t;
-			print(t, "millis, raw float");
-		}
+		t = System.currentTimeMillis();
+		for (int i=0;i < f.length;i++)
+			s = f[i] * 2;
+		t = System.currentTimeMillis() - t;
+		print(t, "millis, raw float");
 
 		print(line(20));
 		Base b=NDArray.wrap(f);
-		for (int l=0;l < 30;l++)
-		{
-			t = System.currentTimeMillis();
-			for (int i=0;i < f.length;i++)
-				s = b.get(i) * 2;
-			t = System.currentTimeMillis() - t;
-			print(t, "millis, NDArray(1d).get(...)");
-		}
+		t = System.currentTimeMillis();
+		for (int i=0;i < f.length;i++)
+			s = b.get(i) * 2;
+		t = System.currentTimeMillis() - t;
+		print(t, "millis, NDArray(1d).get(...)");
 
 		print(line(20));
-		for (int l=0;l < 30;l++)
-		{
-			t = System.currentTimeMillis();
-			for (int i=0;i < f.length;i++)
-				s = b.get1d(i) * 2;
-			t = System.currentTimeMillis() - t;
-			print(t, "millis, NDArray(1d).get1d(...)");
-		}
+		t = System.currentTimeMillis();
+		for (int i=0;i < f.length;i++)
+			s = b.get1d(i) * 2;
+		t = System.currentTimeMillis() - t;
+		print(t, "millis, NDArray(1d).get1d(...)");
 
 		print(line(20));
-		for (int l=0;l < 30;l++)
-		{
-			t = System.currentTimeMillis();
-			for (int i=0;i < f.length;i++)
-				s = b.getRaw(i) * 2;
-			t = System.currentTimeMillis() - t;
-			print(t, "millis, getRaw(...)");
-		}
+		t = System.currentTimeMillis();
+		for (int i=0;i < f.length;i++)
+			s = b.getRaw(i) * 2;
+		t = System.currentTimeMillis() - t;
+		print(t, "millis, getRaw(...)");
 
 		print(line(20));
-		for (int l=0;l < 30;l++)
-		{
-			t = System.currentTimeMillis();
-			for (int i=0;i < f.length;i++)
-				s = get(b, i) * 2;
-			t = System.currentTimeMillis() - t;
-			print(t, "millis, getRaw(...)");
-		}
+		t = System.currentTimeMillis();
+		for (int i=0;i < f.length;i++)
+			s = get(b, i) * 2;
+		t = System.currentTimeMillis() - t;
+		print(t, "millis, getRaw(...)");
 
 		b = b.transpose();
 		print(line(20));
-		for (int l=0;l < 30;l++)
-		{
-			t = System.currentTimeMillis();
-			for (int i=0;i < f.length;i++)
-				s = b.get(i) * 2;
-			t = System.currentTimeMillis() - t;
-			print(t, "millis, NDArray(1d).T.get(...)");
-		}
+		t = System.currentTimeMillis();
+		for (int i=0;i < f.length;i++)
+			s = b.get(i) * 2;
+		t = System.currentTimeMillis() - t;
+		print(t, "millis, NDArray(1d).T.get(...)");
 
 		// b = b.transpose(); // already transposed.
 		print(line(20));
-		for (int l=0;l < 30;l++)
-		{
-			t = System.currentTimeMillis();
-			for (int i=0;i < f.length;i++)
-				s = b.get1d(i) * 2;
-			t = System.currentTimeMillis() - t;
-			print(t, "millis, NDArray(1d).T.get1d(...)");
-		}
+		t = System.currentTimeMillis();
+		for (int i=0;i < f.length;i++)
+			s = b.get1d(i) * 2;
+		t = System.currentTimeMillis() - t;
+		print(t, "millis, NDArray(1d).T.get1d(...)");
 
 	}
 	float get(Base b, int i)
@@ -752,7 +729,10 @@ public class Test2_Func
 		println(b.gradientFunction, b);
 
 		b.setGrad(3);
+		a.zeroGrad();
 		b.backward();
+		print(decString("gradients", 5));
+		println(b.detachGradient(), a.detachGradient());
 	}
 	void test10()
 	{
