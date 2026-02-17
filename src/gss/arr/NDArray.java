@@ -150,9 +150,9 @@ public class NDArray
 	{
 		int[]sh=copy(b.shape);
 		float[] data=loop(sh, axis, func);
-		int[]newShape=fromNonAxis(sh, axis);
-		if (!keepDim)
-			newShape = remove(newShape, axis);
+		int[]newShape=fromNonAxis(sh, keepDim, axis);
+//		if (!keepDim)
+//			newShape = remove(newShape, axis);
 		Base out=NDArray.wrap(data, newShape).setRequiresGradient(b.hasGradient());
 		return out;
 	}
@@ -571,12 +571,16 @@ public class NDArray
 		}
 		return outData;
 	}
-	public static Base sum(final Base b, final int...axis)
+	public static Base sum(Base b, int...axis)
+	{
+		return sum(b, false, axis);
+	}
+	public static Base sum(final Base b, boolean keepDim, final int...axis)
 	{
 		final int[]sh=b.shape;
-		final int[]subSh=collect(sh, axis);
+		final int[]subSh=fromAxis(sh, axis);
 		final int length=length(subSh);
-		Base out=reduce(b, axis, true, new Functions.ArrayFunction(){
+		Base out=reduce(b, axis, keepDim, new Functions.ArrayFunction(){
 				@Override
 				public float apply(int[] p1)
 				{
@@ -653,14 +657,14 @@ public class NDArray
 	}
 	public static Base mean(Base d, int...axis)
 	{
-		return NDArray.div(sum(d, axis), length(collect(d.shape, axis)));// d.shape[axis]);
+		return NDArray.div(sum(d, axis), length(fromAxis(d.shape, axis)));// d.shape[axis]);
 	}
 	public static Base variance(Base d, int...axis)
 	{
 		// needs caching....
 		Base m=mean(d, axis);
 		Base v0 = NDArray.pow(NDArray.sub(d, m), 2);
-		v0 = NDArray.div(NDArray.sum(v0, axis), length(collect(v0.shape, axis)));
+		v0 = NDArray.div(NDArray.sum(v0, axis), length(fromAxis(v0.shape, axis)));
 		return v0;
 	}
 	// less than

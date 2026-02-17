@@ -825,6 +825,12 @@ public class Util
 			arr[index[i]] = val[i];
 		return arr;
 	}
+	public static int[]replace(int[]arr, int[]index, int val)
+	{
+		for (int i=0;i < index.length;i++)
+			arr[index[i]] = val;
+		return arr;
+	}
 	/*
 	 loop through all posible values fro the given shape(array)
 	 @int[] shape. the array to be iterated.
@@ -888,11 +894,26 @@ public class Util
 	 b = collect(a,b);
 	 == [1,3,4]
 	 */
-	public static int[] collect(int[] arr, int[]index)
+	public static int[]fromAxis(int[]arr, int...axis)
 	{
-		int[] out=new int[index.length];
-		for (int i=0;i < index.length;i++)
-			out[i] = arr[index[i]];
+		return fromAxis(arr, false, axis);
+	}
+	public static int[] fromAxis(int[] arr, boolean keepDim, int...axis)
+	{
+		int[] out=null;
+		if (keepDim)
+		{
+			out = new int[arr.length];
+			Arrays.fill(out, 1);
+			for (int i=0;i < axis.length;i++)
+				out[axis[i]] = arr[axis[i]];
+		}
+		else
+		{
+			out = new int[axis.length];
+			for (int i=0;i < axis.length;i++)
+				out[i] = arr[axis[i]];
+		}
 		return out;
 	}
 	/*
@@ -909,11 +930,21 @@ public class Util
 	 n  = fromNonAxis(sh,ax);
 	 ==== [1,3,1]
 	 */
-	public static int[] fromNonAxis(int[]sh, int[]ax)
+	public static int[]fromNonAxis(int[]sh, int...ax)
 	{
-		for (int i=0;i < ax.length;i++)
-			sh[ax[i]] = 1;
-		return sh;
+		return fromNonAxis(sh, false, ax);
+	}
+	public static int[] fromNonAxis(int[]sh, boolean keepDim, int...ax)
+	{
+		int[]out=null;
+		if (keepDim)
+		{
+			out = copy(sh);
+			replace(out, ax, 1);
+		}
+		else
+			out = remove(sh, ax);
+		return out;
 	}
 	/*
 	 read text from file.
@@ -979,12 +1010,18 @@ public class Util
 		fis.close();
 		return obj;
 	}
-	public static String check(boolean b)
+	public static boolean assertEquals(boolean b)
+	{
+		return assertEquals("", b);
+	}
+	public static boolean assertEquals(Object msg, boolean b)
 	{
 		if (!b)
 			error("assertion error");
-		return "passed ✓";
+		print(msg, "passed ✓");
+		return true;
 	}
+
 	public static boolean equalsExcept(int[] sh1, int[] sh2, int index)
 	{
 		if (sh1.length != sh2.length)

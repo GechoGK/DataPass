@@ -23,6 +23,7 @@ public class Test2_Func
 		System.out.println(line(50));
 
 		/*
+		 ----- TO-DO -----
 		 -- embedding 80 % review. -> use index method. ✓
 		 -- LayerNorm (layer normalization) 50 %
 		 -- BatchNorm (batch normalization) 50 %
@@ -49,12 +50,12 @@ public class Test2_Func
 		 >> avpool2d 	✓
 		 >> RNN 		?
 		 >> LSTM 		?
-		 >> BatchNorm 	?
-		 >> LayerNorm 	?
+		 >> BatchNorm 	? XX
+		 >> LayerNorm 	? XX
 		 >> concat 		?
-		 >> variance 	?
+		 >> variance 	? XX
 		 >> mean 		?
-		 >> sum 		?
+		 >> sum 		? XX
 		 >> dot 		?
 
 		 */
@@ -95,7 +96,8 @@ public class Test2_Func
 //		test25();
 //		test26();
 //		test27();
-		test28();
+//		test28();
+		test29();
 
 		/*
 		 TO-DO
@@ -108,8 +110,43 @@ public class Test2_Func
 		 */
 
 	}
+	void test29()
+	{
+		// review the above "TO-DO" list.
+	}
 	void test28() throws Exception
 	{
+		print(decString("Test 28.fromAxis and fromNonAxis test. ✓", "-", 7));
+		/*
+		 fromAxis
+		 fromNonAxis
+		 remove
+		 */
+		int[]sh={2,3,4,5,6};
+
+		print(decString("From Axis", 7));
+
+		int[]frmAx=fromAxis(sh, 0, 2);
+		int[]frmAxD=fromAxis(sh, true, 0, 2);
+
+		print(sh, "from axis", ar(0, 2), "=", frmAx);
+		print(sh, "from axis(keepDim=true)", ar(0, 2), "=", frmAxD);
+
+		assertEquals("length equality", length(frmAx) == length(frmAxD));
+		assertEquals("array equality keepDim(false)", Arrays.equals(frmAx, ar(2, 4)));
+		assertEquals("array equality keepDim(true)", Arrays.equals(frmAxD, ar(2, 1, 4, 1, 1)));
+
+		print(decString("From Non Axis", 7));
+
+		int[]frmNAx=fromNonAxis(sh, 0, 2);
+		int[]frmNAxD=fromNonAxis(sh, true, 0, 2);
+
+		print(sh, "from non axis", ar(0, 2), "=", frmNAx);
+		print(sh, "from non axis(keepDim=true)", ar(0, 2), "=", frmNAxD);
+
+		assertEquals("length equality", length(frmNAx) == length(frmNAxD));
+		assertEquals("array equality keepDim(false)", Arrays.equals(frmNAx, ar(3, 5, 6)));
+		assertEquals("array equality keepDim(true)", Arrays.equals(frmNAxD, ar(1, 3, 1, 5, 6)));
 
 	}
 	void test27() throws Exception
@@ -593,12 +630,12 @@ public class Test2_Func
 		print(">>", b.get(20, 3));
 
 		int[] tsh=copyB(ar(1, 2, 3), 5);
-		print(tsh, check(Arrays.equals(tsh, ar(0, 0, 1, 2, 3))));
+		print(tsh, assertEquals(Arrays.equals(tsh, ar(0, 0, 1, 2, 3))));
 
 		tsh = copyB(ar(9, 4, 1, 2, 7), 3);
-		print(tsh, check(Arrays.equals(tsh, ar(1, 2, 7))));
+		print(tsh, assertEquals(Arrays.equals(tsh, ar(1, 2, 7))));
 
-		print("concateates shape", check(Arrays.equals(concatShape(ar(1, 2, 3), ar(1, 5, 3), 1), ar(1, 7, 3))));
+		print("concateates shape", assertEquals(Arrays.equals(concatShape(ar(1, 2, 3), ar(1, 5, 3), 1), ar(1, 7, 3))));
 
 		print("equals except", equalsExcept(ar(1, 2, 3), ar(1, 5, 3), 1));
 
@@ -610,7 +647,7 @@ public class Test2_Func
 					return 5;
 				}
 			});
-		print("mapped test", check(Util.equals(mapped, NDArray.wrap(asFloat(5, 5, 5, 5, 5, 5), 2, 3))));
+		print("mapped test", assertEquals(Util.equals(mapped, NDArray.wrap(asFloat(5, 5, 5, 5, 5, 5), 2, 3))));
 
 		println(line(20), "concat test");
 		Base b1=NDArray.arange(9).reshapeLocal(3, 3);
@@ -618,16 +655,16 @@ public class Test2_Func
 
 		Base combined=NDArray.concat(b1, b2, 1);
 		println(b1, b2, combined);
-		print("concatenation test 1 ", check(Util.equals(combined, NDArray.wrap(asFloat(0, 1, 2, 10, 11, 12, 13, 14,
-																						3, 4, 5, 15, 16, 17, 18, 19,
-																						6, 7, 8, 20, 21, 22, 23, 24), 3, 8))));
+		print("concatenation test 1 ", assertEquals(Util.equals(combined, NDArray.wrap(asFloat(0, 1, 2, 10, 11, 12, 13, 14,
+																							   3, 4, 5, 15, 16, 17, 18, 19,
+																							   6, 7, 8, 20, 21, 22, 23, 24), 3, 8))));
 
 		b1 = NDArray.wrap(asFloat(1, 6, 4));
 		b2 = NDArray.wrap(asFloat(3, 8, 6, 0, 9));
 		Base comb2=NDArray.concat(b1, b2, 0);
 
 		println(b1, b2, comb2);
-		print("concatenation test 2", check(Util.equals(comb2, NDArray.wrap(asFloat(1, 6, 4, 3, 8, 6, 0, 9)))));
+		print("concatenation test 2", assertEquals(Util.equals(comb2, NDArray.wrap(asFloat(1, 6, 4, 3, 8, 6, 0, 9)))));
 
 	}
 	void test15() throws Exception

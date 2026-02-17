@@ -276,7 +276,7 @@ public abstract class GradFunc implements Serializable
 				int[] axis=(int[])params;
 				print("axis for sumGradient :", axis);
 				int[] newShape=copy(a.shape);
-				newShape = fromNonAxis(newShape, axis);
+				newShape = fromNonAxis(newShape, true, axis);
 				Base g=host.reshape(newShape);
 				a.detachGradient().append(g.detachGradient());
 			}
