@@ -21,6 +21,7 @@ public class BCE extends LossFunc
 	@Override
 	public Base forward(Base predicted, Base target)
 	{
+		// !!! batch diesn't supported yet.
 		Base prd=predicted.as1DArray();
 		Base tr=target.as1DArray();
 

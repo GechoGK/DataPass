@@ -1,6 +1,7 @@
 package test;
 
 import gss.*;
+import gss.DataLoader.*;
 import gss.act.*;
 import gss.arr.*;
 import gss.layers.*;
@@ -97,7 +98,8 @@ public class Test2_Func
 //		test26();
 //		test27();
 //		test28();
-		test29();
+//		test29();
+		test30();
 
 		/*
 		 TO-DO
@@ -110,9 +112,109 @@ public class Test2_Func
 		 */
 
 	}
-	void test29()
+	void test30() throws Exception
 	{
+		// activation functions doesn't support batch.
+		test29();
+	}
+	Optimizer opt;
+	void test29() throws Exception
+	{
+		print(decString("Test 29. Conv2D MNIST test. X", "-", 7));
+		// doesn't work.... on MSE,MAE
+		// normalize the data first.
+		// use LayerNorm after Conv2d layers.
 		// review the above "TO-DO" list.
+		String iPath="/sdcard/AppProjects/t10k-images.idx3-ubyte";
+		String lPth="/sdcard/AppProjects/t10k-labels.idx1-ubyte";
+		MNISTLoader loader=new MNISTLoader(iPath, lPth);
+		loader.load(5);
+		print(loader.getInfo());
+
+		inputB();
+		Base input=loader.loadedImages.addDimLocal(1);
+		input = NDArray.normalize(input);
+		Base targetRaw=loader.loadedLabels;
+		print(targetRaw);
+		Base target = NDArray.onehot(targetRaw, 10);
+		print(targetRaw);
+
+		// dataloaded.
+
+		Conv2d cnn1=new Conv2d(28, 1, 15, 7); // 28-7+1 = 22
+		Sequential model=new Sequential(
+			cnn1
+			, new AvPool2d(2) // 11
+			, new Elu()
+			// 
+			, cnn1 = new Conv2d(cnn1.outputSize / 2, 15, 9, 6) // 11-6+1 = 6
+			, new AvPool2d(2) // 3
+			, new Elu()
+			, new LayerNorm(3, 3)
+			//
+			// , cnn1 = new Conv2d(cnn1.outputSize, 5, 3, 6) // 12-6+1 = 7
+			// , new Relu() // 7
+			// 
+			, new Flatten(true) // 3*3 * 9 = 81
+			, new Linear(81, 20)
+			// , new Relu()
+			, new Linear(20, 10)
+			, new Elu()
+		// , new Printer()
+		);
+
+		LossFunc lossF=new BCE();
+		opt = new Adam(model.getParameters());
+		opt.learningRate = 0.05f;
+		float lossV=Float.MAX_VALUE;
+
+		Base out=null;
+		int itr=0;
+		while (Math.abs(lossV) >= 0.01 && itr++ >= 0)
+		{
+			lossV = 0;
+			// for (int i=0;i < input.shape[0];i++)
+			Base in=input;
+			Base tr=target;
+			out = model.forward(in);
+			Base loss=lossF.forward(out, tr);
+			float ls = loss.get(0);
+			lossV += ls;
+			System.out.print(".");
+			if (itr % 15 == 0)
+			{
+				System.out.println();
+				print(lossV + " ,,, " + opt.learningRate);
+				print(targetRaw);
+				print(out);
+			}
+			opt.zeroGrad();
+			loss.setGrad(1);
+			loss.backward();
+			opt.step();
+		}
+		println(decString("output", 10), "loss = " + lossV, out);
+	}
+	void inputB()
+	{
+		new Thread(new Runnable(){
+				@Override
+				public void run()
+				{
+					Scanner sc=new Scanner(System.in);
+					String ln="";
+					while ((ln = sc.nextLine()) != null && !ln.equals("exit"))
+					{
+						if (ln.startsWith("l"))
+						{
+							ln = ln.substring(1);
+							float f=Float.valueOf(ln);
+							opt.learningRate = f;
+							System.out.println("learning rate changed to :" + f);
+						}
+					}
+				}
+			}).start();
 	}
 	void test28() throws Exception
 	{

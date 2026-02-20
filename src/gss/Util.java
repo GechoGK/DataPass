@@ -856,8 +856,8 @@ public class Util
 			axis = new int[0];
 		if (axis.length > shapeOrig.length)
 			error("axis length can't be greater than shape length, axis length :" + axis.length + " > " + shapeOrig.length);
-		int[]shape=Arrays.copyOf(shapeOrig, shapeOrig.length);
-		shape = fromNonAxis(shape, axis);
+		int[]shape=replace(shapeOrig, axis, 1);
+		// shape = fromNonAxis(shape, axis);
 		int len=length(shape);
 		float[]out=new float[len];
 		for (int i=0;i < len;i++)
@@ -944,6 +944,8 @@ public class Util
 		}
 		else
 			out = remove(sh, ax);
+		if (out.length == 0)
+			return new int[]{1};
 		return out;
 	}
 	/*

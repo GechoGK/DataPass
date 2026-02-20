@@ -656,6 +656,16 @@ public class Base implements Serializable
 		}
 		return reshape(-1, shape[shape.length - 3], shape[shape.length - 2], shape[shape.length - 1]);
 	}
+	public Base addDim(int axis)
+	{
+		int[]shp=insert(shape, 1, axis);
+		return reshape(shp);
+	}
+	public Base addDimLocal(int axis)
+	{
+		int[]shp=insert(shape, 1, axis);
+		return reshapeLocal(shp);
+	}
 	public Base trim()
 	{
 		int c=0;

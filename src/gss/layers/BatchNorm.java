@@ -23,14 +23,14 @@ public class BatchNorm extends Module
 	{
 		// needs caching.
 		// gradient block start
-		Base in = dataIn.reshape(dataIn.shape[0], -1);
-		Base mean = NDArray.mean(in, axis).reshape(1, in.shape[1]);
-
-		Base var = NDArray.variance(in, axis).reshape(mean.shape);
+		Base in=dataIn; // apply shape transformation
+		// Base in = dataIn.reshape(dataIn.shape[0], -1);
+		Base mean = NDArray.mean(in, true, axis);
+		Base var = NDArray.variance(in, true, axis);
 		Base norm = NDArray.div(NDArray.sub(in , mean), NDArray.sqrt(NDArray.add(var, eps)));
 
 		Base out = NDArray.add(NDArray.mul(gamma, norm), beta);
-		out = out.reshape(dataIn.shape);
+		// out = out.reshape(dataIn.shape);
 		// gradient block end.
 		return out;
 	}

@@ -151,6 +151,7 @@ public class NDArray
 		int[]sh=copy(b.shape);
 		float[] data=loop(sh, axis, func);
 		int[]newShape=fromNonAxis(sh, keepDim, axis);
+		// print("== ", axis, newShape);
 //		if (!keepDim)
 //			newShape = remove(newShape, axis);
 		Base out=NDArray.wrap(data, newShape).setRequiresGradient(b.hasGradient());
@@ -573,10 +574,14 @@ public class NDArray
 	}
 	public static Base sum(Base b, int...axis)
 	{
+		if (axis.length == 0)
+			return sum(b, false);
 		return sum(b, false, axis);
 	}
 	public static Base sum(final Base b, boolean keepDim, final int...axis)
 	{
+		if (axis == null || axis.length == 0)
+			return sum(b, keepDim);
 		final int[]sh=b.shape;
 		final int[]subSh=fromAxis(sh, axis);
 		final int length=length(subSh);
@@ -599,12 +604,24 @@ public class NDArray
 	}
 	public static Base sum(Base b)
 	{
+		return sum(b, false);
+	}
+	public static Base sum(Base b, boolean keepDim)
+	{
 		float sum=0;
 		for (int i=0;i < b.length;i++)
 		{
 			sum += b.get1d(i);
 		}
-		Base out=wrap(sum, 1).setRequiresGradient(b.hasGradient());
+		int[]sh=null;
+		if (keepDim)
+		{
+			sh = new int[b.shape.length];
+			Arrays.fill(sh, 1);
+		}
+		else
+			sh = new int[]{1};
+		Base out=wrap(sum, sh).setRequiresGradient(b.hasGradient());
 		out.setGradientFunctionS(sumGradient, b);
 		return out;
 	}
@@ -651,9 +668,17 @@ public class NDArray
 	{
 		return div(1, d);
 	}
+	public static Base mean(Base d, boolean keepDim)
+	{
+		return NDArray.div(sum(d, keepDim), d.length);
+	}
 	public static Base mean(Base d)
 	{
 		return NDArray.div(sum(d), d.length);
+	}
+	public static Base mean(Base d, boolean keepDim, int...axis)
+	{
+		return NDArray.div(sum(d, keepDim, axis), length(fromAxis(d.shape, axis)));
 	}
 	public static Base mean(Base d, int...axis)
 	{
@@ -661,10 +686,21 @@ public class NDArray
 	}
 	public static Base variance(Base d, int...axis)
 	{
+		return variance(d, false, axis);
+	}
+	public static Base variance(Base d, boolean keepDim, int...axis)
+	{
 		// needs caching....
-		Base m=mean(d, axis);
+		Base m=mean(d, true, axis);
 		Base v0 = NDArray.pow(NDArray.sub(d, m), 2);
-		v0 = NDArray.div(NDArray.sum(v0, axis), length(fromAxis(v0.shape, axis)));
+		v0 = NDArray.div(NDArray.sum(v0, true, axis), length(fromAxis(v0.shape, axis)));
+		// sum can be cached.
+		if (!keepDim)
+		{
+			int[]newShp=copy(v0.shape);
+			newShp = remove(newShp, axis);
+			v0 = v0.reshape(newShp);
+		}
 		return v0;
 	}
 	// less than

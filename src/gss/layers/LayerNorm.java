@@ -5,10 +5,10 @@ import gss.arr.*;
 
 public class LayerNorm extends Module
 {
-	private Base gamma,beta;
+	public Base gamma,beta;
 	private float eps=0;
 
-	public LayerNorm(int features_shape)
+	public LayerNorm(int...features_shape)
 	{
 		gamma = newParam(NDArray.ones(features_shape));
 		beta = newParam(NDArray.zeros(features_shape));
@@ -18,21 +18,20 @@ public class LayerNorm extends Module
 	public Base forward(Base dataIn)
 	{
 		// fix axis problem.
-		return forward(dataIn, new int[0]);
+		return forward(dataIn, new int[]{dataIn.shape.length - 1});
 	}
-	public Base forward(Base dataIn, int[]axis)
+	public Base forward(Base dataIn, int...axis)
 	{
 		// needs caching.
 		// gradient block start
-		Base in = dataIn.as2DArray();
-		Base mean = NDArray.mean(in, axis).reshape(in.shape[0], 1);
-		Base var = NDArray.variance(in, axis).reshape(mean.shape);
-
+		Base in=dataIn;
+		// Base in = dataIn.as2DArray();
+		Base mean = NDArray.mean(in, true, axis);
+		Base var = NDArray.variance(in, true, axis);
 		Base norm = NDArray.div(NDArray.sub(in , mean), NDArray.sqrt(NDArray.add(var, eps)));
-
 		Base out = NDArray.add(NDArray.mul(gamma, norm), beta);
 
-		out = out.reshape(dataIn.shape);
+		// out = out.reshape(dataIn.shape);
 
 		// gradient block end.
 		return out;
