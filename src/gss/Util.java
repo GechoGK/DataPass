@@ -846,11 +846,11 @@ public class Util
 	 == [1,2]
 	 it call the func.apply(...);
 	 */
-	public static float[] loop(int[]shapeOrig, ArrayFunction func)
+	public static float[] loop(int[]shapeOrig, ArrayFunction func, Object...prm)
 	{
-		return loop(shapeOrig, new int[0], func);
+		return loop(shapeOrig, new int[0], func, prm);
 	}
-	public static float[] loop(int[]shapeOrig, int[]axis, ArrayFunction func)
+	public static float[] loop(int[]shapeOrig, int[]axis, ArrayFunction func, Object...prm)
 	{
 		if (axis == null)
 			axis = new int[0];
@@ -861,7 +861,7 @@ public class Util
 		int len=length(shape);
 		float[]out=new float[len];
 		for (int i=0;i < len;i++)
-			out[i] = func.apply(indexToShape(i, shape));
+			out[i] = func.apply(indexToShape(i, shape), i);
 		return out;
 	}
 	public static int[] loop(int[]shapeOrig, int[]axis, ArrayConsumer func)

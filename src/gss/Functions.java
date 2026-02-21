@@ -15,7 +15,7 @@ public class Functions
 	// return a new float value, by using shape of an array.
 	public abstract static class ArrayFunction
 	{
-		public abstract float apply(int[] p1);
+		public abstract float apply(int[] p1, Object...prm);
 	}
 	// use float value, doesn't return anything.
 	public abstract static class MapConsumer

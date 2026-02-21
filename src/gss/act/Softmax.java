@@ -13,8 +13,18 @@ public class Softmax extends Activation
 	// Base.get(i);
 	// the above two methods have to be used properly.
 	// not only in this class, but also on other loss functions.
+
 	@Override
-	public Base forward(Base array)
+	public Base forward(Base arr)
+	{
+		return forward(arr, arr.shape.length - 1);
+	}
+	public Base forward(Base arr, int...axis)
+	{
+		// Base max=NDArray.max(arr);
+		return forwardOld(arr);
+	}
+	public Base forwardOld(Base array)
 	{
 		// !!!!!! don't put negative values in softmax layer.
 
@@ -30,17 +40,18 @@ public class Softmax extends Activation
 		 so what we need is we need to clip the values that means the largest value will be 1.
 		 x - max will be < 0. the result will be the same.
 		 */
-		Base arr1d=array.as1DArray();
-		Base out=softmaxForward(arr1d);
+		Base out=softmaxForward(array);
 
-		out.reshape(array.shape).setRequiresGradient(arr1d.hasGradient());
+		out.reshape(array.shape).setRequiresGradient(array.hasGradient());
 		// gradient calculator in progress.
 		if (out.hasGradient())
-			out.setGradientFunction(softmaxGradient, arr1d);
+			out.setGradientFunction(softmaxGradient, array);
 		return out;
 	}
 	public static Base softmaxForward(Base arr)
 	{
+		if (arr.getDim() != 1)
+			arr = arr.as1DArray();
 		float[] arrOut=new float[arr.shape[0]];
 		// for (int d=0;d < arr2d.shape[0];d++)
 		// {

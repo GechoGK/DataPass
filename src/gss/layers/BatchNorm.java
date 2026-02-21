@@ -8,10 +8,10 @@ public class BatchNorm extends Module
 	private Base gamma,beta;
 	private float eps=0;
 
-	public BatchNorm(int batch_size)
+	public BatchNorm(int...batch_size)
 	{
-		gamma = newParam(NDArray.ones(batch_size, 1));
-		beta = newParam(NDArray.zeros(batch_size, 1));
+		gamma = newParam(NDArray.ones(batch_size));
+		beta = newParam(NDArray.zeros(batch_size));
 		this.eps = 1e-5f;
 	}
 	@Override

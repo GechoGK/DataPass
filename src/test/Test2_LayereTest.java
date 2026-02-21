@@ -1,6 +1,7 @@
 package test;
 
 import gss.*;
+import gss.DataLoader.*;
 import gss.act.*;
 import gss.arr.*;
 import gss.layers.*;
@@ -49,18 +50,153 @@ public class Test2_LayereTest
 		test21();
 		test22();
 		test23();
-		// test24();// fix it.
+		test24();// fix it. ✓
 		test25();
 		test26();
 		test27();
-		test27();
 		test28();
 		test29();
+		test30();
 
 	}
-	void test29()
+	void test30() throws Exception
 	{
-		
+		print(decString("Test 30. Conv2D MNIST test.", "-", 7));
+		// doesn't work.... on MSE,MAE
+		// normalize the data first.
+		// use LayerNorm after Conv2d layers.
+		// review the above "TO-DO" list.
+		String iPath="/sdcard/AppProjects/t10k-images.idx3-ubyte";
+		String lPth="/sdcard/AppProjects/t10k-labels.idx1-ubyte";
+		MNISTLoader loader=new MNISTLoader(iPath, lPth);
+		loader.load(5);
+		print(loader.getInfo());
+
+		// inputB();
+		Base input=loader.loadedImages.addDimLocal(1);
+		input = NDArray.normalize(input);
+		Base targetRaw=loader.loadedLabels;
+		print(targetRaw);
+		Base target = NDArray.onehot(targetRaw, 10);
+		print(targetRaw);
+
+		// dataloaded.
+
+		Conv2d cnn1=new Conv2d(28, 1, 15, 7); // 28-7+1 = 22
+		Sequential model=new Sequential(
+			cnn1
+			, new AvPool2d(2) // 11
+			, new Elu()
+			// 
+			, cnn1 = new Conv2d(cnn1.outputSize / 2, 15, 9, 6) // 11-6+1 = 6
+			, new AvPool2d(2) // 3
+			, new Elu()
+			, new LayerNorm(3, 3)
+			//
+			// , cnn1 = new Conv2d(cnn1.outputSize, 5, 3, 6) // 12-6+1 = 7
+			// , new Relu() // 7
+			// 
+			, new Flatten(true) // 3*3 * 9 = 81
+			, new Linear(81, 20)
+			// , new Relu()
+			, new Linear(20, 10)
+			, new Elu()
+		// , new Printer()
+		);
+
+		LossFunc lossF=new BCE();
+		Optimizer opt = new Adam(model.getParameters());
+		opt.learningRate = 0.05f;
+		float lossV=Float.MAX_VALUE;
+
+		Base out=null;
+		int itr=0;
+		while (Math.abs(lossV) >= 0.01 && itr++ >= 0)
+		{
+			lossV = 0;
+			// for (int i=0;i < input.shape[0];i++)
+			Base in=input;
+			Base tr=target;
+			out = model.forward(in);
+			Base loss=lossF.forward(out, tr);
+			float ls = loss.get(0);
+			lossV += ls;
+			System.out.print(".");
+			if (itr % 15 == 0)
+			{
+				System.out.println();
+				print(lossV + " ,,, " + opt.learningRate);
+				print(targetRaw);
+				print(out);
+			}
+			opt.zeroGrad();
+			loss.setGrad(1);
+			loss.backward();
+			opt.step();
+		}
+		println(decString("output", 10), "loss = " + lossV, out);
+	}
+	void test29() throws Exception
+	{
+		print(decString("Test 29.Conv2d prediction test. ✓", "-", 7));
+
+		Base i1=NDArray.wrap(new float[][][]{
+								 {
+									 {0.1f,0.02f,0.1f},
+									 {1,1,1},
+									 {0.1f,0.2f,0.1f}
+								 },
+								 {
+									 {1,0.1f,0.1f},
+									 {0.1f,1,0.1f},
+									 {0.1f,0.1f,1}
+								 },		
+								 {
+									 {0.1f,1,0.1f},
+									 {0.05f,1,0.07f},
+									 {0.1f,1,0.1f}
+								 }
+
+							 }).reshapeLocal(3, 1, 3, 3);
+		Base tr=NDArray.wrap(new float[][]{{0,1,0,0},{0,0,1,0},{0,0,0,1}});
+
+		Conv2d cnn1=new Conv2d(3, 1, 5, 2);
+		// println("===" + cnn1.outputSize);
+		// print(i1);
+		// print(cnn1.kernels);
+		Sequential mdl=new Sequential(
+			cnn1
+			//, new Printer()
+			, new Relu()
+			, new Flatten(true)
+			, new Linear(20, 7)
+			, new Relu()
+			, new Linear(7, 4)
+			, new Relu()
+		);
+
+		LossFunc lossF=new MSE();
+		Optimizer opt=new Adam(mdl.getParameters());
+		int ps=0;
+		float lossV=Float.MAX_VALUE;
+		Base out=null;
+		while (lossV >= 0.085f)
+		{
+			out = mdl.forward(i1);
+			Base loss=lossF.forward(out, tr);
+			lossV = loss.get(0);
+
+			// print("loss :" + lossV);
+			if (ps % 1000 == 0)
+				print("loss :" + lossV);
+
+			opt.zeroGrad();
+			loss.setGrad(1);
+			loss.backward();
+			opt.step();
+			ps++;
+		}
+		println("Itetation completed.\n==== Final ouput ====", "loss = " + lossV, out);
 	}
 	void test28()
 	{

@@ -98,8 +98,7 @@ public class Test2_Func
 //		test26();
 //		test27();
 //		test28();
-//		test29();
-		test30();
+		test29();
 
 		/*
 		 TO-DO
@@ -109,92 +108,42 @@ public class Test2_Func
 		 -- import and export modules. ✓
 		 -- Data supplier. maybe.
 		 -- more modules. ...
+		 -- Save model data and load.
+		 -- conv layers padding and stride.
 		 */
 
 	}
-	void test30() throws Exception
+	void test29()
 	{
+
+		// fix softmax
+		// make Trainer.
+
+	}
+	void test28() throws Exception
+	{
+		print(decString("Test 30. Min,Mqx with axis test.", "-", 7));
 		// activation functions doesn't support batch.
-		test29();
+		Base b=NDArray.rand(2, 3, 10);
+
+		Base mn1=NDArray.min(b);
+		Base mn2=NDArray.min(b, true);
+		Base mn3=NDArray.min(b, 2);
+		Base mn4=NDArray.min(b, true, 2);
+
+		Base mx1=NDArray.max(b);
+		Base mx2=NDArray.max(b, true);
+		Base mx3=NDArray.max(b, 1);
+		Base mx4=NDArray.max(b, true, 1);
+
+		println(b);
+
+		println(mn1, mn2, mn3, mn4);
+		print(line(20));
+		println(mx1, mx2, mx3, mx4);
+
 	}
-	Optimizer opt;
-	void test29() throws Exception
-	{
-		print(decString("Test 29. Conv2D MNIST test. X", "-", 7));
-		// doesn't work.... on MSE,MAE
-		// normalize the data first.
-		// use LayerNorm after Conv2d layers.
-		// review the above "TO-DO" list.
-		String iPath="/sdcard/AppProjects/t10k-images.idx3-ubyte";
-		String lPth="/sdcard/AppProjects/t10k-labels.idx1-ubyte";
-		MNISTLoader loader=new MNISTLoader(iPath, lPth);
-		loader.load(5);
-		print(loader.getInfo());
 
-		inputB();
-		Base input=loader.loadedImages.addDimLocal(1);
-		input = NDArray.normalize(input);
-		Base targetRaw=loader.loadedLabels;
-		print(targetRaw);
-		Base target = NDArray.onehot(targetRaw, 10);
-		print(targetRaw);
-
-		// dataloaded.
-
-		Conv2d cnn1=new Conv2d(28, 1, 15, 7); // 28-7+1 = 22
-		Sequential model=new Sequential(
-			cnn1
-			, new AvPool2d(2) // 11
-			, new Elu()
-			// 
-			, cnn1 = new Conv2d(cnn1.outputSize / 2, 15, 9, 6) // 11-6+1 = 6
-			, new AvPool2d(2) // 3
-			, new Elu()
-			, new LayerNorm(3, 3)
-			//
-			// , cnn1 = new Conv2d(cnn1.outputSize, 5, 3, 6) // 12-6+1 = 7
-			// , new Relu() // 7
-			// 
-			, new Flatten(true) // 3*3 * 9 = 81
-			, new Linear(81, 20)
-			// , new Relu()
-			, new Linear(20, 10)
-			, new Elu()
-		// , new Printer()
-		);
-
-		LossFunc lossF=new BCE();
-		opt = new Adam(model.getParameters());
-		opt.learningRate = 0.05f;
-		float lossV=Float.MAX_VALUE;
-
-		Base out=null;
-		int itr=0;
-		while (Math.abs(lossV) >= 0.01 && itr++ >= 0)
-		{
-			lossV = 0;
-			// for (int i=0;i < input.shape[0];i++)
-			Base in=input;
-			Base tr=target;
-			out = model.forward(in);
-			Base loss=lossF.forward(out, tr);
-			float ls = loss.get(0);
-			lossV += ls;
-			System.out.print(".");
-			if (itr % 15 == 0)
-			{
-				System.out.println();
-				print(lossV + " ,,, " + opt.learningRate);
-				print(targetRaw);
-				print(out);
-			}
-			opt.zeroGrad();
-			loss.setGrad(1);
-			loss.backward();
-			opt.step();
-		}
-		println(decString("output", 10), "loss = " + lossV, out);
-	}
 	void inputB()
 	{
 		new Thread(new Runnable(){
@@ -209,14 +158,14 @@ public class Test2_Func
 						{
 							ln = ln.substring(1);
 							float f=Float.valueOf(ln);
-							opt.learningRate = f;
+							// opt.learningRate = f;
 							System.out.println("learning rate changed to :" + f);
 						}
 					}
 				}
 			}).start();
 	}
-	void test28() throws Exception
+	void test27() throws Exception
 	{
 		print(decString("Test 28.fromAxis and fromNonAxis test. ✓", "-", 7));
 		/*
@@ -250,68 +199,6 @@ public class Test2_Func
 		assertEquals("array equality keepDim(false)", Arrays.equals(frmNAx, ar(3, 5, 6)));
 		assertEquals("array equality keepDim(true)", Arrays.equals(frmNAxD, ar(1, 3, 1, 5, 6)));
 
-	}
-	void test27() throws Exception
-	{
-		print(decString("Test 27.Conv2d prediction test. ✓", "-", 7));
-
-		Base i1=NDArray.wrap(new float[][][]{
-								 {
-									 {0.1f,0.02f,0.1f},
-									 {1,1,1},
-									 {0.1f,0.2f,0.1f}
-								 },
-								 {
-									 {1,0.1f,0.1f},
-									 {0.1f,1,0.1f},
-									 {0.1f,0.1f,1}
-								 },		
-								 {
-									 {0.1f,1,0.1f},
-									 {0.05f,1,0.07f},
-									 {0.1f,1,0.1f}
-								 }
-
-							 }).reshapeLocal(3, 1, 3, 3);
-		Base tr=NDArray.wrap(new float[][]{{0,1,0,0},{0,0,1,0},{0,0,0,1}});
-
-		Conv2d cnn1=new Conv2d(3, 1, 5, 2);
-		// println("===" + cnn1.outputSize);
-		// print(i1);
-		// print(cnn1.kernels);
-		Sequential mdl=new Sequential(
-			cnn1
-			//, new Printer()
-			, new Relu()
-			, new Flatten(true)
-			, new Linear(20, 7)
-			, new Relu()
-			, new Linear(7, 4)
-			, new Relu()
-		);
-
-		LossFunc lossF=new MSE();
-		Optimizer opt=new Adam(mdl.getParameters());
-		int ps=0;
-		float lossV=Float.MAX_VALUE;
-		Base out=null;
-		while (lossV >= 0.085f)
-		{
-			out = mdl.forward(i1);
-			Base loss=lossF.forward(out, tr);
-			lossV = loss.get(0);
-
-			// print("loss :" + lossV);
-			if (ps % 1000 == 0)
-				print("loss :" + lossV);
-
-			opt.zeroGrad();
-			loss.setGrad(1);
-			loss.backward();
-			opt.step();
-			ps++;
-		}
-		println("Itetation completed.\n==== Final ouput ====", "loss = " + lossV, out);
 	}
 	void test26()
 	{
@@ -744,7 +631,7 @@ public class Test2_Func
 		print("map test");
 		Base mapped=NDArray.map(ar(2, 3), new ArrayFunction(){
 				@Override
-				public float apply(int[] p1)
+				public float apply(int[] p1, Object[]o)
 				{
 					return 5;
 				}
@@ -956,7 +843,7 @@ public class Test2_Func
 		final int axis=0;
 		ArrayFunction cons=new ArrayFunction(){
 			@Override
-			public float apply(int[] p1)
+			public float apply(int[] p1, Object[]o)
 			{
 				float out=0;
 				for (int i=0;i < b1.shape[axis];i++)

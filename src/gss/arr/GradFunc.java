@@ -377,15 +377,34 @@ public abstract class GradFunc implements Serializable
 			return null;
 		}	
 	};
-	public static GradFunc indexGradient = new GradFunc("index"){
+	public static GradFunc indexGradient=new GradFunc("index"){
 		@Override
 		public Base backward(Base host, Base[] childs, Object params)
 		{
-			int index=params;
+			Base ch=childs[0];
+			int[]inds=(int[])params;
+			if (host.length != inds.length)
+				error("invalid gradient value for indexes");
+			for (int i=0;i < inds.length;i++)
+			{
+				float g=host.get1dGrad(i);
+				ch.set1dGrad(inds[i], g);
+			}
+			return null;
+		}
+	};
+	public static GradFunc maskGradient=new GradFunc("mask"){
+		@Override
+		public Base backward(Base host, Base[] childs, Object params)
+		{
+			// print("mask gradient not implemented.");
+			Base grd=host.detachGradient().as1DArray();// .base.data.getGrads();
+			int[] mask=((int[])params);
 			Base c1=childs[0];
-			if (host.length != 1)
-				error("invalid gradient value for index");
-			c1.set1dGrad(index, host.getGrad(0));
+			if (host.length != c1.length)
+				throw new RuntimeException("unable to compute dropout backpropagation.: invalid array length between the host and the child.");
+			Base rs=NDArray.mul(grd, new Base(Util.asFloat(mask)));
+			c1.setGrad(rs);
 			return null;
 		}
 	};

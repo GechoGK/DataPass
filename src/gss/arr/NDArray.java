@@ -587,7 +587,7 @@ public class NDArray
 		final int length=length(subSh);
 		Base out=reduce(b, axis, keepDim, new Functions.ArrayFunction(){
 				@Override
-				public float apply(int[] p1)
+				public float apply(int[] p1, Object[]p2)
 				{
 					float sum=0;
 					for (int i=0;i < length;i++)
@@ -771,39 +771,145 @@ public class NDArray
 			});
 		return out.setGradientFunctionS(pass2Gradient, wrap(new float[]{sd1}), d2);
 	}
+	public static Base min(Base b, int...axis)
+	{
+		return min(b, false, axis);
+	}
+	public static Base min(final Base b, boolean keepDim, final int...axis)
+	{
+		if (axis == null || axis.length == 0)
+			return min(b, keepDim);
+		final int[]sh=b.shape;
+		final int[]subSh=fromAxis(sh, axis);
+		final int length=length(subSh);
+		// 
+		int[]outSh=fromNonAxis(sh, true, axis);
+		int indLen=length(outSh);
+		final int[]indexes=new int[indLen];
+		//
+		Base out=reduce(b, axis, keepDim, new Functions.ArrayFunction(){
+				@Override
+				public float apply(int[] p1, Object[]p2)
+				{
+					int[]newSH=indexToShape(0, subSh);
+					replace(p1, axis, newSH);
+					float mx= b.get(p1);
+					int ind=0;
+					for (int i=1;i < length;i++)
+					{
+						newSH = indexToShape(i, subSh);
+						replace(p1, axis, newSH);
+						float v = b.get(p1);
+						if (v < mx)
+						{
+							mx = v;
+							ind = shapeToIndex(p1, b.shape);
+						}
+					}
+					indexes[(int)p2[0]] = ind;
+					return mx;
+				}
+			}).setRequiresGradient(b.hasGradient());
+		out.setGradientFunctionS(indexGradient, indexes, b);
+		return out;
+	}
 	public static Base min(Base b)
 	{
-		float val=Float.MAX_VALUE;
-		int index=0;
-		for (int i=0;i < b.length;i++)
+		return min(b, false);
+	}
+	public static Base min(Base b, boolean keepDim)
+	{
+		float val=b.get1d(0);
+		int[]index={0};
+		for (int i=1;i < b.length;i++)
 		{
 			float v=b.get1d(i);
 			if (v < val)
 			{
 				val = v;
-				index = i;
+				index[0] = i;
 			}
 		}
-		Base res=empty(1).setRequiresGradient(b.hasGradient());
-		res.set(ar(0), val);
+		int[]sh=null;
+		if (keepDim)
+		{
+			sh = new int[b.shape.length];
+			Arrays.fill(sh, 1);
+		}
+		else
+			sh = new int[]{1};
+		Base res=wrap(val, sh).setRequiresGradient(b.hasGradient());
 		res.setGradientFunctionS(indexGradient, index, b);
 		return res;
 	}
+	public static Base max(Base b, int...axis)
+	{
+		return max(b, false, axis);
+	}
+	public static Base max(final Base b, boolean keepDim, final int...axis)
+	{
+		if (axis == null || axis.length == 0)
+			return max(b, keepDim);
+		final int[]sh=b.shape;
+		final int[]subSh=fromAxis(sh, axis);
+		final int length=length(subSh);
+		// 
+		int[]outSh=fromNonAxis(sh, true, axis);
+		int indLen=length(outSh);
+		final int[]indexes=new int[indLen];
+		//
+		Base out=reduce(b, axis, keepDim, new Functions.ArrayFunction(){
+				@Override
+				public float apply(int[] p1, Object[]p2)
+				{
+					int[]newSH=indexToShape(0, subSh);
+					replace(p1, axis, newSH);
+					float mx= b.get(p1);
+					int ind=0;
+					for (int i=1;i < length;i++)
+					{
+						newSH = indexToShape(i, subSh);
+						replace(p1, axis, newSH);
+						float v = b.get(p1);
+						if (v > mx)
+						{
+							mx = v;
+							ind = shapeToIndex(p1, b.shape);
+						}
+					}
+					indexes[(int)p2[0]] = ind;
+					return mx;
+				}
+			}).setRequiresGradient(b.hasGradient());
+		out.setGradientFunctionS(indexGradient, indexes, b);
+		return out;
+	}
 	public static Base max(Base b)
 	{
-		float val=Float.MIN_VALUE;
-		int index=0;
-		for (int i=0;i < b.length;i++)
+		return max(b, false);
+	}
+	public static Base max(Base b, boolean keepDim)
+	{
+		float val=b.get1d(0);
+		int[]index={0};
+		for (int i=1;i < b.length;i++)
 		{
 			float v=b.get1d(i);
 			if (v > val)
 			{
 				val = v;
-				index = i;
+				index[0] = i;
 			}
 		}
-		Base res=empty(1).setRequiresGradient(b.hasGradient());
-		res.set(ar(0), val);
+		int[]sh=null;
+		if (keepDim)
+		{
+			sh = new int[b.shape.length];
+			Arrays.fill(sh, 1);
+		}
+		else
+			sh = new int[]{1};
+		Base res=wrap(val, sh).setRequiresGradient(b.hasGradient());
 		res.setGradientFunctionS(indexGradient, index, b);
 		return res;
 	}
@@ -824,7 +930,7 @@ public class NDArray
 		int[] outShape=concatShape(i1_shape, i2_shape, axis);
 		Base b=map(outShape, new ArrayFunction(){
 				@Override
-				public float apply(int[] p1)
+				public float apply(int[] p1, Object[]p2)
 				{
 					if (p1[axis] >= i1_shape[axis])
 					{

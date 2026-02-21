@@ -42,23 +42,22 @@ public class Dropout extends Module
         }
         Base b = new Base(output, input.shape);
 		b.setRequiresGradient(in.hasGradient());
-		if (b.hasGradient())
-			b.setGradientFunction(dropoutGradient, mask, in);
+		b.setGradientFunctionS(GradFunc.maskGradient, mask, in);
 		// b.setGradientParams(mask);
 		return b;
     }
-	public static GradFunc dropoutGradient = new GradFunc("dropout"){
-		@Override
-		public Base backward(Base host, Base[] childs, Object params)
-		{
-			Base grd=host.detachGradient().as1DArray();// .base.data.getGrads();
-			int[] mask=((int[])params);
-			Base c1=childs[0];
-			if (host.length != c1.length)
-				throw new RuntimeException("unable to compute dropout backpropagation.: invalid array length between the host and the child.");
-			Base rs=NDArray.mul(grd, new Base(Util.asFloat(mask)));
-			c1.setGrad(rs);
-			return null;
-		}
-	};
+//	public static GradFunc dropoutGradient = new GradFunc("dropout"){
+//		@Override
+//		public Base backward(Base host, Base[] childs, Object params)
+//		{
+//			Base grd=host.detachGradient().as1DArray();// .base.data.getGrads();
+//			int[] mask=((int[])params);
+//			Base c1=childs[0];
+//			if (host.length != c1.length)
+//				throw new RuntimeException("unable to compute dropout backpropagation.: invalid array length between the host and the child.");
+//			Base rs=NDArray.mul(grd, new Base(Util.asFloat(mask)));
+//			c1.setGrad(rs);
+//			return null;
+//		}
+//	};
 }
